@@ -1,0 +1,8 @@
+{
+    "notes": {
+      "project_patterns": ["社内ダミー", "島村楽器", ""],
+      "employee_patterns": ["景山 朋美", "佐藤花子", "全社員"]
+    },
+    "target_project": "",
+    "target_employee": "景山 朋美"
+  }
