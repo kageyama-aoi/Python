@@ -10,7 +10,7 @@
             "name": "実行",
             "type": "python",
             "request": "launch",
-            "program": "summary_kousuu0716_1.py",
+            "program": "main.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

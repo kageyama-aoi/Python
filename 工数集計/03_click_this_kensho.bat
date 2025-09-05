@@ -12,7 +12,7 @@ SET output=%filename%
 REM SET output=kageyama.txt
 
 @echo on
-python summary_kousuu_2025_0227.py 2> ./error_log/%output%
+python main.py 2> ./error_log/%output%
 REM python ./00_MAIN/summary_kousuu_2024_1106.py 1>%output% 2>&1
 REM python bugreport.py
 parse
