@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Open Shortcut Configuration",
+    "description": "Configuration file for the Open Shortcut application.",
+    "type": "object",
+    "properties": {
+        "settings": {
+            "type": "object",
+            "properties": {
+                "window_title": {"type": "string"},
+                "geometry": {"type": "string", "pattern": "^\\d+x\\d+$"},
+                "resizable": {
+                    "type": "array",
+                    "items": {"type": "boolean"},
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "icon_folder": {"type": "string"},
+                "window_icon": {"type": "string"},
+                "default_button_icon": {"type": "string"},
+                "initial_page": {"type": "string"}
+            },
+            "required": ["window_title", "icon_folder", "initial_page"]
+        },
+        "styles": {
+            "type": "object",
+            "description": "ttk widget styles"
+        },
+        "pages": {
+            "type": "object",
+            "description": "Application pages",
+            "patternProperties": {
+                "^[a-zA-Z0-9_]+$": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "window_title": {"type": "string"},
+                        "entries": {
+                            "type": "array",
+                            "items": { "type": "object" }
+                        }
+                    },
+                    "required": ["title", "entries"]
+                }
+            }
+        }
+    },
+    "required": ["settings", "styles", "pages"]
+}

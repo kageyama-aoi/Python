@@ -11,7 +11,7 @@ class DirectoryOpenerApp:
     Tkinter GUIアプリケーション。
     複数ページの切り替えに対応。
     """
-    CONFIG_FILE = "config.json"
+    CONFIG_FILE = os.path.join("data", "config.json")
 
     def __init__(self, master: tk.Tk):
         """アプリケーションを初期化し、UIを構築する。"""
