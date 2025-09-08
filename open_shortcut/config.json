@@ -1,0 +1,244 @@
+{
+    "settings": {
+        "window_title": "ディレクトリを開く",
+        "geometry": "400x500",
+        "resizable": [
+            true,
+            true
+        ],
+        "icon_folder": "icons",
+        "window_icon": "app_icon.ico",
+        "default_button_icon": "2025-07-02_17h53_40.png",
+        "initial_page": "main_menu"
+    },
+    "styles": {
+        "TButton": {
+            "font": [
+                "Yu Gothic UI",
+                10
+            ],
+            "padding": 5,
+            "anchor": "w"
+        },
+        "TLabel": {
+            "font": [
+                "Yu Gothic UI",
+                10
+            ]
+        },
+        "Status.TLabel": {
+            "font": [
+                "Yu Gothic UI",
+                9
+            ],
+            "background": "lightgray"
+        },
+        "Header.TLabel": {
+            "font": [
+                "Yu Gothic UI",
+                12,
+                "bold"
+            ]
+        }
+    },
+    "pages": {
+        "main_menu": {
+            "title": "メインメニュー",
+            "window_title": "メインメニュー",
+            "entries": [
+                {
+                    "name": "テストメニューへ",
+                    "action": "show_page",
+                    "target": "test_tframe",
+                    "icon": null,
+                    "background": "#e0f7fa",
+                    "foreground": "#006064"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "name": "各種リンク",
+                    "action": "open_url",
+                    "url": "https://docs.google.com/spreadsheets/d/1TfI1uucI9zAlgTnCESs4gsvt_EoAQYQzbY219zMowRA/edit?gid=0#gid=0",
+                    "icon": null,
+                    "background": "#f1f8e9",
+                    "foreground": "#33691e"
+                },
+                {
+                    "name": "Documents",
+                    "action": "open_directory",
+                    "path": "C:\\Users\\kageyama\\Documents",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "作業フォルダ",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "G:_myTool",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\01_PJ(島村）\\★TOOL★",
+                    "icon": "2025-07-02_17h53_40.png",
+                    "background": "#e8f5e9",
+                    "foreground": "#1b5e20"
+                },
+                {
+                    "name": "C:_myTool",
+                    "action": "open_directory",
+                    "path": "C:\\Users\\kageyama\\Tools",
+                    "icon": "2025-07-02_17h53_40.png",
+                    "background": "#e3f2fd",
+                    "foreground": "#0d47a1"
+                }
+            ]
+        },
+        "test_tframe": {
+            "title": "テスト[Tframe]",
+            "window_title": "テスト[Tframe]",
+            "entries": [
+                {
+                    "name": "テスト[島村]へ",
+                    "action": "show_page",
+                    "target": "test_shimamura",
+                    "icon": null,
+                    "background": "#e0f7fa",
+                    "foreground": "#006064"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "name": "要件定義",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1jH_G05JnxoSaBkg8wNGFp9YYUi6zmKe1\\【Culture】講師謝礼",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "JP_Culture(設計書、テーブル定義、WBS)",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture",
+                    "icon": null
+                },
+                {
+                    "name": "JP_Culture(ユーザーマニュアル)",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture\\04.ユーザーマニュアル",
+                    "icon": null
+                },
+                {
+                    "name": "テスト欄作成(マクロ)",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\01_PJ(島村）\\★TOOL★\\14_in(設計書)_out(テスト結果記入表)"
+                },
+                {
+                    "name": "Local_Work_Floder",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\03_Tframe"
+                },
+                {
+                    "name": "【Tframe】DB",
+                    "action": "open_url",
+                    "url": "https://newsms-db.e-school.jp/phpmyadmin/",
+                    "icon": null
+                },
+                {
+                    "name": "【Tframe】Culture_Beta",
+                    "action": "open_url",
+                    "url": "https://newculture.e-school.jp/beta/",
+                    "icon": null
+                }
+            ]
+        },
+        "test_shimamura": {
+            "title": "テスト[島村]",
+            "window_title": "テスト[島村]",
+            "entries": [
+                {
+                    "name": "備忘録へ",
+                    "action": "show_page",
+                    "target": "memo",
+                    "icon": null,
+                    "background": "#e0f7fa",
+                    "foreground": "#006064"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "name": "【島村楽器】_[開発]DB",
+                    "action": "open_url",
+                    "url": "https://tcns.shimamura.co.jp/phpMyAdmin/sql.php?server=2",
+                    "icon": null
+                },
+                {
+                    "name": "【島村楽器】_[本番]DB",
+                    "action": "open_url",
+                    "url": "https://tcns.shimamura.co.jp/phpMyAdmin/",
+                    "icon": null
+                },
+                {
+                    "name": "【島村楽器】_Test_Webサイト",
+                    "action": "open_url",
+                    "url": "https://tcns.shimamura.co.jp/testgcp/index.php?action=Login&module=Users",
+                    "icon": null
+                },
+                {
+                    "name": "【島村楽器】_設計",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\\001.Customers(AN)\\1477_島村楽器\\08_詳細設計",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "リリース関連",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\\001.Customers(AN)\\1477_島村楽器\\06_設計資料\\073_リリース資料"
+                },
+                {
+                    "name": "レビュー関連資料",
+                    "action": "open_url",
+                    "url": "https://docs.google.com/spreadsheets/d/1N8QOdT-4lybQ9BKGpXCXWAebcD9ZNQ3eWm-6kRiA4YI/edit?gid=0#gid=0"
+                },
+                {
+                    "name": "testサイト",
+                    "action": "open_parameterized_url",
+                    "base_url": "https://tcns.shimamura.co.jp/{kannkyou}",
+                    "parameters": []
+                }
+            ]
+        },
+        "memo": {
+            "title": "備忘録",
+            "window_title": "備忘録",
+            "entries": [
+                {
+                    "name": "メインメニューへ",
+                    "action": "show_page",
+                    "target": "main_menu",
+                    "icon": null,
+                    "background": "#e0f7fa",
+                    "foreground": "#006064"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "name": "Google検索",
+                    "action": "open_url",
+                    "url": "https://www.google.com",
+                    "icon": null,
+                    "background": "#f1f8e9",
+                    "foreground": "#33691e"
+                },
+                {
+                    "name": "LogZo",
+                    "action": "open_directory",
+                    "path": "C:\\LogZoV3_LogData",
+                    "icon": "2025-07-02_17h53_40.png"
+                }
+            ]
+        }
+    }
+}
