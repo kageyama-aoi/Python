@@ -100,8 +100,8 @@ class DirectoryOpenerApp:
         self.show_page(initial_page)
 
         # 設定ボタン
-        settings_button = ttk.Button(self.master, text="設定", command=self.open_settings_window)
-        settings_button.pack(side=tk.RIGHT, anchor=tk.SE, padx=10, pady=5)
+        self.settings_button = ttk.Button(self.master, text="設定", command=self.open_settings_window)
+        self.settings_button.pack(side=tk.RIGHT, anchor=tk.SE, padx=10, pady=5)
 
     def _populate_page(self, parent_frame: ttk.Frame, page_data: dict):
         """指定されたフレームにページの内容（ウィジェット）を配置する。"""
@@ -282,6 +282,29 @@ class DirectoryOpenerApp:
         command = lambda bu=base_url, pv=param_vars, n=name: self._open_parameterized_url(bu, pv, n)
         button_instance.config(command=command)
 
+    def reload_ui(self):
+        """UIを破棄し、設定を再読み込みして再構築する。"""
+        # 1. Destroy all dynamic widgets
+        for widget in self.master.winfo_children():
+            widget.destroy()
+
+        # 2. Reset internal state
+        self.icon_images = {}
+        self.dynamic_style_counter = 0
+        self.pages = {}
+
+        # 3. Reload config
+        self.config = self._load_config()
+        if not self.config:
+            self.master.destroy()
+            return
+
+        # 4. Re-create UI
+        self._setup_window()
+        self._setup_styles()
+        self._create_widgets()
+        print("UI reloaded successfully.")
+
     def show_page(self, page_name: str):
         """指定された名前のページを表示し、ウィンドウタイトルを更新する。"""
         page = self.pages.get(page_name)
@@ -361,7 +384,7 @@ class DirectoryOpenerApp:
 
     def open_settings_window(self):
         """設定画面を新しいウィンドウで開く。"""
-        settings_window = SettingsEditor(self.master)
+        settings_window = SettingsEditor(self.master, on_save_callback=self.reload_ui)
         settings_window.grab_set() # モーダルウィンドウにする
 
 def main():

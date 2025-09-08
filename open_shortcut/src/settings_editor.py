@@ -7,9 +7,10 @@ from . import constants as C
 class SettingsEditor(tk.Toplevel):
     CONFIG_FILE = os.path.join("data", "config.json")
 
-    def __init__(self, master):
+    def __init__(self, master, on_save_callback=None):
         super().__init__(master)
         self.title("設定エディタ")
+        self.on_save_callback = on_save_callback
         self.geometry("700x600") # ウィンドウサイズを少し大きくする
 
         # プロジェクトルートからの相対パスを想定
@@ -400,7 +401,11 @@ class SettingsEditor(tk.Toplevel):
         try:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
-            messagebox.showinfo("成功", "設定を保存しました。アプリケーションを再起動して変更を反映してください。")
+
+            if self.on_save_callback:
+                self.on_save_callback()
+
+            messagebox.showinfo("成功", "設定を保存し、UIを更新しました。")
             self.destroy()
         except Exception as e:
             messagebox.showerror("エラー", f"設定の保存中にエラーが発生しました: {e}")
