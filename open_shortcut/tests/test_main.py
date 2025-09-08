@@ -2,6 +2,7 @@ import unittest
 import tkinter as tk
 from tkinter import ttk
 from unittest.mock import patch
+import copy
 import os
 import sys
 
@@ -105,6 +106,36 @@ class TestDirectoryOpenerApp(unittest.TestCase):
         expected_title = self.app.config["pages"][target_page_name]["window_title"]
         self.assertEqual(self.app.master.title(), expected_title, "ページ切り替え後のウィンドウタイトルが正しくありません。")
         self.assertIn(target_page_name, self.app.status_label.cget("text"), "ステータスバーのメッセージが正しくありません。")
+
+    def test_dynamic_ui_reload(self):
+        """動的リロード機能がUIを正しく再構築するかテストする。"""
+        # Arrange (1): Check initial state
+        initial_button_text = "📁 Documents"
+        initial_button = self.find_button_recursively(self.app.master, initial_button_text)
+        self.assertIsNotNone(initial_button, f"初期状態のボタン '{initial_button_text}' が見つかりません。")
+
+        # Arrange (2): Create a modified config in memory
+        # Deep copy to avoid modifying the original loaded config in self.app.config
+        modified_config = copy.deepcopy(self.app.config)
+        
+        # Find the entry for the "Documents" button and change its name
+        found_and_modified = False
+        for entry in modified_config["pages"]["main_menu"]["entries"]:
+            if entry.get("name") == "Documents":
+                entry["name"] = "My Documents"
+                found_and_modified = True
+                break
+        self.assertTrue(found_and_modified, "テスト用の設定変更ができませんでした。config.jsonを確認してください。")
+        
+        # We will mock the _load_config method to return this new config
+        with patch.object(DirectoryOpenerApp, '_load_config', return_value=modified_config) as mock_load_config:
+            # Act: Trigger the UI reload
+            self.app.reload_ui()
+
+            # Assert: Check that the UI was updated correctly
+            mock_load_config.assert_called_once()
+            self.assertIsNone(self.find_button_recursively(self.app.master, initial_button_text), f"古いボタン '{initial_button_text}' がUIに残っています。")
+            self.assertIsNotNone(self.find_button_recursively(self.app.master, "📁 My Documents"), "新しいボタン '📁 My Documents' が作成されていません。")
 
 if __name__ == '__main__':
     unittest.main()
