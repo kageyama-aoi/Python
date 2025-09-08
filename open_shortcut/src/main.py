@@ -4,6 +4,7 @@ import webbrowser
 import tkinter as tk
 from tkinter import ttk, messagebox
 from .settings_editor import SettingsEditor
+from . import constants as C
 
 class DirectoryOpenerApp:
     """
@@ -50,16 +51,16 @@ class DirectoryOpenerApp:
 
     def _setup_window(self):
         """ウィンドウのタイトル、サイズ、アイコンなどを設定する。"""
-        settings = self.config.get("settings", {})
-        self.master.title(settings.get("window_title", "Directory Opener"))
-        self.master.geometry(settings.get("geometry", "400x450"))
+        settings = self.config.get(C.ConfigKey.SETTINGS, {})
+        self.master.title(settings.get(C.ConfigKey.WINDOW_TITLE, "Directory Opener"))
+        self.master.geometry(settings.get(C.ConfigKey.GEOMETRY, "400x450"))
         
-        resizable = settings.get("resizable", [False, True])
+        resizable = settings.get(C.ConfigKey.RESIZABLE, [False, True])
         self.master.resizable(resizable[0], resizable[1])
 
         # ウィンドウアイコンの設定
-        icon_folder = settings.get("icon_folder", "icons")
-        window_icon = settings.get("window_icon")
+        icon_folder = settings.get(C.ConfigKey.ICON_FOLDER, "icons")
+        window_icon = settings.get(C.ConfigKey.WINDOW_ICON)
         if window_icon:
             window_icon_path = os.path.join(icon_folder, window_icon)
             if os.path.exists(window_icon_path):
@@ -70,7 +71,7 @@ class DirectoryOpenerApp:
 
     def _setup_styles(self):
         """ttkウィジェットのスタイルを設定する。"""
-        styles_config = self.config.get("styles", {})
+        styles_config = self.config.get(C.ConfigKey.STYLES, {})
         for style_name, options in styles_config.items():
             self.style.configure(style_name, **options)
 
@@ -79,9 +80,9 @@ class DirectoryOpenerApp:
         self.page_container = ttk.Frame(self.master)
         self.page_container.pack(fill=tk.BOTH, expand=True)
 
-        pages_config = self.config.get("pages")
+        pages_config = self.config.get(C.ConfigKey.PAGES)
         if not pages_config or not isinstance(pages_config, dict):
-            messagebox.showerror("設定エラー", "設定ファイルに 'pages' の定義が見つからないか、形式が正しくありません。")
+            messagebox.showerror("設定エラー", f"設定ファイルに '{C.ConfigKey.PAGES}' の定義が見つからないか、形式が正しくありません。")
             self.master.destroy()
             return
 
@@ -95,7 +96,7 @@ class DirectoryOpenerApp:
         self.status_label.pack(fill=tk.X, side=tk.BOTTOM)
 
         # 初期ページを表示
-        initial_page = self.config.get("settings", {}).get("initial_page", "home")
+        initial_page = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.INITIAL_PAGE, "home")
         self.show_page(initial_page)
 
         # 設定ボタン
@@ -104,16 +105,16 @@ class DirectoryOpenerApp:
 
     def _populate_page(self, parent_frame: ttk.Frame, page_data: dict):
         """指定されたフレームにページの内容（ウィジェット）を配置する。"""
-        header_text = page_data.get("title", "メニュー")
+        header_text = page_data.get(C.ConfigKey.TITLE, "メニュー")
         header_label = ttk.Label(parent_frame, text=header_text, style="Header.TLabel")
         header_label.pack(pady=(0, 10))
 
-        settings = self.config.get("settings", {})
-        icon_folder = settings.get("icon_folder", "icons")
-        default_icon_name = settings.get("default_button_icon")
+        settings = self.config.get(C.ConfigKey.SETTINGS, {})
+        icon_folder = settings.get(C.ConfigKey.ICON_FOLDER, "icons")
+        default_icon_name = settings.get(C.ConfigKey.DEFAULT_BUTTON_ICON)
 
-        for entry in page_data.get("entries", []):
-            if entry.get("type") == "separator":
+        for entry in page_data.get(C.ConfigKey.ENTRIES, []):
+            if entry.get(C.ConfigKey.TYPE) == C.EntryType.SEPARATOR:
                 separator = ttk.Separator(parent_frame, orient='horizontal')
                 separator.pack(fill='x', pady=10)
             else:
@@ -121,23 +122,23 @@ class DirectoryOpenerApp:
 
     def _create_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """設定情報から一つのボタンを作成する。"""
-        name = entry.get("name", "No Name")
-        action = entry.get("action", "open_directory")
+        name = entry.get(C.ConfigKey.NAME, "No Name")
+        action = entry.get(C.ConfigKey.ACTION, C.Action.OPEN_DIRECTORY)
 
         # アクションに応じてボタン名にアイコンを追加
         display_name = name
-        if action == "open_directory":
+        if action == C.Action.OPEN_DIRECTORY:
             display_name = f"📁 {name}"
-        elif action == "open_url":
+        elif action == C.Action.OPEN_URL:
             display_name = f"🌐 {name}"
-        elif action == "show_page":
+        elif action == C.Action.SHOW_PAGE:
             display_name = f"→ {name}"
-        elif action == "open_parameterized_url": # NEW
+        elif action == C.Action.OPEN_PARAMETERIZED_URL: # NEW
             display_name = f"⚙️ {name}" # Special icon for parameterized URL
 
         button_style = "TButton"
-        background_color = entry.get("background")
-        foreground_color = entry.get("foreground")
+        background_color = entry.get(C.ConfigKey.BACKGROUND)
+        foreground_color = entry.get(C.ConfigKey.FOREGROUND)
 
         if background_color or foreground_color:
             self.dynamic_style_counter += 1
@@ -148,7 +149,7 @@ class DirectoryOpenerApp:
         command = None
         button_instance = None # To hold the button widget, as it might be created in different branches
 
-        icon_name = entry.get("icon") or default_icon_name
+        icon_name = entry.get(C.ConfigKey.ICON) or default_icon_name
         button_icon = None
         if icon_name:
             icon_path = os.path.join(icon_folder, icon_name)
@@ -160,21 +161,21 @@ class DirectoryOpenerApp:
                 except tk.TclError:
                     print(f"警告: アイコンを読み込めませんでした: {icon_path}")
 
-        if action == "open_directory":
-            path = entry.get("path")
+        if action == C.Action.OPEN_DIRECTORY:
+            path = entry.get(C.ConfigKey.PATH)
             if path:
                 command = lambda p=path, n=name: self.open_directory(p, n)
-        elif action == "show_page":
-            target_page = entry.get("target")
+        elif action == C.Action.SHOW_PAGE:
+            target_page = entry.get(C.ConfigKey.TARGET)
             if target_page:
                 command = lambda page=target_page: self.show_page(page)
-        elif action == "open_url":
-            url = entry.get("url")
+        elif action == C.Action.OPEN_URL:
+            url = entry.get(C.ConfigKey.URL)
             if url:
                 command = lambda u=url, n=name: self.open_url(u, n)
-        elif action == "open_parameterized_url":
-            base_url = entry.get("base_url")
-            parameters_config = entry.get("parameters", [])
+        elif action == C.Action.OPEN_PARAMETERIZED_URL:
+            base_url = entry.get(C.ConfigKey.BASE_URL)
+            parameters_config = entry.get(C.ConfigKey.PARAMETERS, [])
             if base_url and parameters_config is not None:
                 # Create a frame to hold the button and its parameters
                 entry_frame = ttk.Frame(parent)
@@ -192,10 +193,10 @@ class DirectoryOpenerApp:
 
                 param_vars = {} # Dictionary to store parameter StringVar objects by name
                 for param_def in parameters_config:
-                    param_name = param_def.get("name")
-                    param_type = param_def.get("type")
-                    param_label_text = param_def.get("label", param_name)
-                    default_value = param_def.get("default_value", "")
+                    param_name = param_def.get(C.ConfigKey.NAME)
+                    param_type = param_def.get(C.ConfigKey.TYPE)
+                    param_label_text = param_def.get(C.ConfigKey.LABEL, param_name)
+                    default_value = param_def.get(C.ConfigKey.DEFAULT_VALUE, "")
 
                     if not param_name or not param_type:
                         print(f"警告: 不完全なパラメータ定義が検出されました: {param_def}。スキップします。")
@@ -208,13 +209,13 @@ class DirectoryOpenerApp:
                     param_label = ttk.Label(param_container_frame, text=f"{param_label_text}:")
                     param_label.pack(side=tk.TOP, anchor=tk.W) # Label above input
 
-                    if param_type == "text":
+                    if param_type == C.ParamType.TEXT:
                         param_var = tk.StringVar(value=default_value)
                         param_entry = ttk.Entry(param_container_frame, textvariable=param_var, width=20)
                         param_entry.pack(side=tk.TOP, fill=tk.X, expand=True)
                         param_vars[param_name] = param_var # Store StringVar
-                    elif param_type == "pulldown":
-                        options = param_def.get("options", [])
+                    elif param_type == C.ParamType.PULLDOWN:
+                        options = param_def.get(C.ConfigKey.OPTIONS, [])
                         param_var = tk.StringVar(value=default_value if default_value in options else (options[0] if options else ""))
                         param_combobox = ttk.Combobox(param_container_frame, textvariable=param_var, values=options, state="readonly", width=15)
                         param_combobox.pack(side=tk.TOP, fill=tk.X, expand=True)
@@ -252,8 +253,8 @@ class DirectoryOpenerApp:
             page.pack(fill=tk.BOTH, expand=True)
             
             # ページのタイトルか、なければグローバルなタイトルを設定
-            page_title = self.config.get("pages", {}).get(page_name, {}).get("window_title")
-            global_title = self.config.get("settings", {}).get("window_title", "Directory Opener")
+            page_title = self.config.get(C.ConfigKey.PAGES, {}).get(page_name, {}).get(C.ConfigKey.WINDOW_TITLE)
+            global_title = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.WINDOW_TITLE, "Directory Opener")
             self.master.title(page_title or global_title)
             
             self.status_label.config(text=f"「{page_name}」ページを表示しました。")
