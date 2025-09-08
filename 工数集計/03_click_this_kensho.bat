@@ -1,19 +1,17 @@
 @echo off
 cd /d %~dp0
 
-for /F "tokens=2" %%i in ("date /t") do set mydate=%%i
-set mydate=%mydate:/=%
-set mydate=%date:/=%
-REM set mytime=%time::=-%
-set mytime=%time::=%
-set filename=error_%mydate%_%mytime%.txt
-dir > %filename%
+REM --- 安定した方法で日付と時刻からファイル名を作成 (YYYYMMDD_HHMMSS形式) ---
+set "DATETIME=%date:~0,4%%date:~5,2%%date:~8,2%_%time:~0,2%%time:~3,2%%time:~6,2%"
+set "DATETIME=%DATETIME: =0%"
+set "filename=error_%DATETIME%.txt"
+
 SET output=%filename%
-REM SET output=kageyama.txt
 
 @echo on
-python main.py 2> ./error_log/%output%
-REM python ./00_MAIN/summary_kousuu_2024_1106.py 1>%output% 2>&1
-REM python bugreport.py
-parse
-exit 0
+REM --- Pythonスクリプトを実行し、エラー出力をerror_logフォルダにリダイレクト ---
+python ./src/main.py 2> "./error_log/%output%"
+
+REM --- ユーザーが結果を確認できるように一時停止 ---
+pause
+exit
