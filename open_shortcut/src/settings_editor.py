@@ -11,7 +11,8 @@ class SettingsEditor(tk.Toplevel):
         self.title("設定エディタ")
         self.geometry("700x600") # ウィンドウサイズを少し大きくする
 
-        self.config_path = os.path.join(os.path.dirname(__file__), self.CONFIG_FILE)
+        # プロジェクトルートからの相対パスを想定
+        self.config_path = self.CONFIG_FILE
         self.config = self._load_config()
 
         self.current_parameters = [] # 現在編集中のパラメータリスト
