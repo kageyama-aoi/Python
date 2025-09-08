@@ -4,7 +4,7 @@ import json
 import os
 
 class SettingsEditor(tk.Toplevel):
-    CONFIG_FILE = "config.json"
+    CONFIG_FILE = os.path.join("data", "config.json")
 
     def __init__(self, master):
         super().__init__(master)
