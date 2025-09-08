@@ -17,7 +17,7 @@ EMPLOYEE_LABEL_DEFAULT = "全社員"
 OUTPUT_DIR = './output/'
 INPUT_DIR = './input/'
 CONFIG_FILE = 'config.json'
-TR_LIST_FILE = 'tr_list.xlsx'
+TR_LIST_FILE = f'{OUTPUT_DIR}tr_list.xlsx'
 TR_CSV_FILE = 'bugs.csv'
 TIMESHEET_CSV_FILE = 'timesheet.csv'
 RIGHT_GREEN = '009999'
@@ -25,7 +25,7 @@ RIGHT_BLUE = 'B8CCE4'
 
 # カレントディレクトリの 'summary_' で始まるExcelファイルを検索
 files_to_delete = glob.glob('output_summary_*.xlsx')
-
+files_to_delete.extend(glob.glob(f'{OUTPUT_DIR}Summary_*.xlsx'))
 # ファイルを削除
 for file in files_to_delete:
     os.remove(file)
@@ -98,7 +98,7 @@ def process_timesheet(file_path, input_tr_csv, target_project, temp_file01, shee
     columns_to_keep_temp1.remove('取引先名')
     
     
-    with open('output.txt', 'a', encoding='utf-8') as f:
+    with open(f'{OUTPUT_DIR}debug_output.txt', 'a', encoding='utf-8') as f:
         print('★-----★')
         print(f'value:{df_filtered["作業時間"]} type:{df_filtered["作業時間"]}', file=f)
         print(f'value:{df_filtered[columns_to_keep_temp1]} type:{df_filtered[columns_to_keep_temp1]}', file=f)        

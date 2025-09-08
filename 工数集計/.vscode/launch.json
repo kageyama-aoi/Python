@@ -10,7 +10,7 @@
             "name": "実行",
             "type": "python",
             "request": "launch",
-            "program": "main.py",
+            "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }
