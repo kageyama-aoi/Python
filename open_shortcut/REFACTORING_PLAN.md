@@ -118,13 +118,23 @@ open_shortcut/
 
 ### 提案4: 設定ファイルのバリデーション
 
-- **対象**: 設定ファイルの読み込み処理
+- **対象**: `main.py` の設定ファイル読み込み処理
 - **問題点**: `config.json` の記述ミス（必須キーの欠落、値の型間違いなど）が、予期せぬ実行時エラーを引き起こす可能性があります。
-- **解決策**:
-  1. `jsonschema` ライブラリを導入します (`pip install jsonschema`)。
-  2. `data/config.schema.json` に、`config.json` が満たすべき構造（プロパティ、型、必須項目など）を定義します。
-  3. アプリケーション起動時に設定ファイルを読み込んだ後、`jsonschema.validate()` を使って内容を検証します。
-  4. バリデーションに失敗した場合は、どの部分に問題があるかをユーザーに分かりやすく通知し、アプリケーションを安全に終了させます。
+- **解決策（実装計画）**:
+  - **目的**: アプリケーション起動時に `config.json` の構造を `data/config.schema.json` に基づいて検証し、不正な設定によるエラーを未然に防ぎます。
+  - **使用技術**: `jsonschema` ライブラリを利用します。
+  - **具体的な実装ステップ**:
+    1.  **ライブラリのインストール**:
+        -   まず、ターミナルで `pip install jsonschema` を実行して、必要なライブラリをインストールします。
+    2.  **`_load_config` メソッドの強化 (`src/main.py`)**:
+        -   `_load_config` メソッド内で、`config.json` に加えてスキーマファイル `data/config.schema.json` も読み込みます。
+        -   `jsonschema.validate(instance=config_data, schema=schema_data)` を呼び出して検証を実行します。
+        -   `try...except` ブロックで、以下のエラーを個別に捕捉し、ユーザーに分かりやすいメッセージボックスを表示します。
+            -   `FileNotFoundError`: 設定ファイルまたはスキーマファイルが見つからない場合。
+            -   `json.JSONDecodeError`: JSONの構文が間違っている場合。
+            -   `jsonschema.ValidationError`: 設定内容がスキーマのルールに違反している場合（エラー箇所も表示）。
+            -   `jsonschema.SchemaError`: スキーマファイル自体の定義が間違っている場合。
+        -   検証に失敗した場合は `None` を返し、アプリケーションが安全に終了するようにします。
 
 ### 提案5: クラスの分割
 
