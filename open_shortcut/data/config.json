@@ -6,7 +6,7 @@
             true,
             true
         ],
-        "icon_folder": "icons",
+        "icon_folder": "assets/icons",
         "window_icon": "app_icon.ico",
         "default_button_icon": "2025-07-02_17h53_40.png",
         "initial_page": "main_menu"
