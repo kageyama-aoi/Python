@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import json
 import os
+from . import constants as C
 
 class SettingsEditor(tk.Toplevel):
     CONFIG_FILE = os.path.join("data", "config.json")
@@ -53,7 +54,7 @@ class SettingsEditor(tk.Toplevel):
         settings_frame.pack(padx=10, pady=10, fill="x")
 
         self.settings_vars = {}
-        settings = self.config.get("settings", {})
+        settings = self.config.get(C.ConfigKey.SETTINGS, {})
         for key, value in settings.items():
             if isinstance(value, list):
                 value = ", ".join(map(str, value))
@@ -82,7 +83,7 @@ class SettingsEditor(tk.Toplevel):
         pages_notebook.pack(fill="both", expand=True)
         self.pages_widgets = {"pages_notebook": pages_notebook}
 
-        pages = self.config.get("pages", {})
+        pages = self.config.get(C.ConfigKey.PAGES, {})
         for page_name, page_data in pages.items():
             list_frame = ttk.Frame(pages_notebook)
             pages_notebook.add(list_frame, text=page_name)
@@ -91,8 +92,8 @@ class SettingsEditor(tk.Toplevel):
             listbox.pack(fill="both", expand=True)
             listbox.bind("<<ListboxSelect>>", lambda event, p=page_name: self.on_listbox_select(event, p))
 
-            for entry in page_data.get("entries", []):
-                listbox.insert(tk.END, entry.get("name", "(無名)"))
+            for entry in page_data.get(C.ConfigKey.ENTRIES, []):
+                listbox.insert(tk.END, entry.get(C.ConfigKey.NAME, "(無名)"))
 
             button_frame = ttk.Frame(list_frame)
             button_frame.pack(fill="x", pady=5)
@@ -126,30 +127,30 @@ class SettingsEditor(tk.Toplevel):
             return
 
         idx = selected_indices[0]
-        entry_data = self.config["pages"][page_name]["entries"][idx]
+        entry_data = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx]
 
         # フォームにデータを表示
-        self.form_entries["name"].set(entry_data.get("name", ""))
-        action = entry_data.get("action", "")
-        self.form_entries["action"].set(action)
+        self.form_entries[C.ConfigKey.NAME].set(entry_data.get(C.ConfigKey.NAME, ""))
+        action = entry_data.get(C.ConfigKey.ACTION, "")
+        self.form_entries[C.ConfigKey.ACTION].set(action)
 
         # path/url/target の値を取得
         path_value = ""
-        if action == "open_directory":
-            path_value = entry_data.get("path", "")
+        if action == C.Action.OPEN_DIRECTORY:
+            path_value = entry_data.get(C.ConfigKey.PATH, "")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "open_url":
-            path_value = entry_data.get("url", "")
+        elif action == C.Action.OPEN_URL:
+            path_value = entry_data.get(C.ConfigKey.URL, "")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "show_page":
-            path_value = entry_data.get("target", "")
+        elif action == C.Action.SHOW_PAGE:
+            path_value = entry_data.get(C.ConfigKey.TARGET, "")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "open_parameterized_url":
-            self.form_entries["base_url"].set(entry_data.get("base_url", ""))
-            self.current_parameters = entry_data.get("parameters", [])
+        elif action == C.Action.OPEN_PARAMETERIZED_URL:
+            self.form_entries[C.ConfigKey.BASE_URL].set(entry_data.get(C.ConfigKey.BASE_URL, ""))
+            self.current_parameters = entry_data.get(C.ConfigKey.PARAMETERS, [])
             self.update_parameter_listbox()
             self.path_entry_frame.pack_forget() # Hide path entry
             self.parameterized_url_frame.pack(fill="both", expand=True, padx=5, pady=2) # Show parameterized URL frame
@@ -157,7 +158,7 @@ class SettingsEditor(tk.Toplevel):
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Default to showing path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
-        self.form_entries["path"].set(path_value)
+        self.form_entries[C.ConfigKey.PATH].set(path_value)
 
         # ラベルも更新
         self.on_action_change(None) # eventオブジェクトは使わないのでNone
@@ -179,33 +180,33 @@ class SettingsEditor(tk.Toplevel):
             return
 
         # configのentriesを入れ替え
-        entries = self.config["pages"][page_name]["entries"]
+        entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
         entries[idx], entries[new_idx] = entries[new_idx], entries[idx]
 
         # リストボックスの表示を更新
         listbox.delete(0, tk.END)
         for entry in entries:
-            listbox.insert(tk.END, entry.get("name", "(無名)"))
+            listbox.insert(tk.END, entry.get(C.ConfigKey.NAME, "(無名)"))
         
         # 選択状態を復元
         listbox.selection_set(new_idx)
         listbox.activate(new_idx)
 
     def on_action_change(self, event):
-        action = self.form_entries["action"].get()
-        if action == "open_directory":
+        action = self.form_entries[C.ConfigKey.ACTION].get()
+        if action == C.Action.OPEN_DIRECTORY:
             self.path_label.config(text="開くフォルダのパス:")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "open_url":
+        elif action == C.Action.OPEN_URL:
             self.path_label.config(text="開くWebサイトのURL:")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "show_page":
+        elif action == C.Action.SHOW_PAGE:
             self.path_label.config(text="表示するページ名:")
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
-        elif action == "open_parameterized_url":
+        elif action == C.Action.OPEN_PARAMETERIZED_URL:
             self.path_entry_frame.pack_forget() # Hide path entry
             self.parameterized_url_frame.pack(fill="both", expand=True, padx=5, pady=2) # Show parameterized URL frame
         else:
@@ -214,10 +215,10 @@ class SettingsEditor(tk.Toplevel):
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
     def clear_button_form(self):
-        self.form_entries["name"].set("")
-        self.form_entries["action"].set("")
-        self.form_entries["path"].set("")
-        self.form_entries["base_url"].set("") # Clear base_url
+        self.form_entries[C.ConfigKey.NAME].set("")
+        self.form_entries[C.ConfigKey.ACTION].set("")
+        self.form_entries[C.ConfigKey.PATH].set("")
+        self.form_entries[C.ConfigKey.BASE_URL].set("") # Clear base_url
         self.current_parameters = [] # Clear current parameters
         self.update_parameter_listbox() # Update listbox
         self.path_label.config(text="パス/URL/ターゲット:")
@@ -233,16 +234,16 @@ class SettingsEditor(tk.Toplevel):
         name_var = tk.StringVar()
         name_entry = ttk.Entry(parent, textvariable=name_var)
         name_entry.pack(fill="x", padx=5)
-        self.form_entries["name"] = name_var
+        self.form_entries[C.ConfigKey.NAME] = name_var
 
         # Action
         action_label = ttk.Label(parent, text="アクション:")
         action_label.pack(pady=2)
         action_var = tk.StringVar()
-        action_combo = ttk.Combobox(parent, textvariable=action_var, values=["open_directory", "open_url", "show_page", "open_parameterized_url"])
+        action_combo = ttk.Combobox(parent, textvariable=action_var, values=[a.value for a in C.Action])
         action_combo.pack(fill="x", padx=5)
         action_combo.bind("<<ComboboxSelected>>", self.on_action_change)
-        self.form_entries["action"] = action_var
+        self.form_entries[C.ConfigKey.ACTION] = action_var
 
         # --- Path/URL/Target (通常のボタン用) ---
         self.path_entry_frame = ttk.Frame(parent) # Frame to hold path/url/target widgets
@@ -253,7 +254,7 @@ class SettingsEditor(tk.Toplevel):
         path_var = tk.StringVar()
         path_entry = ttk.Entry(self.path_entry_frame, textvariable=path_var)
         path_entry.pack(fill="x", padx=5)
-        self.form_entries["path"] = path_var # path, url, targetを同じEntryで使い回す
+        self.form_entries[C.ConfigKey.PATH] = path_var # path, url, targetを同じEntryで使い回す
 
         # --- Parameterized URL Settings (特殊なボタン用) ---
         self.parameterized_url_frame = ttk.LabelFrame(parent, text="パラメータ設定")
@@ -266,7 +267,7 @@ class SettingsEditor(tk.Toplevel):
         base_url_var = tk.StringVar()
         base_url_entry = ttk.Entry(self.parameterized_url_frame, textvariable=base_url_var)
         base_url_entry.pack(fill="x", padx=5)
-        self.form_entries["base_url"] = base_url_var
+        self.form_entries[C.ConfigKey.BASE_URL] = base_url_var
 
         # Parameters List
         param_list_label = ttk.Label(self.parameterized_url_frame, text="パラメータ一覧:")
@@ -303,9 +304,9 @@ class SettingsEditor(tk.Toplevel):
     def update_parameter_listbox(self):
         self.parameter_listbox.delete(0, tk.END)
         for param in self.current_parameters:
-            display_text = f"{param.get("name", "")}: {param.get("type", "")}"
-            if param.get("label"):
-                display_text += f" ({param["label"]})"
+            display_text = f"{param.get(C.ConfigKey.NAME, '')}: {param.get(C.ConfigKey.TYPE, '')}"
+            if param.get(C.ConfigKey.LABEL):
+                display_text += f" ({param[C.ConfigKey.LABEL]})"
             self.parameter_listbox.insert(tk.END, display_text)
 
     def add_parameter(self):
@@ -347,44 +348,44 @@ class SettingsEditor(tk.Toplevel):
         listbox = self.pages_widgets[page_name]["listbox"]
 
         new_entry = {
-            "name": self.form_entries["name"].get(),
-            "action": self.form_entries["action"].get(),
+            C.ConfigKey.NAME: self.form_entries[C.ConfigKey.NAME].get(),
+            C.ConfigKey.ACTION: self.form_entries[C.ConfigKey.ACTION].get(),
         }
         # アクションに応じてキー名を変える
-        action = new_entry["action"]
-        if action == "open_directory":
-            new_entry["path"] = self.form_entries["path"].get()
-        elif action == "open_url":
-            new_entry["url"] = self.form_entries["path"].get()
-        elif action == "show_page":
-            new_entry["target"] = self.form_entries["path"].get()
-        elif action == "open_parameterized_url":
-            new_entry["base_url"] = self.form_entries["base_url"].get()
-            new_entry["parameters"] = self.current_parameters
+        action = new_entry[C.ConfigKey.ACTION]
+        if action == C.Action.OPEN_DIRECTORY:
+            new_entry[C.ConfigKey.PATH] = self.form_entries[C.ConfigKey.PATH].get()
+        elif action == C.Action.OPEN_URL:
+            new_entry[C.ConfigKey.URL] = self.form_entries[C.ConfigKey.PATH].get()
+        elif action == C.Action.SHOW_PAGE:
+            new_entry[C.ConfigKey.TARGET] = self.form_entries[C.ConfigKey.PATH].get()
+        elif action == C.Action.OPEN_PARAMETERIZED_URL:
+            new_entry[C.ConfigKey.BASE_URL] = self.form_entries[C.ConfigKey.BASE_URL].get()
+            new_entry[C.ConfigKey.PARAMETERS] = self.current_parameters
 
-        if not new_entry["name"]:
+        if not new_entry[C.ConfigKey.NAME]:
             messagebox.showerror("エラー", "名前は必須です。")
             return
 
         selected_indices = listbox.curselection()
         if selected_indices: # 編集モード
             idx = selected_indices[0]
-            self.config["pages"][page_name]["entries"][idx] = new_entry
+            self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx] = new_entry
             listbox.delete(idx)
-            listbox.insert(idx, new_entry["name"])
+            listbox.insert(idx, new_entry[C.ConfigKey.NAME])
             listbox.selection_set(idx) # 選択状態を維持
         else: # 追加モード
-            self.config["pages"][page_name]["entries"].append(new_entry)
-            listbox.insert(tk.END, new_entry["name"])
+            self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES].append(new_entry)
+            listbox.insert(tk.END, new_entry[C.ConfigKey.NAME])
 
         self.clear_button_form()
 
     def save_config(self):
         # settingsの保存
-        settings = self.config.get("settings", {})
+        settings = self.config.get(C.ConfigKey.SETTINGS, {})
         for key, var in self.settings_vars.items():
             value = var.get()
-            if key == "resizable":
+            if key == C.ConfigKey.RESIZABLE:
                 try:
                     settings[key] = [bool(v.strip()) for v in value.split(',')]
                 except:
@@ -392,7 +393,7 @@ class SettingsEditor(tk.Toplevel):
                     return
             else:
                 settings[key] = value
-        self.config["settings"] = settings
+        self.config[C.ConfigKey.SETTINGS] = settings
 
         # pagesの保存 (TODO)
 
@@ -439,7 +440,7 @@ class ParameterEditor(tk.Toplevel):
         # Type
         ttk.Label(main_frame, text="タイプ (type):").pack(pady=2)
         self.type_var = tk.StringVar()
-        self.type_combo = ttk.Combobox(main_frame, textvariable=self.type_var, values=["text", "pulldown"], state="readonly")
+        self.type_combo = ttk.Combobox(main_frame, textvariable=self.type_var, values=[pt.value for pt in C.ParamType], state="readonly")
         self.type_combo.pack(fill="x", padx=5)
         self.type_combo.bind("<<ComboboxSelected>>", self.on_type_change)
 
@@ -466,16 +467,16 @@ class ParameterEditor(tk.Toplevel):
         self.on_type_change(None) # Initial state
 
     def load_param_data(self):
-        self.name_var.set(self.param_data.get("name", ""))
-        self.label_var.set(self.param_data.get("label", ""))
-        self.type_var.set(self.param_data.get("type", "text"))
-        self.default_value_var.set(self.param_data.get("default_value", ""))
-        if self.param_data.get("options"): # Join list to comma-separated string
-            self.options_var.set(",".join(self.param_data["options"]))
+        self.name_var.set(self.param_data.get(C.ConfigKey.NAME, ""))
+        self.label_var.set(self.param_data.get(C.ConfigKey.LABEL, ""))
+        self.type_var.set(self.param_data.get(C.ConfigKey.TYPE, C.ParamType.TEXT))
+        self.default_value_var.set(self.param_data.get(C.ConfigKey.DEFAULT_VALUE, ""))
+        if self.param_data.get(C.ConfigKey.OPTIONS): # Join list to comma-separated string
+            self.options_var.set(",".join(self.param_data[C.ConfigKey.OPTIONS]))
         self.on_type_change(None) # Update visibility based on loaded type
 
     def on_type_change(self, event):
-        if self.type_var.get() == "pulldown":
+        if self.type_var.get() == C.ParamType.PULLDOWN:
             self.options_frame.pack(fill="x", padx=5, pady=5)
         else:
             self.options_frame.pack_forget()
@@ -490,18 +491,18 @@ class ParameterEditor(tk.Toplevel):
         if not name:
             messagebox.showerror("エラー", "パラメータ名は必須です。")
             return
-        if param_type == "pulldown" and not options:
+        if param_type == C.ParamType.PULLDOWN and not options:
             messagebox.showerror("エラー", "プルダウンタイプの場合、選択肢は必須です。")
             return
 
         self.result_param_data = {
-            "name": name,
-            "type": param_type,
-            "label": label if label else name, # Use name if label is empty
-            "default_value": default_value
+            C.ConfigKey.NAME: name,
+            C.ConfigKey.TYPE: param_type,
+            C.ConfigKey.LABEL: label if label else name, # Use name if label is empty
+            C.ConfigKey.DEFAULT_VALUE: default_value
         }
-        if param_type == "pulldown":
-            self.result_param_data["options"] = options
+        if param_type == C.ParamType.PULLDOWN:
+            self.result_param_data[C.ConfigKey.OPTIONS] = options
         
         self.destroy()
 
