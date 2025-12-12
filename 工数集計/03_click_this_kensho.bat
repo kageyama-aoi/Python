@@ -10,7 +10,7 @@ SET output=%filename%
 
 @echo on
 REM --- Pythonスクリプトを実行し、エラー出力をerror_logフォルダにリダイレクト ---
-python ./src/main.py 2> "./error_log/%output%"
+python ./main.py 2> "./error_log/%output%"
 
 REM --- ユーザーが結果を確認できるように一時停止 ---
 pause

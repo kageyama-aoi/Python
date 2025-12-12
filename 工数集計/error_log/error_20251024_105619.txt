@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "C:\Users\kageyama\Tools\Python\工数集計\main.py", line 344, in <module>
+    save_sheet_as_new_file(temp_file02, sheet_name_processed, final_output)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kageyama\Tools\Python\工数集計\main.py", line 281, in save_sheet_as_new_file
+    new_wb.save(output_path)
+    ~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\kageyama\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py", line 386, in save
+    save_workbook(self, filename)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\kageyama\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py", line 291, in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+  File "C:\Users\kageyama\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py", line 1367, in __init__
+    self.fp = io.open(file, filemode)
+              ~~~~~~~^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: './output/temp2_全案件_景山 朋美_aggregate_results.xlsx'

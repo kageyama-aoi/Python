@@ -1,0 +1,106 @@
+{
+    "student": {
+        "id": "TK20251215028",
+        "bank_payment_type": {
+            "value": "1"
+        }
+    },
+    "context": {
+        "system_month": "2025-12"
+    },
+    "courses": [
+        {
+            "index": "1",
+            "event_name": "キッズドラムグループ",
+            "shimacourse_name": "ドラム-水-19:00-萩本宗太",
+            "event_shimacourse_contacts": "1659f057-585a-27e0-f8f2-693a4a6d8c5c",
+            "precondition": {
+                "#101_thisMonthImport": {
+                    "value": "Y"
+                },
+                "#102_feeNewlyBilledThisMonth": {
+                    "value": "Y"
+                },
+                "main_root": {
+                    "value": "1-(3)"
+                },
+                "final_employment_month": {
+                    "input_month": "2025-11",
+                    "value": "last_month"
+                }
+            },
+            "conditions": [
+                {
+                    "logic_name": "unbilled_fee_check",
+                    "logic_no": "#150",
+                    "route_scope": "all",
+                    "executed": "Y",
+                    "result": {
+                        "has_target": "Y"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#200_未請求料金レコードを論理削除"
+                        },
+                        "updated_records": "2"
+                    }
+                },
+                {
+                    "logic_name": "uncollected_payment_check",
+                    "logic_no": "#123",
+                    "executed": "Y",
+                    "matching_records": "0",
+                    "result": {
+                        "has_target": "N"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#129_入金方法を「請求取消」に更新"
+                        },
+                        "updated_records": "0"
+                    },
+                    "child_logic": {
+                        "logic_name": "paid",
+                        "logic_no": "#124",
+                        "executed": "N",
+                        "result": {
+                            "has_target": "Y"
+                        },
+                        "update": {
+                            "meta": {
+                                "note": "#127_入金済み料金更新"
+                            },
+                            "updated_records": "2"
+                        },
+                        "create": {
+                            "meta": {
+                                "note": "#128_預り金レコード作成"
+                            },
+                            "created_records": "2"
+                        }
+                    }
+                },
+                {
+                    "logic_name": "paid_status_check_global",
+                    "logic_no": "#300",
+                    "executed": "Y",
+                    "result": {
+                        "has_target": "Y"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#310_入金済み料金更新"
+                        },
+                        "updated_records": "1"
+                    },
+                    "create": {
+                        "meta": {
+                            "note": "#310_預り金レコード作成"
+                        },
+                        "created_records": "1"
+                    }
+                }
+            ]
+        }
+    ]
+}
