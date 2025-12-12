@@ -1,0 +1,7 @@
+student	→	context	[0]	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→	→
+id	bank_payment_type	system_month	index	event_name	shimacourse_name	event_shimacourse_contacts	precondition	→	→	→	→	[0]	→	→	→	→	→	→	[1]	→	→	→	→	→	→	→	→	→	→	→	→	→	→	[2]	→	→	→	→	→	→	→
+	value						#101_thisMonthImport	#102_feeNewlyBilledThisMonth	main_root	final_employment_month	→	logic_name	logic_no	route_scope	executed	result	update	→	logic_name	logic_no	executed	matching_records	result	update	→	child_logic	→	→	→	→	→	→	→	logic_name	logic_no	executed	result	update	→	create	→
+							value	value	value	input_month	value					has_target	meta	updated_records					has_target	meta	updated_records	logic_name	logic_no	executed	result	update	→	create	→				has_target	meta	updated_records	meta	created_records
+																	note							note					has_target	meta	updated_records	meta	created_records					note		note	
+																														note		note									
+TK20251215022	1	2025-12	1	キッズドラムグループ	ドラム-水-19:00-萩本宗太	84a3fcd0-29e2-6711-b521-693a31caa4f7	Y	Y	1-(3)	2025-11	last_month	unbilled_fee_check	#150	all	Y	N	#200_未請求料金レコードを論理削除	0	uncollected_payment_check	#123	Y	0	N	#129_入金方法を「請求取消」に更新	0	paid	#124	N	N	#127_入金済み料金更新	0	#128_預り金レコード作成	0	paid_status_check_global	#300	Y	N	#310_入金済み料金更新	0	#310_預り金レコード作成	0

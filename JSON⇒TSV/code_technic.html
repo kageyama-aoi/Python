@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 脱初心者テクニック集 - コードレビュー結果</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        p.subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        article {
+            background: white;
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: #007bff;
+            border-left: 5px solid #007bff;
+            padding-left: 15px;
+            margin-top: 0;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            margin: 15px 0;
+        }
+        .code-title {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #aaa;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .explanation {
+            margin-top: 15px;
+        }
+        .benefit {
+            background-color: #e7f5ff;
+            border-left: 4px solid #007bff;
+            padding: 10px 15px;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        .keyword {
+            font-weight: bold;
+            color: #d63384;
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Python 脱初心者テクニック集</h1>
+    <p class="subtitle">提供されたコードから学ぶ、実務で使える重要構文</p>
+</header>
+
+<article>
+    <h2>1. リスト内包表記 (List Comprehensions)</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード</span>
+json_files = [f for f in os.listdir(".") if f.endswith(".json")]
+    </div>
+    <div class="explanation">
+        <p>「空のリストを作って、forループで回して、条件に合えばappendする」という処理を1行で書くテクニックです。</p>
+        <p>初心者はつい以下のように書きがちですが、あなたのコードは内包表記を使えており、非常にPythonらしい（Pythonicな）書き方です。</p>
+    </div>
+    <div class="code-block">
+        <span class="code-title">▼ 初心者が書きがちなコード（Before）</span>
+json_files = []
+for f in os.listdir("."):
+    if f.endswith(".json"):
+        json_files.append(f)
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> コードが短くなり、処理速度も通常のforループより若干高速になります。
+    </div>
+</article>
+
+<article>
+    <h2>2. コンテキストマネージャ (with open)</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード</span>
+with open(json_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+    </div>
+    <div class="explanation">
+        <p><span class="keyword">with</span> 文を使うことで、ファイルの開閉（open/close）を自動管理しています。</p>
+        <p>これを使わないと <code>f.close()</code> を明示的に書く必要がありますが、書き忘れたり、エラー発生時にcloseされなかったりするリスクがあります。<code>with</code>を使えばブロックを抜けた瞬間に自動でファイルを閉じてくれます。</p>
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> ファイルの閉じ忘れによるリソースリークを防ぎ、エラーハンドリングを簡略化できます。
+    </div>
+</article>
+
+<article>
+    <h2>3. スマートなループ処理 (enumerate & zip)</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード (enumerate)</span>
+for i, item in enumerate(obj):
+    new_prefix = f"{prefix}[{i}]"
+
+<span class="code-title" style="margin-top:1em;">▼ あなたのコード (zip)</span>
+for (path, value), segments in zip(paths, split_paths):
+    # ...
+    </div>
+    <div class="explanation">
+        <p><strong>enumerate:</strong> リストの「インデックス」と「中身」を同時に取得したい時に使います。<code>range(len(obj))</code> を使うよりも直感的です。</p>
+        <p><strong>zip:</strong> 複数のリストを同時にループしたい時に使います。インデックスを使って <code>paths[i]</code> と <code>split_paths[i]</code> のようにアクセスする必要がなくなります。</p>
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> 可読性が大幅に向上し、インデックス操作によるバグ（Off-by-oneエラーなど）を減らせます。
+    </div>
+</article>
+
+<article>
+    <h2>4. ディレクトリ作成の防御的コーディング</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード</span>
+os.makedirs("old", exist_ok=True)
+    </div>
+    <div class="explanation">
+        <p>ディレクトリを作成する際、既にフォルダが存在していると通常はエラーになります。しかし、<span class="keyword">exist_ok=True</span> オプションをつけることで、「なければ作る、あれば何もしない（エラーにしない）」という挙動になります。</p>
+        <p>昔のPythonでは <code>if not os.path.exists("old"):</code> という確認が必要でしたが、このオプション一つで解決します。</p>
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> 条件分岐を書く手間が省け、コードがシンプルになります。
+    </div>
+</article>
+
+<article>
+    <h2>5. ラムダ関数 (Lambda) によるカスタムソート</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード</span>
+json_files.sort(key=lambda f: os.path.getmtime(f), reverse=True)
+    </div>
+    <div class="explanation">
+        <p>リストをソートする際、<span class="keyword">key=</span> 引数に関数を渡すことで「何を基準に並び替えるか」を指定できます。</p>
+        <p>ここでは無名関数（lambda）を使い、「ファイル名そのもの」ではなく「ファイルの更新日時（getmtime）」を基準に並び替えています。非常に実用的なテクニックです。</p>
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> わざわざ別の関数を定義することなく、その場限りの小さなロジックを簡潔に記述できます。
+    </div>
+</article>
+
+<article>
+    <h2>6. メイン実行ブロック (if __name__ == "__main__")</h2>
+    <div class="code-block">
+        <span class="code-title">▼ あなたのコード</span>
+if __name__ == "__main__":
+    latest_json = find_latest_json()
+    # ...
+    </div>
+    <div class="explanation">
+        <p>この記述があることで、「このファイルが直接実行された時だけ」中のコードが動きます。</p>
+        <p>もしこのファイルを別のプログラムから <code>import</code> して <code>json_to_tsv</code> 関数だけ使いたい場合、このブロックがないと勝手にメイン処理が走ってしまいます。</p>
+    </div>
+    <div class="benefit">
+        <strong>メリット:</strong> コードの再利用性（モジュール化）が高まります。ライブラリとしてインポート可能な設計になっています。
+    </div>
+</article>
+
+</body>
+</html>
