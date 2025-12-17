@@ -1,7 +1,7 @@
 {
     "settings": {
         "window_title": "ディレクトリを開く",
-        "geometry": "400x500",
+        "geometry": "350x600",
         "resizable": [
             true,
             true
@@ -92,6 +92,16 @@
                     "icon": "2025-07-02_17h53_40.png",
                     "background": "#e3f2fd",
                     "foreground": "#0d47a1"
+                },
+                {
+                    "name": "サポートMTG",
+                    "action": "open_url",
+                    "url": "https://drive.google.com/drive/folders/18Aqs_okBuzjplcm9tmEGlOSROOvNogO-"
+                },
+                {
+                    "name": "TaskReport",
+                    "action": "open_url",
+                    "url": "https://taskreport.e-school.jp/bugfix.php"
                 }
             ]
         },
@@ -111,21 +121,14 @@
                     "type": "separator"
                 },
                 {
-                    "name": "要件定義",
-                    "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1jH_G05JnxoSaBkg8wNGFp9YYUi6zmKe1\\【Culture】講師謝礼",
-                    "icon": "2025-07-02_17h53_40.png"
+                    "name": "要件定義マイページ",
+                    "action": "open_url",
+                    "url": "https://drive.google.com/drive/folders/1TYHL-YoD3SEGaxsK5DfU17ItYhFvXKDl"
                 },
                 {
                     "name": "JP_Culture(設計書、テーブル定義、WBS)",
                     "action": "open_directory",
                     "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture",
-                    "icon": null
-                },
-                {
-                    "name": "JP_Culture(ユーザーマニュアル)",
-                    "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture\\04.ユーザーマニュアル",
                     "icon": null
                 },
                 {
@@ -148,6 +151,18 @@
                     "name": "【Tframe】Culture_Beta",
                     "action": "open_url",
                     "url": "https://newculture.e-school.jp/beta/",
+                    "icon": null
+                },
+                {
+                    "name": "要件定義",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1jH_G05JnxoSaBkg8wNGFp9YYUi6zmKe1\\【Culture】講師謝礼",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "JP_Culture(ユーザーマニュアル)",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture\\04.ユーザーマニュアル",
                     "icon": null
                 }
             ]
@@ -180,16 +195,31 @@
                     "icon": null
                 },
                 {
+                    "name": "testサイト",
+                    "action": "open_parameterized_url",
+                    "base_url": "https://tcns.shimamura.co.jp/{kannkyou}",
+                    "parameters": []
+                },
+                {
                     "name": "【島村楽器】_Test_Webサイト",
                     "action": "open_url",
                     "url": "https://tcns.shimamura.co.jp/testgcp/index.php?action=Login&module=Users",
                     "icon": null
                 },
                 {
-                    "name": "【島村楽器】_設計",
+                    "name": "UAT課題管理表",
+                    "action": "open_url",
+                    "url": "https://docs.google.com/spreadsheets/d/1VcQ6KyFigMMZdJ_s9r9JnEfXbUGbnvXEq9pNWWh_vzE/edit?gid=0#gid=0"
+                },
+                {
+                    "name": "設計書（JP）",
                     "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\\001.Customers(AN)\\1477_島村楽器\\08_詳細設計",
-                    "icon": "2025-07-02_17h53_40.png"
+                    "path": "G:\\.shortcut-targets-by-id\\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\\001.Customers(AN)\\1477_島村楽器\\08_詳細設計"
+                },
+                {
+                    "name": "設計書（PH）",
+                    "action": "open_url",
+                    "url": "https://drive.google.com/drive/folders/1Z4lvTdECFQKEpqgSg0B44bXmMmINfOJF"
                 },
                 {
                     "name": "リリース関連",
@@ -202,10 +232,10 @@
                     "url": "https://docs.google.com/spreadsheets/d/1N8QOdT-4lybQ9BKGpXCXWAebcD9ZNQ3eWm-6kRiA4YI/edit?gid=0#gid=0"
                 },
                 {
-                    "name": "testサイト",
-                    "action": "open_parameterized_url",
-                    "base_url": "https://tcns.shimamura.co.jp/{kannkyou}",
-                    "parameters": []
+                    "name": "【島村楽器】_設計",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\\001.Customers(AN)\\1477_島村楽器\\08_詳細設計",
+                    "icon": "2025-07-02_17h53_40.png"
                 }
             ]
         },
@@ -216,7 +246,7 @@
                 {
                     "name": "メインメニューへ",
                     "action": "show_page",
-                    "target": "main_menu",
+                    "target": "memo2",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -237,6 +267,47 @@
                     "action": "open_directory",
                     "path": "C:\\LogZoV3_LogData",
                     "icon": "2025-07-02_17h53_40.png"
+                }
+            ]
+        },
+        "memo2": {
+            "title": "三菱重工",
+            "window_title": "三菱重工",
+            "entries": [
+                {
+                    "name": "メインメニューへ",
+                    "action": "show_page",
+                    "target": "main_menu",
+                    "icon": null,
+                    "background": "#e0f7fa",
+                    "foreground": "#006064"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "name": "受領資料",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
+                },
+                {
+                    "name": "2Google検索",
+                    "action": "open_url",
+                    "url": "https://www.google.com",
+                    "icon": null,
+                    "background": "#f1f8e9",
+                    "foreground": "#33691e"
+                },
+                {
+                    "name": "LogZo",
+                    "action": "open_directory",
+                    "path": "C:\\LogZoV3_LogData",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "自分用メモ",
+                    "action": "open_url",
+                    "url": "https://docs.google.com/spreadsheets/d/1qowxLjmxh2LF6OB7HtkYZuMDW7tGrTCBu_1zSfRWqvI/edit?gid=0#gid=0"
                 }
             ]
         }

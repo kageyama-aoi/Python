@@ -3,29 +3,22 @@ from tkinter import ttk, messagebox
 import json
 import os
 from . import constants as C
+from .config_manager import ConfigManager
+import copy
 
 class SettingsEditor(tk.Toplevel):
-    CONFIG_FILE = os.path.join("data", "config.json")
-
-    def __init__(self, master, on_save_callback=None):
+    def __init__(self, master, config_manager: ConfigManager, on_save_callback=None):
         super().__init__(master)
         self.title("設定エディタ")
+        self.config_manager = config_manager
         self.on_save_callback = on_save_callback
-        self.geometry("700x600") # ウィンドウサイズを少し大きくする
+        self.geometry("700x600")
 
-        # プロジェクトルートからの相対パスを想定
-        self.config_path = self.CONFIG_FILE
-        self.config = self._load_config()
+        # 編集用の一時的なconfigのコピーを作成
+        self.config = copy.deepcopy(self.config_manager.get_config())
 
-        self.current_parameters = [] # 現在編集中のパラメータリスト
+        self.current_parameters = []
         self.create_widgets()
-
-    def _load_config(self):
-        try:
-            with open(self.config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}
 
     def create_widgets(self):
         main_frame = ttk.Frame(self)
@@ -388,130 +381,25 @@ class SettingsEditor(tk.Toplevel):
             value = var.get()
             if key == C.ConfigKey.RESIZABLE:
                 try:
-                    settings[key] = [bool(v.strip()) for v in value.split(',')]
-                except:
-                    messagebox.showerror("エラー", "resizableは 'True, False' のようにカンマ区切りで入力してください。")
+                    # 'True, False' のような文字列を [True, False] のようなリストに変換
+                    settings[key] = [
+                        v.strip().lower() in ('true', '1', 't', 'y', 'yes') 
+                        for v in value.split(',')
+                    ]
+                except Exception as e:
+                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.RESIZABLE}' の値は 'True, False' のようにカンマ区切りの真偽値で入力してください。\nエラー: {e}")
                     return
             else:
                 settings[key] = value
         self.config[C.ConfigKey.SETTINGS] = settings
 
-        # pagesの保存 (TODO)
-
-        try:
-            with open(self.config_path, 'w', encoding='utf-8') as f:
-                json.dump(self.config, f, indent=4, ensure_ascii=False)
-
+        # 新しい設定をConfigManager経由で保存
+        if self.config_manager.save_config(self.config):
+            messagebox.showinfo("成功", "設定を保存しました。")
             if self.on_save_callback:
                 self.on_save_callback()
-
-            messagebox.showinfo("成功", "設定を保存し、UIを更新しました。")
             self.destroy()
-        except Exception as e:
-            messagebox.showerror("エラー", f"設定の保存中にエラーが発生しました: {e}")
-
-
-class ParameterEditor(tk.Toplevel):
-    def __init__(self, master, index=None, param_data=None):
-        super().__init__(master)
-        self.master = master
-        self.index = index # Index in the parent's current_parameters list
-        self.result_param_data = None # To store the parameter data if saved
-
-        self.title("パラメータ編集")
-        self.geometry("400x300")
-        self.transient(master) # Make it a transient window for the master
-        self.grab_set() # Make it modal
-
-        self.param_data = param_data if param_data else {}
-
-        self.create_widgets()
-        self.load_param_data()
-
-    def create_widgets(self):
-        main_frame = ttk.Frame(self, padding="10")
-        main_frame.pack(fill="both", expand=True)
-
-        # Name
-        ttk.Label(main_frame, text="パラメータ名 (name):").pack(pady=2)
-        self.name_var = tk.StringVar()
-        ttk.Entry(main_frame, textvariable=self.name_var).pack(fill="x", padx=5)
-
-        # Label
-        ttk.Label(main_frame, text="表示ラベル (label):").pack(pady=2)
-        self.label_var = tk.StringVar()
-        ttk.Entry(main_frame, textvariable=self.label_var).pack(fill="x", padx=5)
-
-        # Type
-        ttk.Label(main_frame, text="タイプ (type):").pack(pady=2)
-        self.type_var = tk.StringVar()
-        self.type_combo = ttk.Combobox(main_frame, textvariable=self.type_var, values=[pt.value for pt in C.ParamType], state="readonly")
-        self.type_combo.pack(fill="x", padx=5)
-        self.type_combo.bind("<<ComboboxSelected>>", self.on_type_change)
-
-        # Default Value
-        ttk.Label(main_frame, text="初期値 (default_value):").pack(pady=2)
-        self.default_value_var = tk.StringVar()
-        self.default_value_entry = ttk.Entry(main_frame, textvariable=self.default_value_var)
-        self.default_value_entry.pack(fill="x", padx=5)
-
-        # Options (for pulldown)
-        self.options_frame = ttk.LabelFrame(main_frame, text="選択肢 (pulldownの場合)")
-        # self.options_frame.pack(fill="x", padx=5, pady=5) # Initially hidden
-
-        ttk.Label(self.options_frame, text="カンマ区切りで入力:").pack(pady=2)
-        self.options_var = tk.StringVar()
-        ttk.Entry(self.options_frame, textvariable=self.options_var).pack(fill="x", padx=5)
-
-        # Save/Cancel buttons
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(pady=10)
-        ttk.Button(button_frame, text="保存", command=self.save_parameter).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="キャンセル", command=self.destroy).pack(side="left", padx=5)
-
-        self.on_type_change(None) # Initial state
-
-    def load_param_data(self):
-        self.name_var.set(self.param_data.get(C.ConfigKey.NAME, ""))
-        self.label_var.set(self.param_data.get(C.ConfigKey.LABEL, ""))
-        self.type_var.set(self.param_data.get(C.ConfigKey.TYPE, C.ParamType.TEXT))
-        self.default_value_var.set(self.param_data.get(C.ConfigKey.DEFAULT_VALUE, ""))
-        if self.param_data.get(C.ConfigKey.OPTIONS): # Join list to comma-separated string
-            self.options_var.set(",".join(self.param_data[C.ConfigKey.OPTIONS]))
-        self.on_type_change(None) # Update visibility based on loaded type
-
-    def on_type_change(self, event):
-        if self.type_var.get() == C.ParamType.PULLDOWN:
-            self.options_frame.pack(fill="x", padx=5, pady=5)
         else:
-            self.options_frame.pack_forget()
-
-    def save_parameter(self):
-        name = self.name_var.get().strip()
-        label = self.label_var.get().strip()
-        param_type = self.type_var.get()
-        default_value = self.default_value_var.get().strip()
-        options = [opt.strip() for opt in self.options_var.get().split(',') if opt.strip()] if param_type == "pulldown" else []
-
-        if not name:
-            messagebox.showerror("エラー", "パラメータ名は必須です。")
-            return
-        if param_type == C.ParamType.PULLDOWN and not options:
-            messagebox.showerror("エラー", "プルダウンタイプの場合、選択肢は必須です。")
-            return
-
-        self.result_param_data = {
-            C.ConfigKey.NAME: name,
-            C.ConfigKey.TYPE: param_type,
-            C.ConfigKey.LABEL: label if label else name, # Use name if label is empty
-            C.ConfigKey.DEFAULT_VALUE: default_value
-        }
-        if param_type == C.ParamType.PULLDOWN:
-            self.result_param_data[C.ConfigKey.OPTIONS] = options
-        
-        self.destroy()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = SettingsEditor(root)
-    root.mainloop()
+            # 保存失敗のメッセージはConfigManagerが表示するのでここでは不要
+            # messagebox.showerror("エラー", "設定の保存に失敗しました。詳細はコンソールを確認してください。")
+            pass

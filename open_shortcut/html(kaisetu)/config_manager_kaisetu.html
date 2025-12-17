@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ConfigManager クラス設計・解説資料</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>ConfigManager クラス 解説資料</h1>
+
+<div class="box">
+  <h2>1. 目的（このクラスは何をするものか）</h2>
+  <p>
+    <strong>ConfigManager</strong> は、JSON形式の設定ファイルを
+    「安全に読み込み、正しい内容だけをアプリで使えるようにする」
+    ための管理クラスです。
+  </p>
+  <ul>
+    <li>設定ファイルが存在しない</li>
+    <li>JSONとして壊れている</li>
+    <li>内容はあるが意味的に間違っている</li>
+  </ul>
+  <p>
+    こうした問題を<strong>起動時・保存時に必ず検知</strong>し、
+    アプリの誤動作や謎クラッシュを防ぎます。
+  </p>
+</div>
+
+<div class="box">
+  <h2>2. 全体構成</h2>
+  <pre>
+ConfigManager
+ ├─ load_and_validate_config()  # 読み込み + 検証（中核）
+ ├─ get_config()                # 検証済み設定の取得
+ ├─ reload()                    # 再読み込み
+ └─ save_config()               # 保存前検証つき保存
+  </pre>
+</div>
+
+<div class="box">
+  <h2>3. 採用している技術と理由</h2>
+  <ul>
+    <li><strong>json</strong>：設定ファイルの読み書き</li>
+    <li><strong>jsonschema</strong>：設定内容の構造・型・制約の検証</li>
+    <li><strong>tkinter.messagebox</strong>：GUIアプリ向けの即時エラー通知</li>
+  </ul>
+
+  <div class="point">
+    if文で設定チェックを大量に書くのではなく、
+    <strong>「設定の設計書（schema）」に検証を任せる</strong>
+    ことで、可読性・保守性を大きく向上させています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. 初期化処理（__init__）</h2>
+  <pre><code>
+def __init__(self, config_path="data/config.json", schema_path="data/config.schema.json"):
+    self.config_path = config_path
+    self.schema_path = schema_path
+    self.config = self.load_and_validate_config()
+  </code></pre>
+
+  <p>
+    インスタンス生成と同時に設定を読み込み・検証します。
+    これにより「設定が壊れている状態で処理が進む」ことを防ぎます。
+  </p>
+
+  <div class="point">
+    <strong>起動時に死ぬなら、起動時に死なせる</strong><br>
+    後工程での例外連鎖を防ぐための設計です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. load_and_validate_config（中核処理）</h2>
+  <p>処理の流れは以下の通りです。</p>
+  <ol>
+    <li>config.json を読み込む</li>
+    <li>config.schema.json を読み込む</li>
+    <li>jsonschema による検証</li>
+    <li>成功時のみ設定データを返す</li>
+  </ol>
+
+  <pre><code>
+jsonschema.validate(instance=config_data, schema=schema)
+  </code></pre>
+
+  <p>
+    スキーマ検証により、必須項目不足・型違い・不正値を
+    一括で検出できます。
+  </p>
+</div>
+
+<div class="box">
+  <h2>6. 例外処理の設計意図</h2>
+  <ul>
+    <li><strong>FileNotFoundError</strong>：ファイル配置ミス</li>
+    <li><strong>JSONDecodeError</strong>：JSON構文エラー</li>
+    <li><strong>ValidationError</strong>：設定内容の誤り</li>
+    <li><strong>SchemaError</strong>：スキーマ定義自体の誤り</li>
+  </ul>
+
+  <div class="point">
+    エラーを細分化することで、
+    <strong>ユーザーが「何を直せばいいか」分かる表示</strong>
+    になっています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>7. reload メソッド</h2>
+  <pre><code>
+def reload(self) -> bool:
+    new_config = self.load_and_validate_config()
+    if new_config is not None:
+        self.config = new_config
+        return True
+    return False
+  </code></pre>
+
+  <p>
+    設定ファイル変更後に、アプリ再起動なしで反映するための仕組みです。
+  </p>
+</div>
+
+<div class="box">
+  <h2>8. save_config メソッド</h2>
+  <p>
+    保存前に必ずスキーマ検証を行い、
+    <strong>壊れた設定をファイルに書かせない</strong>設計になっています。
+  </p>
+
+  <div class="point">
+    「保存は成功したが、次回起動で即クラッシュ」
+    という最悪の事故を防ぐための重要な処理です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. 設計思想まとめ</h2>
+  <ul>
+    <li>設定ファイルは信用しない</li>
+    <li>検証済みデータのみアプリに流す</li>
+    <li>エラーは必ずユーザーに伝える</li>
+    <li>設定管理の責務を1クラスに集中させる</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>10. 改善余地（発展）</h2>
+  <ul>
+    <li>messagebox を外部注入して CLI / GUI 両対応にする</li>
+    <li>pathlib.Path を使ってパス操作を安全にする</li>
+    <li>テストコードを追加して CI に組み込む</li>
+  </ul>
+</div>
+
+</body>
+</html>

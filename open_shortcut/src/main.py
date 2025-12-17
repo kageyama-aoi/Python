@@ -1,10 +1,9 @@
 import os
-import json
 import webbrowser
 import tkinter as tk
-import jsonschema
 from tkinter import ttk, messagebox
 from .settings_editor import SettingsEditor
+from .config_manager import ConfigManager
 from . import constants as C
 
 class DirectoryOpenerApp:
@@ -13,8 +12,6 @@ class DirectoryOpenerApp:
     Tkinter GUIアプリケーション。
     複数ページの切り替えに対応。
     """
-    CONFIG_FILE = os.path.join("data", "config.json")
-
     def __init__(self, master: tk.Tk):
         """アプリケーションを初期化し、UIを構築する。"""
         self.master = master
@@ -24,7 +21,8 @@ class DirectoryOpenerApp:
         self.pages = {}
 
         # 設定ファイルを読み込む
-        self.config = self._load_config()
+        self.config_manager = ConfigManager()
+        self.config = self.config_manager.get_config()
         if not self.config:
             master.destroy()  # 設定がなければウィンドウを閉じる
             return
@@ -32,49 +30,6 @@ class DirectoryOpenerApp:
         self._setup_window()
         self._setup_styles()
         self._create_widgets()
-
-    def _load_config(self) -> dict | None:
-        """設定ファイル(JSON)を読み込み、スキーマで検証する。"""
-        try:
-            # 設定ファイルとスキーマファイルを読み込む
-            with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
-                config_data = json.load(f)
-            
-            schema_path = os.path.join("data", "config.schema.json")
-            with open(schema_path, 'r', encoding='utf-8') as f:
-                schema = json.load(f)
-            
-            # バリデーションを実行
-            jsonschema.validate(instance=config_data, schema=schema)
-            
-            return config_data
-
-        except FileNotFoundError as e:
-            messagebox.showerror("ファイルエラー", f"必要なファイルが見つかりません: {e.filename}")
-            return None
-        except json.JSONDecodeError:
-            messagebox.showerror("JSONエラー", f"設定ファイル '{self.CONFIG_FILE}' の形式が正しくありません。")
-            return None
-        except jsonschema.ValidationError as e:
-            # エラーパスを分かりやすく整形
-            error_path = " -> ".join(map(str, e.path)) if e.path else "トップレベル"
-            error_message = (
-                f"設定ファイル '{self.CONFIG_FILE}' の内容に誤りがあります。\n\n"
-                f"エラー内容: {e.message}\n"
-                f"場所: {error_path}"
-            )
-            messagebox.showerror("設定ファイル検証エラー", error_message)
-            return None
-        except jsonschema.SchemaError as e:
-            error_message = (
-                f"スキーマファイル '{schema_path}' 自体に誤りがあります。\n\n"
-                f"エラー内容: {e.message}"
-            )
-            messagebox.showerror("スキーマ定義エラー", error_message)
-            return None
-        except Exception as e:
-            messagebox.showerror("エラー", f"設定ファイルの読み込み/検証中に予期せぬエラーが発生しました: {e}")
-            return None
 
     def _setup_window(self):
         """ウィンドウのタイトル、サイズ、アイコンなどを設定する。"""
@@ -321,10 +276,10 @@ class DirectoryOpenerApp:
         self.pages = {}
 
         # 3. Reload config
-        self.config = self._load_config()
-        if not self.config:
+        if not self.config_manager.reload():
             self.master.destroy()
             return
+        self.config = self.config_manager.get_config()
 
         # 4. Re-create UI
         self._setup_window()
@@ -411,7 +366,7 @@ class DirectoryOpenerApp:
 
     def open_settings_window(self):
         """設定画面を新しいウィンドウで開く。"""
-        settings_window = SettingsEditor(self.master, on_save_callback=self.reload_ui)
+        settings_window = SettingsEditor(self.master, self.config_manager, on_save_callback=self.reload_ui)
         settings_window.grab_set() # モーダルウィンドウにする
 
 def main():

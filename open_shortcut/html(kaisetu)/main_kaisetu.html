@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>DirectoryOpenerApp 設計・解説資料</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>DirectoryOpenerApp クラス 解説資料</h1>
+
+<div class="box">
+  <h2>1. このクラスの役割（全体像）</h2>
+  <p>
+    <strong>DirectoryOpenerApp</strong> は、
+    設定ファイル（config.json）に基づいて
+    <strong>ディレクトリ・URL・画面遷移用ボタンを動的に生成する</strong>
+    Tkinter GUI アプリケーションです。
+  </p>
+  <ul>
+    <li>設定ファイルを変更するだけで UI を差し替え可能</li>
+    <li>ページ切り替え型の GUI 構成</li>
+    <li>設定編集 → UI 再構築まで一気通貫</li>
+  </ul>
+
+  <div class="point">
+    コードを増やさず、<strong>設定でアプリを育てる</strong>ための中核クラスです。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. 依存関係と責務分離</h2>
+  <pre>
+DirectoryOpenerApp
+ ├─ ConfigManager      : 設定の読み込み・検証
+ ├─ SettingsEditor     : 設定編集UI
+ ├─ constants (C)      : 定数・キー定義
+ └─ Tkinter / ttk      : GUI 表示
+  </pre>
+
+  <div class="point">
+    UI ロジックと設定管理を明確に分離しているため、
+    GUI 側は「設定をどう描画するか」に専念できます。
+  </div>
+</div>
+
+<div class="box">
+  <h2>3. 初期化処理（__init__）の考え方</h2>
+  <pre><code>
+self.config_manager = ConfigManager()
+self.config = self.config_manager.get_config()
+if not self.config:
+    master.destroy()
+    return
+  </code></pre>
+
+  <p>
+    設定が取得できない場合、<strong>即座にアプリを終了</strong>します。
+  </p>
+
+  <div class="point">
+    「設定がない状態で GUI だけ動く」
+    という半壊状態を許さない、非常に堅実な設計です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. ウィンドウ設定（_setup_window）</h2>
+  <p>
+    ウィンドウタイトル・サイズ・リサイズ可否・アイコンなどを
+    <strong>すべて設定ファイルから取得</strong>しています。
+  </p>
+
+  <ul>
+    <li>WINDOW_TITLE</li>
+    <li>GEOMETRY</li>
+    <li>RESIZABLE</li>
+    <li>WINDOW_ICON</li>
+  </ul>
+
+  <div class="point">
+    見た目や振る舞いをコードから切り離し、
+    <strong>非エンジニアでも調整可能</strong>にしています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. スタイル管理（_setup_styles）</h2>
+  <pre><code>
+for style_name, options in styles_config.items():
+    self.style.configure(style_name, **options)
+  </code></pre>
+
+  <p>
+    ttk のスタイル定義を設定ファイル側に委ねることで、
+    UI テーマ変更をコード修正なしで実現しています。
+  </p>
+</div>
+
+<div class="box">
+  <h2>6. ページ構造と動的生成（_create_widgets）</h2>
+  <p>
+    ページは <strong>Frame 単位</strong>で管理され、
+    設定ファイルの pages 定義から動的に生成されます。
+  </p>
+
+  <ul>
+    <li>ページ定義がなければ即エラー</li>
+    <li>初期ページは設定で指定</li>
+    <li>ステータスバーは全ページ共通</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>7. エントリ生成のディスパッチ設計</h2>
+  <pre><code>
+if action == OPEN_DIRECTORY:
+elif action == OPEN_URL:
+elif action == SHOW_PAGE:
+elif action == OPEN_PARAMETERIZED_URL:
+  </code></pre>
+
+  <div class="point">
+    <strong>action ごとに責務を分割</strong>することで、
+    機能追加時の影響範囲を最小化しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. 動的スタイル生成の意図</h2>
+  <p>
+    ボタンごとに背景色・文字色を変えられるよう、
+    スタイルを<strong>実行時に動的生成</strong>しています。
+  </p>
+
+  <div class="point">
+    ttk の「スタイルはグローバル」という制約を、
+    カウンタ付きスタイル名で回避しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. パラメータ付きURL機能の狙い</h2>
+  <p>
+    単なるリンク集ではなく、
+    <strong>入力値を埋め込んだURL生成</strong>を可能にしています。
+  </p>
+
+  <ul>
+    <li>TEXT / PULLDOWN に対応</li>
+    <li>URLテンプレート + format 方式</li>
+    <li>ユーザー入力をURLエンコード</li>
+  </ul>
+
+  <div class="point">
+    業務システム・管理画面系ツールと非常に相性が良い構成です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>10. reload_ui の重要性</h2>
+  <p>
+    設定変更後に UI を完全再構築するための処理です。
+  </p>
+
+  <ol>
+    <li>全ウィジェット破棄</li>
+    <li>内部状態リセット</li>
+    <li>設定再読み込み</li>
+    <li>UI 再生成</li>
+  </ol>
+
+  <div class="point">
+    「設定変更＝再起動」を不要にし、
+    ツールとしての快適さを大きく向上させています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>11. ステータスバーの設計意図</h2>
+  <p>
+    成功・失敗を <strong>色 + 文言</strong>で即時フィードバック。
+  </p>
+
+  <ul>
+    <li>成功：青</li>
+    <li>失敗：赤</li>
+  </ul>
+
+  <div class="point">
+    messagebox 乱用を避け、
+    <strong>作業を中断させない UX</strong>を実現しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>12. 設定画面との連携</h2>
+  <pre><code>
+SettingsEditor(
+    self.master,
+    self.config_manager,
+    on_save_callback=self.reload_ui
+)
+  </code></pre>
+
+  <p>
+    設定保存後に UI を即リロードすることで、
+    設定 → 結果確認のループを高速化しています。
+  </p>
+</div>
+
+<div class="box">
+  <h2>13. 設計思想まとめ</h2>
+  <ul>
+    <li>UI は設定の写像である</li>
+    <li>壊れた状態では動かさない</li>
+    <li>責務を細かく分ける</li>
+    <li>変更コストを最小にする</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>14. 発展・改善余地</h2>
+  <ul>
+    <li>ページ遷移アニメーション</li>
+    <li>ショートカットキー対応</li>
+    <li>ログ出力の共通化</li>
+    <li>テーマ切替（ダークモード）</li>
+  </ul>
+</div>
+
+</body>
+</html>
