@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>設定駆動GUIコードの読み方ガイド</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.75;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    pre, code {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    .warning {
+      background: #fff4e5;
+      border-left: 6px solid #f5a623;
+      padding: 14px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>設定駆動GUIコードを理解するための読み方ガイド</h1>
+
+<div class="box">
+  <h2>はじめに</h2>
+  <p>
+    本資料は、<strong>DirectoryOpenerApp / SettingsEditor / ConfigManager</strong>
+    を中心としたコード群を、
+    <strong>「どこから・どう読めば理解できるか」</strong>に特化してまとめたものです。
+  </p>
+
+  <div class="point">
+    このコードは「上から順に読めば理解できる」タイプではありません。  
+    読む順番を間違えると、内容が頭に入らない構造になっています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>1. やってはいけない読み方</h2>
+  <ul>
+    <li>ファイルの先頭から順に読む</li>
+    <li>SettingsEditor の widget 配置を細かく追う</li>
+    <li>Tkinter の引数をすべて理解しようとする</li>
+  </ul>
+
+  <div class="warning">
+    これをやると、UI の細部に意識を奪われ、
+    <strong>コードの目的と構造を見失います</strong>。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. このコード群の正体（最重要）</h2>
+  <p>
+    このアプリは「TkinterでGUIを作るコード」ではありません。
+  </p>
+
+  <div class="point">
+    <strong>設定ファイル（config.json）を  
+    実行時にGUIへ変換するエンジン</strong>
+  </div>
+
+  <ul>
+    <li>ボタンはコードで定義されていない</li>
+    <li>ページ構成もコードで決まっていない</li>
+    <li>すべて設定ファイルが正体</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>3. 正しい読み順（全体像）</h2>
+  <pre>
+Step1  世界観を掴む
+Step2  ConfigManager を理解する
+Step3  constants.py を仕様書として読む
+Step4  DirectoryOpenerApp を流れで読む
+Step5  SettingsEditor を逆方向として読む
+  </pre>
+
+  <div class="point">
+    「外側 → 内側」「抽象 → 具体」の順番が必須です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. Step1：世界観を掴む</h2>
+  <p>
+    まず理解すべきは、細かい実装ではありません。
+  </p>
+
+  <ul>
+    <li>このアプリは設定ファイルが本体</li>
+    <li>GUIは設定の「結果表示」</li>
+    <li>コードは変換ルール</li>
+  </ul>
+
+  <div class="point">
+    「GUIを作っている」のではなく  
+    <strong>「設定を描画している」</strong>と捉えるのが重要です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. Step2：ConfigManager を読む理由</h2>
+  <p>
+    他のクラスはすべて、
+    <strong>ConfigManager を完全に信用して動いています</strong>。
+  </p>
+
+  <ul>
+    <li>get_config() は検証済み設定のみ返す</li>
+    <li>save_config() は壊れた設定を保存させない</li>
+    <li>UI 側は安全性を一切考えなくてよい</li>
+  </ul>
+
+  <div class="point">
+    ここを理解しないと、
+    「なぜ UI がここまで単純なのか」が分かりません。
+  </div>
+</div>
+
+<div class="box">
+  <h2>6. Step3：constants.py は仕様書</h2>
+  <p>
+    constants.py はロジックではありません。
+  </p>
+
+  <div class="point">
+    <strong>このアプリで許されている世界の一覧表</strong>
+  </div>
+
+  <ul>
+    <li>ConfigKey：設定ファイルで使えるキー</li>
+    <li>Action：ボタンが取りうる振る舞い</li>
+    <li>ParamType：パラメータ入力の種類</li>
+  </ul>
+
+  <p>
+    if 文を読む前に、
+    「分岐の選択肢」を先に知る必要があります。
+  </p>
+</div>
+
+<div class="box">
+  <h2>7. Step4：DirectoryOpenerApp は流れだけ追う</h2>
+  <p>
+    この段階では、関数の中身は追いません。
+  </p>
+
+  <pre>
+__init__
+ ↓
+_setup_window
+ ↓
+_setup_styles
+ ↓
+_create_widgets
+   ↓
+   _populate_page
+     ↓
+     _create_button
+  </pre>
+
+  <div class="point">
+    ゴールは  
+    <strong>「設定1件がUI1要素になるまでの流れ」</strong>を掴むことです。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. Step5：SettingsEditor は逆方向</h2>
+  <p>
+    SettingsEditor は
+    <strong>UI → 設定</strong> という逆ベクトルの処理です。
+  </p>
+
+  <ul>
+    <li>deepcopy で安全に編集</li>
+    <li>フォーム → config への正規化</li>
+    <li>保存時にのみ検証</li>
+  </ul>
+
+  <div class="point">
+    「なぜここでこの処理が必要か」は、
+    DirectoryOpenerApp を読んだ後でないと分かりません。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. ムズカシイと感じる正体</h2>
+  <p>
+    このコードが難しく感じるのは、能力の問題ではありません。
+  </p>
+
+  <div class="point">
+    <ul>
+      <li>設定駆動</li>
+      <li>動的UI生成</li>
+      <li>状態遷移あり</li>
+      <li>編集 → 検証 → 再描画</li>
+    </ul>
+    <p>
+      小規模アプリに見えて、
+      <strong>実質フレームワーク</strong>です。
+    </p>
+  </div>
+</div>
+
+<div class="box">
+  <h2>10. 実践的な読み方（おすすめ）</h2>
+  <ol>
+    <li>config.json を開く</li>
+    <li>この1エントリは何になるか考える</li>
+    <li>_create_button だけを見る</li>
+    <li>save_form_data だけを見る</li>
+  </ol>
+
+  <div class="point">
+    コード → UI ではなく  
+    <strong>設定 → UI / 設定 → 保存</strong> の往復で読むのが最短です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>11. まとめ</h2>
+  <ul>
+    <li>このコードは普通に難しい</li>
+    <li>読む順番が理解度を左右する</li>
+    <li>構造は非常に健全</li>
+    <li>時間をかけて理解する価値がある</li>
+  </ul>
+
+  <div class="point">
+    「分からない」のではなく  
+    <strong>「正しい入口にまだ立っていないだけ」</strong>です。
+  </div>
+</div>
+
+</body>
+</html>

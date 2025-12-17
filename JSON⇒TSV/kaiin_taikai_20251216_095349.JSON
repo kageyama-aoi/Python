@@ -1,0 +1,234 @@
+{
+    "student": {
+        "id": "TK20251215031",
+        "bank_payment_type": {
+            "value": "1",
+            "value_meta": {
+                "note": "支払い方法の区分",
+                "type": "enum",
+                "options": [
+                    {
+                        "value": "1",
+                        "label": "bank"
+                    },
+                    {
+                        "value": "2",
+                        "label": "card"
+                    },
+                    {
+                        "value": "3",
+                        "label": "cash"
+                    },
+                    {
+                        "value": "4",
+                        "label": "factoring"
+                    }
+                ]
+            }
+        }
+    },
+    "context": {
+        "system_month": "2025-12"
+    },
+    "courses": [
+        {
+            "index": "1",
+            "event_name": "キッズドラムグループ",
+            "shimacourse_name": "ドラム-水-19:00-萩本宗太",
+            "event_shimacourse_contacts": "32642388-1501-6762-d332-693a5bfb3071",
+            "precondition": {
+                "#101_thisMonthImport": {
+                    "value": "Y",
+                    "value_meta": {
+                        "note": "当月のインポートを実施したかどうか",
+                        "type": "enum",
+                        "options": [
+                            {
+                                "value": "yes",
+                                "label": "インポート済み"
+                            },
+                            {
+                                "value": "no",
+                                "label": "未インポート"
+                            }
+                        ]
+                    }
+                },
+                "#102_feeNewlyBilledThisMonth": {
+                    "value": "N",
+                    "value_meta": {
+                        "note": "今月新たに請求されたか料金があるかどうか",
+                        "type": "enum",
+                        "options": [
+                            {
+                                "value": "yes",
+                                "label": "請求対象あり"
+                            },
+                            {
+                                "value": "no",
+                                "label": "請求対象なし"
+                            }
+                        ]
+                    }
+                },
+                "main_root": {
+                    "value": "1-(2)",
+                    "value_meta": {
+                        "note": "処理フェーズの段階",
+                        "type": "enum",
+                        "options": [
+                            {
+                                "value": "1-(1)",
+                                "label": "BeforeImport"
+                            },
+                            {
+                                "value": "1-(2)",
+                                "label": "AfterImport"
+                            },
+                            {
+                                "value": "1-(3)",
+                                "label": "BeforeImport(Alt)"
+                            }
+                        ],
+                        "rule": {
+                            "bank_payment_type_not_1": {
+                                "main_root": "1-(2)"
+                            },
+                            "bank_payment_type_1": [
+                                {
+                                    "when": {
+                                        "#101_thisMonthImport": "no"
+                                    },
+                                    "main_root": "1-(1)"
+                                },
+                                {
+                                    "when": {
+                                        "#101_thisMonthImport": "yes",
+                                        "#102_feeNewlyBilledThisMonth": "no"
+                                    },
+                                    "main_root": "1-(2)"
+                                },
+                                {
+                                    "when": {
+                                        "#101_thisMonthImport": "yes",
+                                        "#102_feeNewlyBilledThisMonth": "yes"
+                                    },
+                                    "main_root": "1-(3)"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "final_employment_month": {
+                    "input_month": "2025-11",
+                    "value": "last_month",
+                    "value_meta": {
+                        "note": "最終在籍月の区分",
+                        "type": "enum",
+                        "options": [
+                            {
+                                "value": "last_month",
+                                "label": "Last Month"
+                            },
+                            {
+                                "value": "this_month",
+                                "label": "This Month"
+                            },
+                            {
+                                "value": "next_month",
+                                "label": "Next Month"
+                            }
+                        ]
+                    }
+                }
+            },
+            "conditions": [
+                {
+                    "logic_name": "unbilled_fee_check",
+                    "logic_no": "#120",
+                    "route_scope": "all",
+                    "executed": "Y",
+                    "result": {
+                        "has_target": "Y"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#200_未請求料金レコードを論理削除"
+                        },
+                        "updated_records": "1"
+                    }
+                },
+                {
+                    "logic_name": "uncollected_payment_check",
+                    "logic_no": "#123",
+                    "route_scope": {
+                        "main_root": "1-(2)",
+                        "final_employment_month": "last_month"
+                    },
+                    "executed": "Y",
+                    "matching_records": "0",
+                    "result": {
+                        "has_target": "N"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#129_入金方法を「請求取消」に更新"
+                        },
+                        "updated_records": "0"
+                    },
+                    "child_logic": {
+                        "logic_name": "paid",
+                        "logic_no": "#124",
+                        "route_scope": {
+                            "depends_on": "uncollected_payment_check",
+                            "has_target": "Y"
+                        },
+                        "executed": "Y",
+                        "result": {
+                            "has_target": "Y"
+                        },
+                        "update": {
+                            "meta": {
+                                "note": "#127_入金済み料金更新"
+                            },
+                            "updated_records": "1"
+                        },
+                        "create": {
+                            "meta": {
+                                "note": "#128_預り金レコード作成"
+                            },
+                            "created_records": "1"
+                        }
+                    }
+                },
+                {
+                    "logic_name": "paid_status_check_global",
+                    "logic_no": "#300",
+                    "route_scope": {
+                        "target": "all",
+                        "skip": {
+                            "main_root": "1-(2)",
+                            "final_employment_month": "last_month"
+                        }
+                    },
+                    "executed": "Y",
+                    "result": {
+                        "has_target": "N"
+                    },
+                    "update": {
+                        "meta": {
+                            "note": "#310_入金済み料金更新"
+                        },
+                        "updated_records": "0"
+                    },
+                    "create": {
+                        "meta": {
+                            "note": "#310_預り金レコード作成"
+                        },
+                        "created_records": "0"
+                    }
+                }
+            ]
+        }
+    ]
+}

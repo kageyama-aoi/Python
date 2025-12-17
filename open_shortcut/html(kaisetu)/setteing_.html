@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>SettingsEditor 設計・解説資料</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>SettingsEditor クラス 解説資料</h1>
+
+<div class="box">
+  <h2>1. このクラスの役割（何を担当しているか）</h2>
+  <p>
+    <strong>SettingsEditor</strong> は、
+    <strong>config.json を GUI で安全に編集するための専用エディタ</strong>です。
+  </p>
+  <ul>
+    <li>設定を直接ファイル編集させない</li>
+    <li>構造を壊さない UI で編集させる</li>
+    <li>保存時は必ずスキーマ検証</li>
+  </ul>
+
+  <div class="point">
+    「ユーザーは便利に、アプリは壊れない」を両立させるためのクラスです。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. なぜ Toplevel なのか</h2>
+  <pre><code>
+class SettingsEditor(tk.Toplevel):
+  </code></pre>
+
+  <p>
+    メイン画面とは独立した
+    <strong>モーダル設定ウィンドウ</strong>として動作させるためです。
+  </p>
+
+  <div class="point">
+    メイン画面を壊さず、設定編集に集中させるための選択です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>3. deepcopy を使う理由</h2>
+  <pre><code>
+self.config = copy.deepcopy(self.config_manager.get_config())
+  </code></pre>
+
+  <p>
+    編集途中でキャンセル・エラーが起きても、
+    <strong>本体の設定を一切汚染しない</strong>ためです。
+  </p>
+
+  <div class="point">
+    「保存されるまで設定は確定しない」という
+    UI として非常に重要な保証です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. UI 全体構成</h2>
+  <pre>
+SettingsEditor
+ ├─ Notebook
+ │   ├─ 基本設定タブ
+ │   └─ ページ編集タブ
+ └─ 保存して閉じるボタン
+  </pre>
+
+  <div class="point">
+    設定の種類ごとに UI を分離し、
+    認知負荷を下げる構成になっています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. 基本設定タブ（create_settings_tab）</h2>
+  <p>
+    ウィンドウタイトル・サイズ・リサイズ可否など、
+    <strong>SETTINGS セクション</strong>を直接編集します。
+  </p>
+
+  <ul>
+    <li>すべて StringVar で一時保持</li>
+    <li>RESIZABLE だけ特別に型変換</li>
+  </ul>
+
+  <div class="point">
+    JSON の型問題を UI 側で吸収し、
+    保存時にだけ正しい型へ戻しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>6. ページ編集タブの分割設計</h2>
+  <pre>
+左ペイン  : ページ / ボタン一覧
+右ペイン  : ボタン詳細フォーム
+  </pre>
+
+  <p>
+    「どこを編集しているか」を
+    <strong>視覚的に常に把握できる</strong>構成です。
+  </p>
+</div>
+
+<div class="box">
+  <h2>7. リスト操作（追加・並び替え）</h2>
+  <p>
+    Listbox 上の操作は、
+    <strong>必ず config 側の順序と同期</strong>します。
+  </p>
+
+  <div class="point">
+    UI とデータ構造の乖離を絶対に起こさない、
+    実務的に非常に重要な設計です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. アクション切替による UI 切り替え</h2>
+  <pre><code>
+on_action_change()
+  </code></pre>
+
+  <p>
+    選択されたアクションに応じて、
+    入力フォームを<strong>即座に切り替え</strong>ます。
+  </p>
+
+  <ul>
+    <li>通常ボタン → path / url / target</li>
+    <li>特殊ボタン → パラメータ編集 UI</li>
+  </ul>
+
+  <div class="point">
+    「今、何を入力しているのか」が迷子になりません。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. パラメータ編集 UI の役割</h2>
+  <p>
+    パラメータ付き URL を
+    <strong>構造化データとして編集</strong>するための UI です。
+  </p>
+
+  <ul>
+    <li>TEXT / PULLDOWN を明示的に選択</li>
+    <li>後段の URL 生成ロジックと直結</li>
+  </ul>
+
+  <div class="point">
+    手書き JSON 編集ではほぼ不可能な安全性を実現しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>10. フォーム保存（save_form_data）</h2>
+  <p>
+    フォーム内容を
+    <strong>config 構造に正規化して反映</strong>します。
+  </p>
+
+  <ul>
+    <li>アクションごとに保存キーを切替</li>
+    <li>名前未入力は即エラー</li>
+    <li>編集／追加モードを自動判定</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>11. 設定保存フロー（save_config）</h2>
+  <pre>
+UI入力
+ ↓
+config更新
+ ↓
+ConfigManager.save_config()
+ ↓
+jsonschema検証
+ ↓
+ファイル保存
+  </pre>
+
+  <div class="point">
+    UI 側では「正しく入力させる」  
+    ConfigManager 側では「正しいか検証する」  
+    という二段構えです。
+  </div>
+</div>
+
+<div class="box">
+  <h2>12. コールバック設計の意味</h2>
+  <pre><code>
+on_save_callback=self.reload_ui
+  </code></pre>
+
+  <p>
+    設定保存後に
+    <strong>メイン UI を即再構築</strong>するための仕組みです。
+  </p>
+
+  <div class="point">
+    再起動不要の「設定 → 即反映」を実現しています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>13. 設計思想まとめ</h2>
+  <ul>
+    <li>設定は直接触らせない</li>
+    <li>編集はコピーで行う</li>
+    <li>保存前に必ず検証</li>
+    <li>UI と構造を常に同期</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>14. 発展・改善余地</h2>
+  <ul>
+    <li>入力バリデーションの強化</li>
+    <li>Undo / Redo 機能</li>
+    <li>設定差分の可視化</li>
+    <li>JSON プレビュー表示</li>
+  </ul>
+</div>
+
+</body>
+</html>
