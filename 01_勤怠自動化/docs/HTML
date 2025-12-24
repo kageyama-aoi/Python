@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+<title>エクスポート | クラウドログ</title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<meta name="description" content="プロジェクト管理・工数管理 クラウドログ" />
+<meta name="keywords" content="プロジェクト管理,工数管理,原価管理,クラウド,SaaS,ASP" />
+<meta http-equiv="Content-Language" content="ja" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<script type="text/javascript">
+if (typeof Object.assign !== 'function') {
+  // Must be writable: true, enumerable: false, configurable: true
+  Object.defineProperty(Object, "assign", {
+    value: function assign(target, varArgs) { // .length of function is 2
+      'use strict';
+      if (target === null || target === undefined) {
+        throw new TypeError('Cannot convert undefined or null to object');
+      }
+      var to = Object(target);
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+        if (nextSource !== null && nextSource !== undefined) {
+          for (var nextKey in nextSource) {
+            // Avoid bugs when hasOwnProperty is shadowed
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    },
+    writable: true,
+    configurable: true
+  });
+}
+</script>
+<script src="/libs/jquery/jquery.min.js?f799657"></script>
+<script src="/libs/bootstrap/js/bootstrap.min.js?f799657"></script>
+<script>
+  // To fix the conflict among bootstrap and jquery-ui,
+  // both of which uses same name for jquery fn,
+  // we extract the conflicted fn object here so that it can be used after loading jquery-ui
+  window.BsTooltip = $.fn.tooltip;
+</script>
+<script src="/libs/jquery-ui/jquery-ui.min.js?f799657"></script>
+<script src="/libs/jquery.validationEngine/js/jquery.validationEngine.js?f799657"></script>
+<script src="/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js?f799657"></script>
+<script src="/libs/jquery.validationEngine/js/languages/jquery.validationEngine-ja.js?f799657"></script>
+<script src="/libs/bootstrap-datepicker/locales/bootstrap-datepicker.ja.min.js?f799657"></script>
+<script src="/libs/jquery.blockUI.custom.js?f799657"></script>
+<script src="/js/common.js?f799657"></script>
+
+<!-- Datadog Script -->
+<script type="text/javascript" src="https://www.datadoghq-browser-agent.com/datadog-logs.js"></script>
+
+	<script type="text/javascript">
+
+    window.DD_LOGS && DD_LOGS.init({
+        clientToken         : 'pub97e73deac342427094a658fc29b05877',
+        site                : 'datadoghq.com',
+        forwardErrorsToLogs : true,
+        sampleRate          : 100
+    });
+
+    window.onerror = function(error_msg, url, linenumber, colnumber, error) {
+        datadogLog(error_msg, error.stack, 'AC-9000', 'error');
+    }
+
+    function datadogLog(error_msg, stack_msg, code, status){
+        var company_no      = '3993' > 0 ? '3993' : 'GUEST';
+        var employee_no     = '65179' > 0 ? '65179' : 'GUEST';
+        var company_plan    = 'BSC' ? 'BSC' : 'none';
+
+        DD_LOGS.logger.log(
+            error_msg,
+            {
+                stack_msg   : stack_msg,
+                c_no        : company_no,
+                e_no        : employee_no,
+                plan        : company_plan,
+                code        : code,
+                request_id  : 'c22b3ee0b06acbfc631099586d3057b2',
+                host        : 'vega-569ddd7b54-gztcc',
+                service     : 'vega-front',
+            },
+            status
+        );
+    }
+
+</script>
+
+
+<link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/icons/css/material-design-iconic-font.min.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery-ui/jquery-ui.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery-ui/jquery-ui.theme.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery.validationEngine/css/validationEngine.jquery.css?f799657" />
+
+<link rel="stylesheet" href="/libs/icons/css/animate.min.css?f799657" />
+<link rel="stylesheet" href="/libs/icons/css/material-design-color-palette.min.css?f799657" />
+<link rel="stylesheet" href="/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css?f799657" />
+<link rel="stylesheet" href="/css/common.css?f799657" />
+<link rel="stylesheet" href="/css/input.css?f799657" />
+<link rel="shortcut icon" href="/image/favicon.ico" />
+<link rel="apple-touch-icon" href="/image/service_logo_120x120x.png" />
+</head>
+<body>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="/libs/ie7/IE9.js"></script>
+<![endif]-->
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+<script src="/libs/html5shiv.js"></script>
+<script src="/libs/respond.js"></script>
+<![endif]-->
+
+
+<script src="/pages/assets/bundle/vendor.js?a5788120"></script>
+<script src="/pages/assets/bundle/partial.js?a5788120"></script>
+
+<script>
+  var shouldPageFullWidth = "false" === "true";
+
+  function showSideNavigation () {
+    $('.cl-navigation-side').css('display', 'block');
+    $('.cl-navigation-container').removeClass('fullscreen');
+  }
+  function hideSideNavigation () {
+    $('.cl-navigation-side').css('display', 'none');
+    $('.cl-navigation-container').addClass('fullscreen');
+  }
+
+  function toggleNavigationExpanded (expanded) {
+    $('.cl-navigation-container').toggleClass('expanded', expanded);
+    $('.cl-navigation-side').toggleClass('expanded', expanded);
+
+    // dispatch resize event so that other part of UI
+    // can react to layout change
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  function onTopOffsetChange (topOffset) {
+    var availableHeight = 'calc(100vh - ' + topOffset + 'px)';
+    // Need to supplement with dvh as ios safari needs it ...
+    var availableHeightDvh = 'calc(100dvh - ' + topOffset + 'px)';
+    var topPx = topOffset + 'px';
+    $('.cl-navigation-container').css('min-height', availableHeight);
+    $('.cl-navigation-side').css('top', topPx);
+    $('.cl-navigation-side').css('height', availableHeight);
+
+    // For multigantt and work dashboard
+    $('#id_div_main').attr('style', 'height: ' + availableHeight + '; height: ' + availableHeightDvh + ';');
+    if (window.inpm && window.inpm.mg) {
+      inpm.mg.generatePageLayout();
+    }
+  }
+
+  $(document).ready(function() {
+    var navigationMountNode = document.querySelector('.cl-navigation-side');
+    window.CrowdLog.partial.renderNavigation(navigationMountNode, {
+      helpUrl: "https://help.crowdlog.jp/hc/ja/articles/4732624403870",
+      onToggleExpanded: toggleNavigationExpanded,
+      onTopOffsetChange: onTopOffsetChange
+    });
+  });
+</script>
+
+<div class="cl-notice-wrapper-container">
+  <!-- global notice UI -->
+  <div class="cl-notice-wrapper-box" id='cl-global-notices'></div>
+
+  <!-- page contents from here -->
+  <div class="cl-notice-wrapper-content">
+    <div class="cl-navigation-container">
+      <div class="cl-navigation-side"></div>
+      <div class="cl-navigation-content">
+        <div class="container" id="main-container">
+
+        <script>
+          // modify the layout as soon as dom is available
+          // so that there won't be flicking of toggling navigation
+          var expanded = window.CrowdLog.partial.getNavigationToggleValue();
+          toggleNavigationExpanded(expanded);
+        </script>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('.input-daterange').datepicker({
+		format: "yyyy-mm-dd",
+		weekStart: 0,
+		maxViewMode: 2,
+		language: "ja",
+		autoclose: true,
+		todayHighlight: true
+	});
+
+	$('#idDownloadForm button').click(function() {
+		// export, char_code
+		var v = $('select[name=export_type]').val().split('-');
+		$('input[name=export]').val(v[0]);
+		$('input[name=char_code]').val(v[1]);
+
+		$('#idDownloadForm').submit();
+	});
+});
+</script>
+<ol class="breadcrumb hidden-xs">
+	<li><a href="/">ホーム</a></li>
+	<li class="path"><a href="/report/">エクスポート</a></li>
+	<li class="path"><a href="/download/?rm=timesheet">タイムシート</a></li>
+</ol>
+
+<div class="panel panel-default">
+<div class="panel-body">
+
+<form method="post" action="/csv/" name="formInput" id="idDownloadForm">
+<input type="hidden" name="rm" value="timesheet" />
+<input type="hidden" name="export" value="" />
+<input type="hidden" name="char_code" value="" />
+<input type="hidden" name="csrf_time" value="1766550092" />
+<input type="hidden" name="csrf_value" value="1c357a49351a11a738d9c211cc9d8e984" />
+
+<div class="form-horizontal">
+	<div class="form-group">
+		<label class="col-sm-2 col-md-3 control-label">期間</label>
+		<div class="col-sm-9 col-md-7">
+		<div class="input-daterange input-group">
+			<input type="text" class="form-control" name="from" value="" placeholder="開始日" autocomplete="off" />
+			<span class="input-group-addon"> ~ </span>
+			<input type="text" class="form-control" name="to" value="" placeholder="終了日" autocomplete="off" />
+		</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-3 control-label">エクスポート種別</label>
+		<div class="col-sm-7">
+			<select class="form-control" name="export_type">
+				<option value="xlsx-utf8">Excel
+				<option value="csv-utf8">CSV - Unicode
+				<option value="csv-sjis" selected>CSV - 日本語 (Shift-JIS)
+				<option value="csv-eucjp">CSV - 日本語 (EUC-JP)
+				<option value="csv-gbk">CSV - 中国語 (簡体字)
+			</select>
+			</ul>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-md-offset-3 col-sm-10 col-md-11">
+			<button type="button" class="btn btn-primary">ダウンロード</button>
+		</div>
+	</div>
+</div>
+</form>
+
+</div>
+</div>
+        </div> <!-- .container -->
+      </div> <!-- .cl-navigation-content -->
+    </div> <!-- .cl-navigation-container -->
+  </div> <!-- .cl-notice-wrapper-content -->
+</div> <!-- .cl-notice-wrapper-container -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-43HDTBSXNP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-43HDTBSXNP');
+</script>
+
+</body>
+</html>
+
+
