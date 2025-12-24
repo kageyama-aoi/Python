@@ -1,0 +1,110 @@
+app:
+  url: "https://taskreport.e-school.jp/bugfix.php"
+
+selectors:
+  new_bug_button_dom_attribute: "goindex"
+
+menus:
+  menu_1_prompt: |
+    今回の対象は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    h:標準~
+    y:Yamaha
+    tf:Tframe
+    s:Shimamura(本番サポート)~
+    t:Shimamura_SMBCPOS追加開発
+    up:Shimamura_UAT_UP依頼
+    sm:Shimamura_mysql対応
+    ------------------------------------------------------
+
+  environment_list:
+    t: "trainigGCP"
+    u: "UAT2"
+    st: "smbcpos_training"
+    su: "smbcpos_uat"
+  
+  menu_2_prompt: |
+    UP依頼対象環境は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    {{ENVIRONMENT_OPTIONS_STRING}}
+    ------------------------------------------------------
+
+fields:
+  tr_field_mappings:
+    Schools:
+      locator: "who_edit"
+      type: "select"
+    Project:
+      locator: "project"
+      type: "text"
+    Priority:
+      locator: "priority_edit"
+      type: "select"
+    Uploader:
+      locator: "uploader_edit"
+      type: "select"
+    Category:
+      locator: "where_edit"
+      type: "text"
+    Title:
+      locator: "what_edit"
+      type: "text"
+    Owner:
+      locator: "owned_edit"
+      type: "select"
+    Comments:
+      locator: "comments"
+      type: "text"
+
+defaults:
+  user: "kageyama"
+  priority: "Critical"
+
+templates:
+  up_request:
+    category: "[KANKYOUMEI]環境_更新依頼"
+    title: "[KANKYOUMEI]環境_更新依頼"
+    comment: |
+      下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
+      XXXXX
+      XXXXX
+      XXXXX
+      
+      今回事前事後対応がありま、、、
+  
+  tf:
+    drive_url: "https://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti"
+    design_doc_folder_path: "002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)"
+    spec_doc_filename: "43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"
+    comment_template: |
+      保存URL:
+      {{TF_DRIVE_URL}}
+      
+      日本語仕様書フォルダ：
+      {{TF_DESIGN_DOC_FOLDER_PATH}}
+      
+      仕様書：
+      {{TF_SPEC_DOC_FILENAME}}
+
+school_specific_defaults:
+  s: ["shimamura", "SMMs001PH", "Critical", "kageyama", "-", "(UATxxx)-----(shimaXXs)", "kageyama", "sc"]
+  y: ["yamaha", "YMHs001PH", "Critical", "kageyama", "-", "(Redminexxx)-----(GXX)", "kageyama", "yc"]
+  tf: ["tframe", "TCNz004PH", "Serious", "kageyama", "種別 機能番号", "【Culture】機能名", "kageyama", "保存URL:\r\nhttps://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\r\n\r\n日本語仕様書フォルダ：\r\n002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)\r\n\r\n仕様書：\r\n43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"]
+  t: ["shimamura", "SMMN003PH", "Critical", "kageyama", "-", "(UATxxx)-----(SMBCPOS21s)", "kageyama", "tc"]
+  h: ["shimamura", "SMMs001PH", "Critical", "kageyama", "-", "(UATxxx)-----(shimaXXs)", "kageyama", "hc"]
+  up:
+    - "shimamura"
+    - ""  # Project
+    - "Critical"
+    - "kageyama"
+    - "[KANKYOUMEI]環境_更新依頼" # UP_REQUEST_CATEGORY_TEMPLATE
+    - "[KANKYOUMEI]環境_更新依頼" # UP_REQUEST_TITLE_TEMPLATE
+    - "kageyama"
+    - |
+        下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
+        XXXXX
+        XXXXX
+        XXXXX
+        
+        今回事前事後対応がありま、、、 # UP_REQUEST_COMMENT_TEMPLATE
+  sm: ["shimamura", "TCNz007PH", "Critical", "kageyama", "-", "(MySQLVerUP対応)-----", "kageyama", "sc"]

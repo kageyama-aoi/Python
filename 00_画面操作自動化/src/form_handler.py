@@ -1,5 +1,5 @@
 #設定値ファイル
-import config as var
+import config as conf
 import browser_utils
 
 class FormAutomationHandler:
@@ -22,20 +22,33 @@ class FormAutomationHandler:
         #  画面入力値設定
         #################
 
-        field_names = list(var.TR_FIELD_MAPPINGS.keys())
+        field_names = list(conf.CONF['fields']['tr_field_mappings'].keys())
         Two_dimensional_dict = {}
         for index, field_name in enumerate(field_names):
-            field_info = var.TR_FIELD_MAPPINGS[field_name]
-            Two_dimensional_dict[field_name] = {
-                'locator': field_info['locator'],
-                'type': field_info['type'],
-                'value': var.SCHOOL_SPECIFIC_DEFAULTS[self.schools_type][index]
-            }
+            field_info = conf.CONF['fields']['tr_field_mappings'][field_name]
+            # SCHOOL_SPECIFIC_DEFAULTS は YAML の値を直接使う
+            value_from_defaults = conf.CONF['school_specific_defaults'][self.schools_type][index]
+            
+            # TF_COMMENT_TEMPLATE を使用する tf の場合のみ特別処理 (YAMLでレンダリング済みを使う)
+            if self.schools_type == 'tf' and field_name == 'Comments':
+                Two_dimensional_dict[field_name] = {
+                    'locator': field_info['locator'],
+                    'type': field_info['type'],
+                    'value': conf.CONF['templates']['tf']['comment_template_rendered']
+                }
+            else:
+                Two_dimensional_dict[field_name] = {
+                    'locator': field_info['locator'],
+                    'type': field_info['type'],
+                    'value': value_from_defaults
+                }
 
         
         keys_to_update = ['Comments', 'Title', 'Category']
         for key in keys_to_update:
-            Two_dimensional_dict[key]['value'] = Two_dimensional_dict[key]['value'].replace("[KANKYOUMEI]", self.environment_name)
+            # 既にレンダリング済みの 'tf' の Comments は更新しない
+            if not (self.schools_type == 'tf' and key == 'Comments'):
+                Two_dimensional_dict[key]['value'] = Two_dimensional_dict[key]['value'].replace("[KANKYOUMEI]", self.environment_name)
                 
         print(Two_dimensional_dict)
 
