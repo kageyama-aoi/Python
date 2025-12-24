@@ -1,6 +1,6 @@
 #設定値ファイル
-import constants as var
-import element_utils
+import config as var
+import browser_utils
 
 class FormAutomationHandler:
 
@@ -49,7 +49,7 @@ class FormAutomationHandler:
             common_dom_args = (self.driver,'name',val["locator"],val["value"])
 
             if val["type"] == "text":
-                element_utils.input_text(*common_dom_args)
+                browser_utils.input_text(*common_dom_args)
             elif val["type"] == "select":
-                element_utils.select_option(*common_dom_args) 
+                browser_utils.select_option(*common_dom_args)
 
