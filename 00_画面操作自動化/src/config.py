@@ -6,23 +6,14 @@ from logging import getLogger, StreamHandler, Formatter, FileHandler, DEBUG
 ###########################
 #  接続
 ###########################
-# URL="http://demo.technopian.com/smsbugreport/bugfix.php?"
 # 2024/8/7~
 URL="https://taskreport.e-school.jp/bugfix.php"
-DRIVER="c:/driver/chromedriver.exe"
 
 ###########################
 #  HTML属性値
 ###########################
 #-----初期画面------------
 NEW_BUG_BUTTON_DOM_ATTRIBUTE = "goindex"
-
-
-# #コメント内容設定--------
-# Kaigou1="\n" # COMMENT_SEPARATOR を使用するため不要
-DEFAULT_KAIHATU_COMMENT = "" # 未使用の可能性があるため、確認を推奨
-DEFAULT_TYOUSA_COMMENT = ""  # 未使用の可能性があるため、確認を推奨
-# Comme_Menu2="" # 下で直接定義するため不要
 
 # コメント1:作業内容確認
 COMMENT_SEPARATOR = "\n"
