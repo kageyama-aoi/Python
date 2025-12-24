@@ -32,7 +32,7 @@ def get_user_input():
 
 def main():
     # 設定ファイルの読み込み
-    config.load_config("config.yaml")
+    config.load_config("config/config.yaml")
     logger = config.setup_logger(log_folder)
 
     user_select_school, environment_name = get_user_input()
