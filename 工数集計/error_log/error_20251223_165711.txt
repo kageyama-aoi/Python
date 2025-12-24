@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\kageyama\Tools\Python\工数集計\main.py", line 31, in <module>
+    os.remove(file)
+    ~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] プロセスはファイルにアクセスできません。別のプロセスが使用中です。: './output\\Summary_全案件_全社員_20251223_165416_45499.xlsx'
