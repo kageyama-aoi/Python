@@ -61,18 +61,16 @@ MENU_2_PROMPT = COMMENT_SEPARATOR.join(_MENU_2_LINES)
 #  TR設定値(改良)
 ###########################
 # 入力欄（TR依存）
-TR_FIELD_MAPPINGS = [
-    ['Schools', "who_edit"],
-    ['Project', "project"],
-    ['Priority', "priority_edit"],
-    ['Uploader', "uploader_edit"],
-    ['Category', "where_edit"],
-    ['Title', "what_edit"],
-    ['Owner', "owned_edit"],
-    ['Comments', "comments"]
-]
-# アンパック、Zip関数
-TR_FIELDS, TR_HTML_ATTRIBUTES = zip(*TR_FIELD_MAPPINGS)
+TR_FIELD_MAPPINGS = {
+    'Schools': {'locator': "who_edit", 'type': 'select'},
+    'Project': {'locator': "project", 'type': 'text'},
+    'Priority': {'locator': "priority_edit", 'type': 'select'},
+    'Uploader': {'locator': "uploader_edit", 'type': 'select'},
+    'Category': {'locator': "where_edit", 'type': 'text'},
+    'Title': {'locator': "what_edit", 'type': 'text'},
+    'Owner': {'locator': "owned_edit", 'type': 'select'},
+    'Comments': {'locator': "comments", 'type': 'text'}
+}
 
 # 入力値(共通値)
 DEFAULT_USER = 'kageyama'

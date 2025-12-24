@@ -9,7 +9,7 @@ import tkinter as tk
 #設定値ファイル
 import constants
 import element_utils
-from task_report_input_handler import task_report_input_handler
+from task_report_input_handler import FormAutomationHandler
 
 # 保存するファイル名を指定
 log_folder = '{0}.log'.format(datetime.date.today())
@@ -46,7 +46,7 @@ element_utils.find_element(driver,"name",constants.NEW_BUG_BUTTON_DOM_ATTRIBUTE)
 # ##################################
 # ###メイン処理
 # ##################################
-i_InputIem = task_report_input_handler(driver,user_select_school,environment_name)
+i_InputIem = FormAutomationHandler(driver,user_select_school,environment_name)
 i_InputIem.setItems()
 
 #################

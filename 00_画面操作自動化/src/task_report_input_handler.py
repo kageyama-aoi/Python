@@ -2,7 +2,7 @@
 import constants as var
 import element_utils
 
-class task_report_input_handler:
+class FormAutomationHandler:
 
     # コンストラクタ
     def __init__(self, driver,schools_type,environment_name):
@@ -22,10 +22,16 @@ class task_report_input_handler:
         #  画面入力値設定
         #################
 
-        Two_dimensional_dict = {
-        var.TR_FIELDS[index]: dict(attribut_name = var.TR_HTML_ATTRIBUTES[index],value=values)
-        for index, values in enumerate(var.SCHOOL_SPECIFIC_DEFAULTS[self.schools_type])
-        }
+        field_names = list(var.TR_FIELD_MAPPINGS.keys())
+        Two_dimensional_dict = {}
+        for index, field_name in enumerate(field_names):
+            field_info = var.TR_FIELD_MAPPINGS[field_name]
+            Two_dimensional_dict[field_name] = {
+                'locator': field_info['locator'],
+                'type': field_info['type'],
+                'value': var.SCHOOL_SPECIFIC_DEFAULTS[self.schools_type][index]
+            }
+
         
         keys_to_update = ['Comments', 'Title', 'Category']
         for key in keys_to_update:
@@ -39,20 +45,11 @@ class task_report_input_handler:
 
         for dom_key,val in Two_dimensional_dict.items():
             #引数まとめ
-            common_dom_args = (self.driver,'name',val["attribut_name"],val["value"])
+            # attributeは現状'name'固定とする。必要に応じて'TR_FIELD_MAPPINGS'に'find_by'などの属性を追加することも検討。
+            common_dom_args = (self.driver,'name',val["locator"],val["value"])
 
-            #「コメント」欄の場合
-            # if dom_key in ("Comments") : 
-            #     FuncElement.send(*common_dom_args) 
-            #     continue
-            
-            # 入力除外項目
-            # if dom_key in ("Category") : continue
-            
-            # 値を直入力
-            if dom_key in ("Project","Title","Comments","Category") : 
-                element_utils.input_text(*common_dom_args) 
-                continue
-
-            element_utils.select_option(*common_dom_args) 
+            if val["type"] == "text":
+                element_utils.input_text(*common_dom_args)
+            elif val["type"] == "select":
+                element_utils.select_option(*common_dom_args) 
 
