@@ -56,22 +56,8 @@ fields:
       locator: "comments"
       type: "text"
 
-defaults:
-  user: "kageyama"
-  priority: "Critical"
-
+# テンプレート定義
 templates:
-  up_request:
-    category: "[KANKYOUMEI]環境_更新依頼"
-    title: "[KANKYOUMEI]環境_更新依頼"
-    comment: |
-      下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
-      XXXXX
-      XXXXX
-      XXXXX
-      
-      今回事前事後対応がありま、、、
-  
   tf:
     drive_url: "https://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti"
     design_doc_folder_path: "002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)"
@@ -86,25 +72,56 @@ templates:
       仕様書：
       {{TF_SPEC_DOC_FILENAME}}
 
+# 共通のデフォルト値
+common_defaults:
+  Schools: "shimamura"
+  Priority: "Critical"
+  Uploader: "kageyama"
+  Owner: "kageyama"
+  Category: "-"
+  Project: ""
+  Title: ""
+  Comments: ""
+
+# 個別の設定（差分のみ記述）
 school_specific_defaults:
-  s: ["shimamura", "SMMs001PH", "Critical", "kageyama", "-", "(UATxxx)-----(shimaXXs)", "kageyama", "sc"]
-  y: ["yamaha", "YMHs001PH", "Critical", "kageyama", "-", "(Redminexxx)-----(GXX)", "kageyama", "yc"]
-  tf: ["tframe", "TCNz004PH", "Serious", "kageyama", "種別 機能番号", "【Culture】機能名", "kageyama", "保存URL:\r\nhttps://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\r\n\r\n日本語仕様書フォルダ：\r\n002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)\r\n\r\n仕様書：\r\n43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"]
-  t: ["shimamura", "SMMN003PH", "Critical", "kageyama", "-", "(UATxxx)-----(SMBCPOS21s)", "kageyama", "tc"]
-  h: ["shimamura", "SMMs001PH", "Critical", "kageyama", "-", "(UATxxx)-----(shimaXXs)", "kageyama", "hc"]
+  s: 
+    Project: "SMMs001PH"
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "sc"
+  y:
+    Schools: "yamaha"
+    Project: "YMHs001PH"
+    Title: "(Redminexxx)-----(GXX)"
+    Comments: "yc"
+  tf:
+    Schools: "tframe"
+    Project: "TCNz004PH"
+    Priority: "Serious"
+    Category: "種別 機能番号"
+    Title: "【Culture】機能名"
+    # Comments は特別な処理が入るため、プレースホルダー的に空文字、またはテンプレートを使用
+    # ここでは便宜上、記述しない（デフォルトの空文字が使われる）か、明示的にテンプレート利用を示す値を設定
+    Comments: "{{TF_COMMENT_TEMPLATE}}" 
+  t:
+    Project: "SMMN003PH"
+    Title: "(UATxxx)-----(SMBCPOS21s)"
+    Comments: "tc"
+  h:
+    Project: "SMMs001PH" # sと同じだが明示的に記述
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "hc"
   up:
-    - "shimamura"
-    - ""  # Project
-    - "Critical"
-    - "kageyama"
-    - "[KANKYOUMEI]環境_更新依頼" # UP_REQUEST_CATEGORY_TEMPLATE
-    - "[KANKYOUMEI]環境_更新依頼" # UP_REQUEST_TITLE_TEMPLATE
-    - "kageyama"
-    - |
+    Category: "[KANKYOUMEI]環境_更新依頼"
+    Title: "[KANKYOUMEI]環境_更新依頼"
+    Comments: |
         下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
         XXXXX
         XXXXX
         XXXXX
         
-        今回事前事後対応がありま、、、 # UP_REQUEST_COMMENT_TEMPLATE
-  sm: ["shimamura", "TCNz007PH", "Critical", "kageyama", "-", "(MySQLVerUP対応)-----", "kageyama", "sc"]
+        今回事前事後対応がありま、、、
+  sm:
+    Project: "TCNz007PH"
+    Title: "(MySQLVerUP対応)-----"
+    Comments: "sc"
