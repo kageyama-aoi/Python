@@ -4,18 +4,18 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 #エレメント設定
-def set(driver,attribute,element):
+def find_element(driver: webdriver.Remote, attribute: str, element: str):
     if attribute == "name":
-        return driver.find_element(By.NAME,element)
+        return driver.find_element(By.NAME, element)
     if attribute == "link text":
-        return driver.find_element(By.NAME,element)        
+        return driver.find_element(By.LINK_TEXT, element)        
     if attribute == "class name":
-        return driver.find_elements(By.CLASS_NAME,element)   
+        return driver.find_element(By.CLASS_NAME, element)   
 
 #エレメントへ入力
-def send(driver,attribute,element,input_value):
-    set(driver,attribute,element).send_keys(input_value)
+def input_text(driver: webdriver.Remote, attribute: str, element: str, input_value: str):
+    find_element(driver, attribute, element).send_keys(input_value)
 
 #エレメント選択
-def select(driver,attribute,element,input_value):
-    Select(set(driver,attribute,element)).select_by_value(input_value)
+def select_option(driver: webdriver.Remote, attribute: str, element: str, input_value: str):
+    Select(find_element(driver, attribute, element)).select_by_value(input_value)

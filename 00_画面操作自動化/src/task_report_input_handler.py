@@ -51,8 +51,8 @@ class task_report_input_handler:
             
             # 値を直入力
             if dom_key in ("Project","Title","Comments","Category") : 
-                element_utils.send(*common_dom_args) 
+                element_utils.input_text(*common_dom_args) 
                 continue
 
-            element_utils.select(*common_dom_args) 
+            element_utils.select_option(*common_dom_args) 
 
