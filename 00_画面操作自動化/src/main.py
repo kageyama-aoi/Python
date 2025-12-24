@@ -12,21 +12,23 @@ from form_handler import FormAutomationHandler
 
 # ログの初期設定を行う
 log_folder = '{0}.log'.format(datetime.date.today())
-logger = config.setup_logger(log_folder)
 
 def get_user_input():
     """ユーザーからの入力（学校選択と環境名）を取得する関数"""
-    print(config.MENU_1_PROMPT)
+    print(config.CONF['menus']['menu_1_prompt'])
     user_select_school = input()
 
     environment_name = ""
     if user_select_school == "up":
-        print(config.MENU_2_PROMPT)
+        print(config.CONF['menus']['menu_2_prompt'])
         upload_destination = input()
-        environment_name = config.ENVIRONMENT_LIST[upload_destination]
+        environment_name = config.CONF['menus']['environment_list'][upload_destination]
     return user_select_school, environment_name
 
 def main():
+    config.load_config("config.yaml") # config.yaml を読み込む
+    logger = config.setup_logger(log_folder) # logger の初期化は config.load_config の後に行う
+
     user_select_school, environment_name = get_user_input()
 
     ##################################
@@ -36,10 +38,9 @@ def main():
     driver = webdriver.Chrome()
     driver.set_window_size(700,1000)
     driver.implicitly_wait(10) # seconds
-    driver.get(config.URL)
+    driver.get(config.CONF['app']['url'])
     driver.implicitly_wait(3) # seconds
-    browser_utils.find_element(driver,"name",config.NEW_BUG_BUTTON_DOM_ATTRIBUTE).click()  
-
+    browser_utils.find_element(driver,"name",config.CONF['selectors']['new_bug_button_dom_attribute']).click()  
 
     # ##################################
     # ###メイン処理

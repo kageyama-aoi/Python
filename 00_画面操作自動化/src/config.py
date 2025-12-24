@@ -2,111 +2,50 @@
 # 一括コメントアウト
 # Ctrl + /
 from logging import getLogger, StreamHandler, Formatter, FileHandler, DEBUG
+import yaml
+from pathlib import Path
 
-###########################
-#  接続
-###########################
-# 2024/8/7~
-URL="https://taskreport.e-school.jp/bugfix.php"
+# グローバルな設定オブジェクト
+CONF = {}
 
-###########################
-#  HTML属性値
-###########################
-#-----初期画面------------
-NEW_BUG_BUTTON_DOM_ATTRIBUTE = "goindex"
+def load_config(config_path="config.yaml"):
+    """
+    config.yaml を読み込み、CONF グローバル変数に格納する。
+    """
+    global CONF
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            CONF.update(yaml.safe_load(f))
+        
+        # 動的に生成する文字列を処理
+        # ENVIRONMENT_OPTIONS_STRING の生成
+        if 'menus' in CONF and 'environment_list' in CONF['menus']:
+            CONF['menus']['environment_options_string'] = "\n".join(
+                f"{k}:{v}" for k, v in CONF['menus']['environment_list'].items()
+            )
+        
+        # MENU_2_PROMPT の生成
+        if 'menus' in CONF and 'menu_2_prompt' in CONF['menus']:
+            CONF['menus']['menu_2_prompt'] = CONF['menus']['menu_2_prompt'].replace(
+                "{{ENVIRONMENT_OPTIONS_STRING}}", CONF['menus']['environment_options_string']
+            )
 
-# コメント1:作業内容確認
-COMMENT_SEPARATOR = "\n"
-_MENU_1_LINES = [
-    "今回の対象は？次の選択肢の中から入力してください",
-    "------------------------------------------------------",
-    "h:標準~",
-    "y:Yamaha",
-    "tf:Tframe",
-    "s:Shimamura(本番サポート)~",
-    "t:Shimamura_SMBCPOS追加開発",
-    "up:Shimamura_UAT_UP依頼",
-    "sm:Shimamura_mysql対応",
-    "------------------------------------------------------"
-]
-MENU_1_PROMPT = COMMENT_SEPARATOR.join(_MENU_1_LINES)
+        # TF_COMMENT_TEMPLATE の生成
+        if 'templates' in CONF and 'tf' in CONF['templates'] and 'comment_template' in CONF['templates']['tf']:
+            tf_template = CONF['templates']['tf']['comment_template']
+            tf_template = tf_template.replace("{{TF_DRIVE_URL}}", CONF['templates']['tf']['drive_url'])
+            tf_template = tf_template.replace("{{TF_DESIGN_DOC_FOLDER_PATH}}", CONF['templates']['tf']['design_doc_folder_path'])
+            tf_template = tf_template.replace("{{TF_SPEC_DOC_FILENAME}}", CONF['templates']['tf']['spec_doc_filename'])
+            CONF['templates']['tf']['comment_template_rendered'] = tf_template
 
-#コメント2:対象環境の設定
-ENVIRONMENT_LIST = {
-    "t": "trainigGCP",
-    "u": "UAT2",
-    "st": "smbcpos_training",
-    "su": "smbcpos_uat"
-}
-ENVIRONMENT_OPTIONS_STRING = COMMENT_SEPARATOR.join(f"{k}:{v}" for k, v in ENVIRONMENT_LIST.items())
+    except FileNotFoundError:
+        print(f"Error: config file '{config_path}' not found.")
+        # プログラムを終了するか、デフォルト値で続行するか選択
+        exit(1)
+    except yaml.YAMLError as e:
+        print(f"Error parsing config file: {e}")
+        exit(1)
 
-_MENU_2_LINES = [
-    "UP依頼対象環境は？次の選択肢の中から入力してください",
-    "------------------------------------------------------",
-    ENVIRONMENT_OPTIONS_STRING,
-    "------------------------------------------------------"
-]
-MENU_2_PROMPT = COMMENT_SEPARATOR.join(_MENU_2_LINES)
-
-###########################
-#  TR設定値(改良)
-###########################
-# 入力欄（TR依存）
-TR_FIELD_MAPPINGS = {
-    'Schools': {'locator': "who_edit", 'type': 'select'},
-    'Project': {'locator': "project", 'type': 'text'},
-    'Priority': {'locator': "priority_edit", 'type': 'select'},
-    'Uploader': {'locator': "uploader_edit", 'type': 'select'},
-    'Category': {'locator': "where_edit", 'type': 'text'},
-    'Title': {'locator': "what_edit", 'type': 'text'},
-    'Owner': {'locator': "owned_edit", 'type': 'select'},
-    'Comments': {'locator': "comments", 'type': 'text'}
-}
-
-# 入力値(共通値)
-DEFAULT_USER = 'kageyama'
-DEFAULT_PRIORITY = 'Critical' # 'Critical', 'Serious' など
-
-# 入力値(専用値:リリース)
-UP_REQUEST_CATEGORY_TEMPLATE = "[KANKYOUMEI]環境_更新依頼"
-UP_REQUEST_TITLE_TEMPLATE = "[KANKYOUMEI]環境_更新依頼"
-UP_REQUEST_COMMENT_TEMPLATE = "下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)\r\nXXXXX\r\nXXXXX\r\nXXXXX\r\n\r\n今回事前事後対応がありま、、、"
-
-# 入力値(専用値:リリース)
-TF_DRIVE_URL = "https://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti"
-TF_DESIGN_DOC_FOLDER_PATH = "002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)"
-TF_SPEC_DOC_FILENAME = "43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"
-TF_COMMENT_TEMPLATE = f"保存URL:\r\n{TF_DRIVE_URL}\r\n\r\n日本語仕様書フォルダ：\r\n{TF_DESIGN_DOC_FOLDER_PATH}\r\n\r\n仕様書：\r\n{TF_SPEC_DOC_FILENAME}"
-
-# 配列作成
-# S_DEFAULTS は TR_FIELDS の順序に対応:
-# ['Schools', 'Project', 'Priority', 'Uploader', 'Category', 'Title', 'Owner', 'Comments']
-S_DEFAULTS = ["shimamura", "SMMs001PH", DEFAULT_PRIORITY, DEFAULT_USER, "-", "(UATxxx)-----(shimaXXs)", DEFAULT_USER, "sc"]
-TF_DEFAULTS = ["tframe", "TCNz004PH", "Serious", DEFAULT_USER, "種別 機能番号", "【Culture】機能名", DEFAULT_USER, TF_COMMENT_TEMPLATE]
-T_DEFAULTS = ["shimamura", "SMMN003PH", DEFAULT_PRIORITY, DEFAULT_USER, "-", "(UATxxx)-----(SMBCPOS21s)", DEFAULT_USER, "tc"]
-Y_DEFAULTS = ["yamaha", "YMHs001PH", DEFAULT_PRIORITY, DEFAULT_USER, "-", "(Redminexxx)-----(GXX)", DEFAULT_USER, "yc"]
-H_DEFAULTS = ["shimamura", "SMMs001PH", DEFAULT_PRIORITY, DEFAULT_USER, "-", "(UATxxx)-----(shimaXXs)", DEFAULT_USER, "hc"]
-UP_REQUEST_DEFAULTS = [
-    "shimamura",
-    "",  # Project
-    DEFAULT_PRIORITY,
-    DEFAULT_USER,
-    UP_REQUEST_CATEGORY_TEMPLATE,
-    UP_REQUEST_TITLE_TEMPLATE,
-    DEFAULT_USER,
-    UP_REQUEST_COMMENT_TEMPLATE
-]
-SM_DEFAULTS = ["shimamura", "TCNz007PH", DEFAULT_PRIORITY, DEFAULT_USER, "-", "(MySQLVerUP対応)-----", DEFAULT_USER, "sc"]
-
-SCHOOL_SPECIFIC_DEFAULTS = {
-    "s": S_DEFAULTS,
-    "y": Y_DEFAULTS,
-    "tf": TF_DEFAULTS,
-    "h": H_DEFAULTS,
-    "t": T_DEFAULTS,
-    "up": UP_REQUEST_DEFAULTS,
-    "sm": SM_DEFAULTS
-}
 
 ##################################
 ###ログ仕込み
