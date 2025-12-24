@@ -5,12 +5,12 @@ import browser_utils
 class FormAutomationHandler:
 
     # コンストラクタ
-    def __init__(self, driver,schools_type,environment_name):
+    def __init__(self, driver, context: dict):
         self.driver = driver
-        self.schools_type = schools_type
-        self.environment_name = environment_name
+        self.schools_type = context.get('schools_type')
+        self.environment_name = context.get('environment_name')
 
-    def setItems(self):
+    def fill_form(self):
         #####################################
         #  設定値（ユーザーインプット依存）   ##
         #####################################
