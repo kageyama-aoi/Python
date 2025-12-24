@@ -44,8 +44,12 @@ def main():
     # ##################################
     # ###メイン処理
     # ##################################
-    form_handler = FormAutomationHandler(driver, user_select_school, environment_name)
-    form_handler.setItems()
+    context = {
+        'schools_type': user_select_school,
+        'environment_name': environment_name
+    }
+    form_handler = FormAutomationHandler(driver, context)
+    form_handler.fill_form()
 
     #################
     #  後処理:ポップアップ   
