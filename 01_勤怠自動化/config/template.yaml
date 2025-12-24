@@ -1,0 +1,80 @@
+# === config/template.yaml ===
+# 新しい自動化プロジェクトを開始する際のテンプレート設定ファイルです。
+# このファイルをコピーして、新しいプロジェクトの config.yaml として使用してください。
+
+app:
+  url: "https://example.com" # ターゲットとなるWebアプリケーションのURLを設定
+
+selectors:
+  # フォーム操作を開始するための初期ボタンなどのセレクタを設定
+  # 例: 新規作成ボタン, ログインボタンなど
+  initial_action_button: "button_id_or_name" # (仮のキー名と値)
+
+menus:
+  # ユーザーに選択させるメニューのプロンプトとオプションを設定
+  # 例: どの操作を行うか、どの環境を選択するかなど
+  menu_1_prompt: |
+    選択肢を入力してください:
+    ------------------------------------------------------
+    a: オプションA
+    b: オプションB
+    ------------------------------------------------------
+
+  menu_2_prompt: |
+    追加の選択肢を入力してください:
+    ------------------------------------------------------
+    {{ENVIRONMENT_OPTIONS_STRING}}
+    ------------------------------------------------------
+  
+  environment_list: # menu_2_promptで使用する環境リスト
+    dev: "開発環境"
+    stg: "ステージング環境"
+    prod: "本番環境"
+
+fields:
+  # Webフォームの入力フィールドのマッピングを設定
+  # 各キーはコード内で扱われるフィールド名に対応します
+  # locator: 実際のHTML要素の 'name', 'id' などの属性値
+  # type: 入力方法 ('text', 'select', 'checkbox'など)
+  form_field_mappings: # キー名を tr_field_mappings からより汎用的なものに変更
+    FieldName1:
+      locator: "html_name_or_id_for_field1"
+      type: "text"
+    FieldName2:
+      locator: "html_name_or_id_for_field2"
+      type: "select"
+    # ... 他のフォームフィールドを追加
+
+# 共通のデフォルト値
+# school_specific_defaults のベースとなる、全てのパターンに適用されるデフォルト値
+common_defaults:
+  FieldName1: "" # デフォルトの空文字
+  FieldName2: "default_option_value"
+  # ... 他のフィールドの共通デフォルト値を追加
+
+# 個別の設定パターン
+# common_defaults から変更したい値のみを記述します
+# キー名はこのパターンを識別するためのものです（例: login_pattern_a, new_user_creation）
+school_specific_defaults: # キー名をより汎用的な 'automation_patterns' などに変更することも検討可能
+  pattern_a:
+    FieldName1: "pattern_a_value_for_field1"
+    FieldName2: "pattern_a_value_for_field2"
+    # ... pattern_a で変更したいフィールドのみ記述
+  
+  pattern_b:
+    FieldName1: "pattern_b_value_for_field1"
+    # FieldName2 は common_defaults が適用される
+    # ... pattern_b で変更したいフィールドのみ記述
+
+# テンプレート文字列の定義
+# 複数行のテキストや、プレースホルダーを含む文字列などを定義します
+templates:
+  some_email_template: |
+    件名: 自動化されたメール
+    本文:
+      お世話になっております。
+      これは自動生成されたメールです。
+      署名
+
+  # プレースホルダーを含むテンプレートの例
+  custom_message_template: "こんにちは、{{USER_NAME}}さん。現在のステータスは {{STATUS}} です。"
