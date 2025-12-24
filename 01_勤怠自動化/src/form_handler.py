@@ -7,7 +7,6 @@ import browser_utils
 import datetime
 import calendar
 import time
-from selenium.common.exceptions import NoSuchElementException
 
 class FormAutomationHandler:
     """
@@ -41,11 +40,10 @@ class FormAutomationHandler:
         ログイン画面が表示されている場合、ログイン処理を実行します。
         CrowdLog用。
         """
-        try:
-            # ログイン画面の識別（メールアドレス入力欄があるか）
-            email_selector = conf.CONF['selectors']['login_email']
-            browser_utils.find_element(self.driver, 'name', email_selector)
-            
+        # ログイン画面の識別（メールアドレス入力欄があるか）
+        email_selector = conf.CONF['selectors']['login_email']
+        
+        if browser_utils.is_element_present(self.driver, 'name', email_selector):
             print("Login page detected. Performing login...")
             
             # ログイン情報の取得
@@ -57,12 +55,11 @@ class FormAutomationHandler:
             browser_utils.input_text(self.driver, 'name', conf.CONF['selectors']['login_password'], password)
             
             login_btn_selector = conf.CONF['selectors']['login_button']
-            browser_utils.find_element(self.driver, 'css', login_btn_selector).click()
+            browser_utils.click_element(self.driver, 'css', login_btn_selector)
             
             # ログイン後の遷移待ち
             time.sleep(3)
-            
-        except NoSuchElementException:
+        else:
             # ログイン画面ではないと判断し、何もしない
             pass
 
@@ -140,29 +137,23 @@ class FormAutomationHandler:
 
             if val["type"] == "text":
                 browser_utils.input_text(*common_dom_args)
-                # DatePickerが表示される可能性があるため、入力後にEscキーを送るなどの対策も有効だが
-                # ここでは後続の処理でBodyクリック等を行う
             elif val["type"] == "select":
                 browser_utils.select_option(*common_dom_args)
 
         # CrowdLogの場合、ダウンロードボタンをクリック
         if self.schools_type == 'cl':
             # DatePickerなどのポップアップを閉じるために、無害な要素（bodyなど）をクリック
-            try:
-                self.driver.find_element(browser_utils.By.TAG_NAME, 'body').click()
-                time.sleep(1) # アニメーション待ち
-            except Exception:
-                pass
+            browser_utils.click_body(self.driver)
+            time.sleep(1) # アニメーション待ち
 
             print("Clicking download button...")
             download_btn_selector = conf.CONF['selectors']['download_button']
             
             try:
                 # 通常のクリックを試行
-                browser_utils.find_element(self.driver, 'css', download_btn_selector).click()
+                browser_utils.click_element(self.driver, 'css', download_btn_selector)
             except Exception as e:
                 print(f"Normal click failed: {e}. Trying JavaScript click.")
                 # JavaScriptで強制クリック
-                element = browser_utils.find_element(self.driver, 'css', download_btn_selector)
-                self.driver.execute_script("arguments[0].click();", element)
+                browser_utils.click_element_by_script(self.driver, 'css', download_btn_selector)
 
