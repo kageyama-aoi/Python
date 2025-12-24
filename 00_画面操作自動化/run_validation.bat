@@ -9,7 +9,7 @@ REM ログディレクトリが存在しない場合は作成
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
 REM Pythonスクリプトのパスを変更
-python src\create_task_report.py kensho 2>> %LOG_FILE%
+python src\main.py kensho 2>> %LOG_FILE%
 @REM python 00_MAIN\create_task_report.py kensho 2>> %LOG_FILE%
 
 endlocal
