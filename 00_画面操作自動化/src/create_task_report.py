@@ -40,7 +40,7 @@ driver.set_window_size(700,1000)
 driver.implicitly_wait(10) # seconds
 driver.get(constants.URL)
 driver.implicitly_wait(3) # seconds
-element_utils.set(driver,"name",constants.NEW_BUG_BUTTON_DOM_ATTRIBUTE).click()  
+element_utils.find_element(driver,"name",constants.NEW_BUG_BUTTON_DOM_ATTRIBUTE).click()  
 
 
 # ##################################
