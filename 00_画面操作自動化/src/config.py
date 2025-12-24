@@ -9,13 +9,13 @@ from pathlib import Path
 # グローバルな設定オブジェクト（YAMLから読み込んだデータを保持）
 CONF = {}
 
-def load_config(config_path="config.yaml"):
+def load_config(config_path="config/config.yaml"):
     """
     指定されたYAML設定ファイルを読み込み、CONF グローバル変数に格納します。
     テンプレート内のプレースホルダー置換などの動的な処理もここで行います。
 
     Args:
-        config_path (str): 設定ファイルのパス。デフォルトは "config.yaml"。
+        config_path (str): 設定ファイルのパス。デフォルトは "config/config.yaml"。
     """
     global CONF
     try:
