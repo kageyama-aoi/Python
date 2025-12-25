@@ -1,0 +1,7 @@
+C:\Users\kageyama\Tools\Python\工数集計>python ./main.py  2>"./error_log/error_20251225_162641.txt"
+最新の勤怠データを取得し直しますか？ (y/n): y
+
+C:\Users\kageyama\Tools\Python\工数集計>REM --- 繝ｦ繝ｼ繧ｶ繝ｼ縺檎ｵ先棡繧堤｢ｺ隱阪〒縺阪ｋ繧医≧縺ｫ荳譎ょ●豁｢ ---
+
+C:\Users\kageyama\Tools\Python\工数集計>pause
+続行するには何かキーを押してください . . .

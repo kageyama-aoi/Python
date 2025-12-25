@@ -1,17 +1,17 @@
 @echo off
 setlocal
 
-REM ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆãƒ«ãƒ¼ãƒˆã¸ç§»å‹•
+REM ƒvƒƒWƒFƒNƒgƒ‹[ƒg‚ÖˆÚ“®
 pushd %~dp0..
 
-REM ã‚¨ãƒ©ãƒ¼ãƒ­ã‚°ã®ãƒ‘ã‚¹ã‚’æŒ‡å®š (æ–°ã—ã„logsãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã‚’æŒ‡ã™ã‚ˆã†ã«å¤‰æ›´)
+REM ƒGƒ‰[ƒƒO‚ÌƒpƒX‚ðŽw’è (V‚µ‚¢logsƒfƒBƒŒƒNƒgƒŠ“à‚ðŽw‚·‚æ‚¤‚É•ÏX)
 set LOG_DIR=logs\batch_error_logs
 set LOG_FILE=%LOG_DIR%\validation_error_%date:~0,4%%date:~5,2%%date:~8,2%_%time:~0,2%%time:~3,2%%time:~6,2%.log
 
-REM ãƒ­ã‚°ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ä½œæˆ
+REM ƒƒOƒfƒBƒŒƒNƒgƒŠ‚ª‘¶Ý‚µ‚È‚¢ê‡‚Íì¬
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
-REM Pythonã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‘ã‚¹ã‚’å¤‰æ›´
+REM PythonƒXƒNƒŠƒvƒg‚ÌƒpƒX‚ð•ÏX
 python src\main.py kensho 2>> %LOG_FILE%
 
 popd
