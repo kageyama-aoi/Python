@@ -1,3 +1,4 @@
+app:
   url: "https://app.crowdlog.jp/download/?rm=timesheet"
   download_dir: "data/downloads/"
   # ログイン情報（.envファイルで管理されます）
