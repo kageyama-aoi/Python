@@ -3,6 +3,8 @@ from openpyxl.styles import PatternFill
 from openpyxl.utils import get_column_letter
 import pandas as pd
 from . import config as cfg
+from .constants import InputCols as IC, InternalCols as RC
+import sys
 
 def save_initial_report(temp_file_path, sheet_data_list):
     """
@@ -17,11 +19,11 @@ def add_formulas_and_save(df, output_path, sheet_name):
     """
     データフレームにExcel数式を追加して保存し、D列を値として確定させる
     """
-    sum_name_label = '集計_社員名'
-    sum_pj_label = '集計_PJコード'
-    sum_time_label = '集計_工数(h)'
-    sum_block1_label = '集計_ブロック'
-    sum_time_block1_label = '集計_工数(h)_番外'
+    sum_name_label = RC.SUM_EMPLOYEE
+    sum_pj_label = RC.SUM_PJ
+    sum_time_label = RC.SUM_HOURS
+    sum_block1_label = RC.SUM_BLOCK
+    sum_time_block1_label = RC.SUM_HOURS_EXTRA
     
     labels = [sum_name_label, sum_pj_label, sum_time_label, sum_block1_label, sum_time_block1_label]
 
@@ -31,9 +33,9 @@ def add_formulas_and_save(df, output_path, sheet_name):
 
     # 列番号の特定
     col_num = {
-        '社員名': None, 'PJコード': None, '作業時間': None, 
+        IC.EMPLOYEE_NAME: None, RC.PJ_CODE: None, RC.WORK_HOURS: None, 
         sum_name_label: None, sum_pj_label: None, sum_time_label: None, 
-        'メモ_区分': None, 'メモ_詳細': None, 'メモ': None
+        RC.MEMO_TYPE: None, RC.MEMO_DETAIL: None, IC.MEMO: None
     }
     for col in df.columns:
         if col in col_num:
@@ -44,11 +46,11 @@ def add_formulas_and_save(df, output_path, sheet_name):
         raise ValueError("必要なヘッダーが見つかりませんでした。")
 
     # 列レターの取得
-    column_sagyou = get_column_letter(col_num['作業時間'])
-    column_syainmei = get_column_letter(col_num['社員名'])
-    column_pjcode = get_column_letter(col_num['PJコード'])
-    column_memo = get_column_letter(col_num['メモ'])
-    column_memo_kubun = get_column_letter(col_num['メモ_区分'])
+    column_sagyou = get_column_letter(col_num[RC.WORK_HOURS])
+    column_syainmei = get_column_letter(col_num[IC.EMPLOYEE_NAME])
+    column_pjcode = get_column_letter(col_num[RC.PJ_CODE])
+    column_memo = get_column_letter(col_num[IC.MEMO])
+    column_memo_kubun = get_column_letter(col_num[RC.MEMO_TYPE])
     keyword_syain = get_column_letter(col_num[sum_name_label])
     keyword_pj = get_column_letter(col_num[sum_pj_label])
     
@@ -57,15 +59,15 @@ def add_formulas_and_save(df, output_path, sheet_name):
     
     # 行ごと処理
     for index, row in df.iterrows():
-        syainmmei_value = row['社員名']
-        pjcode_value = row['PJコード']
+        syainmmei_value = row[IC.EMPLOYEE_NAME]
+        pjcode_value = row[RC.PJ_CODE]
         excel_row = index + 2
 
         # 数式の埋め込み
-        df.at[index, 'メモ_区分'] = f'=IFERROR(LEFT({column_memo}{excel_row}, FIND(",", {column_memo}{excel_row}) - 1), "-")'
-        df.at[index, 'メモ_詳細'] = f'=IFERROR(MID({column_memo}{excel_row}, FIND(",", {column_memo}{excel_row}) + 1, LEN({column_memo}{excel_row}) - FIND(",", {column_memo}{excel_row})), {column_memo}{excel_row})'
-        df.at[index, '工程１:名称'] = row['メモ_区分']
-        df.at[index, '集計_ブロック'] = f'={column_memo_kubun}{excel_row}'
+        df.at[index, RC.MEMO_TYPE] = f'=IFERROR(LEFT({column_memo}{excel_row}, FIND(",", {column_memo}{excel_row}) - 1), "-")'
+        df.at[index, RC.MEMO_DETAIL] = f'=IFERROR(MID({column_memo}{excel_row}, FIND(",", {column_memo}{excel_row}) + 1, LEN({column_memo}{excel_row}) - FIND(",", {column_memo}{excel_row})), {column_memo}{excel_row})'
+        df.at[index, IC.PROCESS_1_NAME] = row[RC.MEMO_TYPE]
+        df.at[index, RC.SUM_BLOCK] = f'={column_memo_kubun}{excel_row}'
         df.at[index, sum_name_label] = syainmmei_value
         df.at[index, sum_pj_label] = pjcode_value
         df.at[index, sum_time_block1_label] = f"=SUMIFS({column_sagyou}:{column_sagyou}, {column_syainmei}:{column_syainmei}, {keyword_syain}{excel_row}, {column_pjcode}:{column_pjcode}, {keyword_pj}{excel_row}, {column_memo_kubun}:{column_memo_kubun}, {column_memo_kubun}{excel_row})"  
@@ -79,18 +81,22 @@ def add_formulas_and_save(df, output_path, sheet_name):
         one_line_ago_pjcode_value = pjcode_value
 
     # 一旦保存
-    with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
-        
-    # 再読み込みして調整
-    wb = openpyxl.load_workbook(output_path)
-    ws = wb.active
+    try:
+        with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+            
+        # 再読み込みして調整
+        wb = openpyxl.load_workbook(output_path)
+        ws = wb.active
 
-    # D列を値のみにする処理（既存ロジックを継承）
-    for row in range(1, ws.max_row + 1):
-        ws[f'D{row}'] = ws[f'D{row}'].value
-        
-    wb.save(output_path)
+        # D列を値のみにする処理（既存ロジックを継承）
+        for row in range(1, ws.max_row + 1):
+            ws[f'D{row}'] = ws[f'D{row}'].value
+            
+        wb.save(output_path)
+    except PermissionError:
+        print(f"エラー: {output_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
+        sys.exit(1)
 
 def extract_sheet_to_new_file(input_path, sheet_name, output_path):
     """指定されたシートを新しいExcelファイルとして抽出する"""
@@ -110,11 +116,20 @@ def extract_sheet_to_new_file(input_path, sheet_name, output_path):
     if 'Sheet' in new_wb.sheetnames:
         new_wb.remove(new_wb['Sheet'])
 
-    new_wb.save(output_path)
+    try:
+        new_wb.save(output_path)
+    except PermissionError:
+        print(f"エラー: {output_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
+        sys.exit(1)
 
 def apply_custom_styles(file_path):
     """Excelシートにスタイル（固定、背景色、列幅、グループ化）を適用する"""
-    wb = openpyxl.load_workbook(file_path)
+    try:
+        wb = openpyxl.load_workbook(file_path)
+    except PermissionError:
+         print(f"エラー: {file_path} を開けませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください.")
+         sys.exit(1)
+         
     sheet = wb.active
     
     sheet.freeze_panes = 'A2'
@@ -145,4 +160,8 @@ def apply_custom_styles(file_path):
     sheet.column_dimensions.group('F', 'I', hidden=True)
     sheet.column_dimensions.group('J', 'N', hidden=True)
 
-    wb.save(file_path)
+    try:
+        wb.save(file_path)
+    except PermissionError:
+        print(f"エラー: {file_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
+        sys.exit(1)

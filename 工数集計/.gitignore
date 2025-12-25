@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+error_log/
+*.log
+output.txt
+debug_output.txt
+
+# Excel Temporary Files
+~$*
+
+# Generated Output Files
+output/Debug_*
+output/Summary_*
+output/temp_*
+output/工数集計結果_*
+
+# Intermediate Files
+output/temp_intermediate.xlsx

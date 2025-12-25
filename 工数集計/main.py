@@ -33,9 +33,11 @@ def main():
     # パス設定
     now = datetime.datetime.now()
     random_number = random.randint(10000, 99999)
-    temp_file01 = cfg.OUTPUT_DIR / f'Summary_{project_label}_{employee_label}_{now:%Y%m%d_%H%M%S}_{random_number}.xlsx'
-    temp_file02 = cfg.OUTPUT_DIR / 'temp_file1.xlsx'
-    final_output = cfg.OUTPUT_DIR / f'temp2_{project_label}_{employee_label}_aggregate_results.xlsx'
+    temp_file01 = cfg.OUTPUT_DIR / f'Debug_Summary_{project_label}_{employee_label}_{now:%Y%m%d_%H%M%S}_{random_number}.xlsx'
+    temp_file02 = cfg.OUTPUT_DIR / 'temp_intermediate.xlsx'
+    
+    # 最終成果物のファイル名：工数集計結果_案件名_氏名_YYYYMMDD.xlsx
+    final_output = cfg.OUTPUT_DIR / f'工数集計結果_{project_label}_{employee_label}_{now:%Y%m%d}.xlsx'
     
     sheet_name_detail = 'Detailed Data'
     sheet_name_processed = 'Processed Data'
