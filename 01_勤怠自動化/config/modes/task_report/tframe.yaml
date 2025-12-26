@@ -1,0 +1,24 @@
+# テンプレート定義
+templates:
+  tf:
+    drive_url: "https://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti"
+    design_doc_folder_path: "002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)"
+    spec_doc_filename: "43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"
+    comment_template: |
+      保存URL:
+      {{TF_DRIVE_URL}}
+      
+      日本語仕様書フォルダ：
+      {{TF_DESIGN_DOC_FOLDER_PATH}}
+      
+      仕様書：
+      {{TF_SPEC_DOC_FILENAME}}
+
+school_specific_defaults:
+  tf:
+    Schools: "tframe"
+    Project: "TCNz004PH"
+    Priority: "Serious"
+    Category: "種別 機能番号"
+    Title: "【Culture】機能名"
+    Comments: "{{TF_COMMENT_TEMPLATE}}" 

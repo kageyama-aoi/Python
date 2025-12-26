@@ -1,0 +1,27 @@
+school_specific_defaults:
+  s: 
+    Project: "SMMs001PH"
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "sc"
+  t:
+    Project: "SMMN003PH"
+    Title: "(UATxxx)-----(SMBCPOS21s)"
+    Comments: "tc"
+  h:
+    Project: "SMMs001PH" # sと同じだが明示的に記述
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "hc"
+  up:
+    Category: "[KANKYOUMEI]環境_更新依頼"
+    Title: "[KANKYOUMEI]環境_更新依頼"
+    Comments: |
+        下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
+        XXXXX
+        XXXXX
+        XXXXX
+        
+        今回事前事後対応がありま、、、
+  sm:
+    Project: "TCNz007PH"
+    Title: "(MySQLVerUP対応)-----"
+    Comments: "sc"

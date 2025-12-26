@@ -19,7 +19,7 @@ log_folder = '{0}.log'.format(datetime.date.today())
 
 def main():
     # 設定ファイルの読み込み
-    config.load_config("config/config.yaml")
+    config.load_config("config/main.yaml")
     logger = config.setup_logger(log_folder)
 
     # GUIによるユーザー入力の取得

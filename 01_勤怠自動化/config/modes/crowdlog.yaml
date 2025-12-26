@@ -1,0 +1,4 @@
+school_specific_defaults:
+  cl:
+    StartDate: "{{DYNAMIC_START_DATE}}"
+    EndDate: "{{DYNAMIC_END_DATE}}"
