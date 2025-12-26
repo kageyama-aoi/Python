@@ -12,32 +12,23 @@ import config
 import browser_utils
 import file_utils
 from form_handler import FormAutomationHandler
+import gui
 
 # ログファイル名の設定
 log_folder = '{0}.log'.format(datetime.date.today())
-
-def get_user_input():
-    """
-    ユーザーからの入力を受け付け、実行に必要なパラメータを取得します。
-    設定ファイル(config.yaml)で定義されたプロンプトを表示します。
-    """
-    print(config.CONF['menus']['menu_1_prompt'])
-    user_select_school = input()
-
-    environment_name = ""
-    # "up" (更新依頼) の場合のみ、追加の環境選択を行う
-    if user_select_school == "up":
-        print(config.CONF['menus']['menu_2_prompt'])
-        upload_destination = input()
-        environment_name = config.CONF['menus']['environment_list'][upload_destination]
-    return user_select_school, environment_name
 
 def main():
     # 設定ファイルの読み込み
     config.load_config("config/config.yaml")
     logger = config.setup_logger(log_folder)
 
-    user_select_school, environment_name = get_user_input()
+    # GUIによるユーザー入力の取得
+    user_select_school, environment_name = gui.get_user_input_gui()
+    
+    # ユーザーがキャンセルまたは閉じた場合
+    if user_select_school is None:
+        print("操作がキャンセルされました。")
+        return
 
     # ブラウザの初期化
     driver = webdriver.Chrome()
@@ -45,16 +36,31 @@ def main():
     driver.implicitly_wait(10)
     
     try:
-        driver.get(config.CONF['app']['url'])
+        print(f"DEBUG: Selected School Type: {user_select_school}") # Debug
+        
+        target_url = ""
+        if user_select_school == 'cl':
+            target_url = config.CONF['app']['url']
+        else:
+            # TR用のURLが設定にあればそれを使う、なければデフォルト(app.url)を使う
+            # 現状configにないので、app.urlが使われるが、ここを分離ポイントとする
+            target_url = config.CONF['app'].get('task_report_url', config.CONF['app']['url'])
+        
+        print(f"DEBUG: Navigating to {target_url}")
+        driver.get(target_url)
         driver.implicitly_wait(3)
         
         # 初期アクション（タスクレポート系のみ）
+        # TR用URLに直接飛んだ場合は、このボタンクリックは不要になるかもしれないが
+        # 既存ロジック(app.urlが共通だった場合)のために残しておく
         if user_select_school != 'cl':
-            browser_utils.find_element(
-                driver, 
-                "name", 
-                config.CONF['selectors']['new_bug_button_dom_attribute']
-            ).click()
+            # もしTR用URLが設定されていれば、このボタンクリックはスキップする判定を入れても良い
+            # ここでは要素が存在する場合のみクリックするように変更して安全性を高める
+            btn_selector = config.CONF['selectors']['new_bug_button_dom_attribute']
+            if browser_utils.is_element_present(driver, "name", btn_selector):
+                browser_utils.find_element(driver, "name", btn_selector).click()
+            else:
+                print(f"Warning: New bug button ({btn_selector}) not found on page.")
 
         # メイン処理：フォーム入力の実行
         context = {
