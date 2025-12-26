@@ -29,6 +29,12 @@ def load_config(config_path="config/main.yaml"):
     config/modes/ 配下のYAMLファイルも自動的に読み込み、マージします。
     """
     global CONF
+    # 再読み込み時のために初期化
+    CONF.clear()
+    
+    # メタデータ格納用の辞書を初期化
+    CONF['_meta'] = {'files': {}}
+    
     load_dotenv()
 
     try:
@@ -38,6 +44,9 @@ def load_config(config_path="config/main.yaml"):
 
         with open(config_path, "r", encoding="utf-8") as f:
             CONF.update(yaml.safe_load(f))
+        
+        # Main Configに _meta が上書きされている場合は復元
+        if '_meta' not in CONF: CONF['_meta'] = {'files': {}}
 
         # 2. Modes Configs の読み込み (config/modes/ 配下を再帰的に探索)
         config_dir = os.path.dirname(config_path)
@@ -53,6 +62,11 @@ def load_config(config_path="config/main.yaml"):
                     sub_conf = yaml.safe_load(f)
                     if sub_conf:
                         _deep_merge(CONF, sub_conf)
+                        
+                        # school_specific_defaults のキーがどのファイルにあるか記録
+                        if 'school_specific_defaults' in sub_conf:
+                            for key in sub_conf['school_specific_defaults']:
+                                CONF['_meta']['files'][key] = file_path
 
         # 3. 環境変数による上書き
         _apply_env_overrides()
