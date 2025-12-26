@@ -35,3 +35,14 @@ task_report_settings:
     Comments:
       locator: "comments"
       type: "text"
+
+# 共通のデフォルト値
+common_defaults:
+  Schools: "shimamura"
+  Priority: "Critical"
+  Uploader: "kageyama"
+  Owner: "kageyama"
+  Category: "-"
+  Project: ""
+  Title: ""
+  Comments: ""
