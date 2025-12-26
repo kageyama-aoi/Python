@@ -1,38 +1,32 @@
 # Task Report Automation Tool
 
-Web上のタスクレポートシステムへの入力作業を自動化するPythonツールです。
-設定ファイル (`config.yaml`) を編集することで、入力内容や対象環境を柔軟に変更できます。
+Web上のタスクレポートシステムへの入力作業およびCrowdLog（勤怠）の工数実績ダウンロードを自動化するPythonツールです。
+**GUIによる直感的な操作**が可能で、設定ファイル（YAML）を編集することで入力内容や対象環境を柔軟に変更できます。
 
-## 機能
+## 特徴
 
-*   Seleniumを使用したブラウザ自動操作。
-*   YAMLファイルによる設定管理（ユーザー、プロジェクト、テンプレート文章など）。
-*   コマンドラインからの対話的な実行（学校種別、環境名の選択）。
+*   **GUI操作**: Tkinterを使用したモダンな選択画面。2段階選択や動的な環境選択により、操作ミスを防ぎます。
+*   **Selenium自動化**: ブラウザを自動操作し、ログインからフォーム入力、ダウンロードまでを行います。
+*   **拡張性の高いアーキテクチャ**: モードごとにロジック（Handler）と設定（Config）が分離されており、新しいプロジェクトや機能の追加が容易です。
 
 ## 前提条件
 
-*   **OS**: Windows (動作確認済み), macOS, Linux
+*   **OS**: Windows (推奨), macOS, Linux
 *   **Python**: 3.8 以上
 *   **ブラウザ**: Google Chrome (最新版)
-    *   Selenium 4.6以降を使用しているため、ChromeDriverの手動インストールは不要です。
 
 ## セットアップ手順
 
-1.  **リポジトリのクローンまたはダウンロード**
+1.  **リポジトリのクローン**
     ```bash
     git clone <repository-url>
-    cd 00_画面操作自動化
+    cd 01_勤怠自動化
     ```
 
-2.  **仮想環境の作成と有効化 (推奨)**
+2.  **仮想環境の作成と有効化**
     ```bash
-    # Windows
     python -m venv venv
     venv\Scripts\activate
-
-    # macOS/Linux
-    python3 -m venv venv
-    source venv/bin/activate
     ```
 
 3.  **依存ライブラリのインストール**
@@ -40,54 +34,72 @@ Web上のタスクレポートシステムへの入力作業を自動化するPy
     pip install -r requirements.txt
     ```
 
-## 設定 (config.yaml)
-
-`config.yaml` を編集して、ツールをカスタマイズします。
-
-### 基本設定
-*   `app.url`: ターゲットとなるWebアプリケーションのURL。
-*   `common_defaults`: 全てのパターンで共通して使用されるデフォルト値（ユーザー名、優先度など）。
-
-### 個別設定 (School Specific Defaults)
-`school_specific_defaults` セクションで、学校ごとの入力パターンを定義します。
-`common_defaults` との**差分のみ**を記述してください。
-
-例:
-```yaml
-school_specific_defaults:
-  my_new_school:
-    Schools: "myschool"
-    Project: "NEW_PROJECT_CODE"
-    Title: "定型タイトル"
-    Comments: "定型コメント"
-```
+4.  **環境変数の設定 (.env)**
+    ログイン情報を `.env` ファイルに設定してください。
+    ```env
+    CROWDLOG_EMAIL=your_email@example.com
+    CROWDLOG_PASSWORD=your_password
+    ```
 
 ## 実行方法
 
-1.  **ツールの起動**
-    ```bash
-    python src/main.py
-    ```
+ツールの起動は以下のコマンドで行います。
 
-2.  **対話的な操作**
-    画面の指示に従って、操作対象を選択してください。
-    *   **Menu 1**: 学校種別や作業種別を選択（YAMLのキーに対応、例: `s`, `y`, `up`）。
-    *   **Menu 2**: (`up` 選択時のみ) 対象環境を選択。
+```bash
+python src/main.py
+```
 
-3.  **完了**
-    ブラウザが自動的に開き、フォームへの入力が行われます。入力が完了するとポップアップでお知らせします。
+コマンドを実行するとGUIウィンドウが立ち上がります。
+1.  **モード選択**: 「CrowdLog (勤怠)」または「Task Report (TR)」を選択。
+2.  **詳細設定**: TRを選択した場合、プロジェクト種別を選択。「UP依頼」などの場合は対象環境も選択してください。
+3.  **実行**: [実行] ボタンを押すとブラウザが起動し、自動処理が開始されます。
 
-## ディレクトリ構成
+## 設定 (Config)
 
-*   `src/`: ソースコードディレクトリ
-    *   `main.py`: エントリーポイント
-    *   `form_handler.py`: フォーム操作ロジック
-    *   `browser_utils.py`: ブラウザ操作ユーティリティ
-    *   `config.py`: 設定ファイルローダー
-*   `config.yaml`: 設定ファイル
-*   `requirements.txt`: 依存ライブラリリスト
-*   `logs/`: ログ出力ディレクトリ
+`config/` ディレクトリ配下のYAMLファイルを編集してカスタマイズします。
+
+### ディレクトリ構成
+```text
+config/
+├── main.yaml                # アプリ全体の共通設定 (ダウンロード先など)
+└── modes/                   # モードごとの設定
+    ├── crowdlog.yaml        # 勤怠関連の設定 (URL, セレクタ)
+    └── task_report/         # TR関連の設定
+        ├── common.yaml      # TR共通設定 (フィールド定義など)
+        ├── shimamura.yaml   # Shimamuraプロジェクト設定
+        ├── yamaha.yaml      # Yamahaプロジェクト設定
+        └── ...
+```
+
+### 設定のカスタマイズ例
+新しいTRパターンを追加したい場合は、`config/modes/task_report/` 配下の適切なファイル（例: `shimamura.yaml`）に追記するか、新しいファイルを作成してください。
+
+```yaml
+# 例: config/modes/task_report/new_project.yaml
+school_specific_defaults:
+  np: # 新しいキー
+    Project: "NewProjectCode"
+    Title: "定型タイトル"
+    Comments: "定型コメント"
+```
+その後、`config/main.yaml` の `menus` セクションに選択肢を追加することで、GUIに表示されるようになります。
+
+## 開発者向け情報 (Architecture)
+
+本ツールは、拡張性を重視して以下の設計を採用しています。
+
+*   **Handlerパターン**: `src/handlers/` 配下にロジックを分割。
+    *   `CrowdLogHandler`: 勤怠ダウンロード処理
+    *   `TaskReportHandler`: TR入力処理
+*   **Config分割**: 設定ファイルもモードごとに分割され、起動時に自動的にマージされます。
+
+### テストの実行
+単体テスト（モック使用）により、ロジックの検証が可能です。
+
+```bash
+python test_handlers.py
+```
 
 ## ライセンス
 
-[ライセンス情報をここに記述]
+[ライセンス情報を記述]

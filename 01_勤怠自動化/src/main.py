@@ -40,26 +40,23 @@ def main():
         
         target_url = ""
         if user_select_school == 'cl':
-            target_url = config.CONF['app']['url']
+            target_url = config.CONF.get('crowdlog_settings', {}).get('entry_url', '')
         else:
-            # TR用のURLが設定にあればそれを使う、なければデフォルト(app.url)を使う
-            # 現状configにないので、app.urlが使われるが、ここを分離ポイントとする
-            target_url = config.CONF['app'].get('task_report_url', config.CONF['app']['url'])
+            target_url = config.CONF.get('task_report_settings', {}).get('entry_url', '')
         
         print(f"DEBUG: Navigating to {target_url}")
         driver.get(target_url)
         driver.implicitly_wait(3)
         
         # 初期アクション（タスクレポート系のみ）
-        # TR用URLに直接飛んだ場合は、このボタンクリックは不要になるかもしれないが
-        # 既存ロジック(app.urlが共通だった場合)のために残しておく
         if user_select_school != 'cl':
-            # もしTR用URLが設定されていれば、このボタンクリックはスキップする判定を入れても良い
-            # ここでは要素が存在する場合のみクリックするように変更して安全性を高める
-            btn_selector = config.CONF['selectors']['new_bug_button_dom_attribute']
-            if browser_utils.is_element_present(driver, "name", btn_selector):
+            # TR共通設定からセレクタを取得
+            tr_settings = config.CONF.get('task_report_settings', {})
+            btn_selector = tr_settings.get('selectors', {}).get('new_bug_button_dom_attribute')
+            
+            if btn_selector and browser_utils.is_element_present(driver, "name", btn_selector):
                 browser_utils.find_element(driver, "name", btn_selector).click()
-            else:
+            elif btn_selector:
                 print(f"Warning: New bug button ({btn_selector}) not found on page.")
 
         # メイン処理：フォーム入力の実行

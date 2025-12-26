@@ -1,20 +1,13 @@
 app:
-  url: "https://app.crowdlog.jp/download/?rm=timesheet"
-  task_report_url: "https://taskreport.e-school.jp/bugfix.php"
+  # ダウンロード先などの共通設定のみ残す
   download_dir: "data/downloads/"
-  # ログイン情報（.envファイルで管理されます）
+  
+  # ログイン情報（.envファイルで管理、config.pyで上書きされる枠）
   login:
     email: "YOUR_EMAIL_HERE"
     password: "YOUR_PASSWORD_HERE"
 
-selectors:
-  new_bug_button_dom_attribute: "goindex"
-  download_button: "#idDownloadForm button"
-  # ログイン画面用
-  login_email: "email"
-  login_password: "passwd"
-  login_button: "#idLoginForm button[type='submit']"
-
+# メニュー定義はアプリの入り口なのでここに残す
 menus:
   # メインモード定義
   modes:
@@ -43,49 +36,17 @@ menus:
     - key: "sm"
       label: "Shimamura_mysql対応"
   
-  # 環境選択肢 (UP依頼などで使用)
+  # 環境選択肢
   environment_options:
     - "trainigGCP"
     - "UAT2"
     - "smbcpos_training"
     - "smbcpos_uat"
 
-fields:
-  tr_field_mappings:
-    # 既存のタスクレポート用
-    Schools:
-      locator: "who_edit"
-      type: "select"
-    Project:
-      locator: "project"
-      type: "text"
-    Priority:
-      locator: "priority_edit"
-      type: "select"
-    Uploader:
-      locator: "uploader_edit"
-      type: "select"
-    Category:
-      locator: "where_edit"
-      type: "text"
-    Title:
-      locator: "what_edit"
-      type: "text"
-    Owner:
-      locator: "owned_edit"
-      type: "select"
-    Comments:
-      locator: "comments"
-      type: "text"
-    # CrowdLog用
-    StartDate:
-      locator: "from"
-      type: "text"
-    EndDate:
-      locator: "to"
-      type: "text"
-
-# 共通のデフォルト値
+# 共通のデフォルト値 (TR用だが、フォールバックとしてここに残すか、task_report/common.yamlに移すか)
+# 今回は構造変更の影響を最小限にするため、デフォルト値はここに残すが、
+# 本来的には task_report/common.yaml に移すべき。
+# ひとまずここに残します。
 common_defaults:
   Schools: "shimamura"
   Priority: "Critical"
@@ -96,6 +57,6 @@ common_defaults:
   Title: ""
   Comments: ""
 
-# 個別設定のマージ先（ここへ各ファイルからロードされる）
+# 個別設定のマージ先プレースホルダー
 school_specific_defaults: {}
 templates: {}

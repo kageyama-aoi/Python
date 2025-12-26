@@ -1,4 +1,3 @@
-
 import unittest
 from unittest.mock import MagicMock, patch
 import sys
@@ -9,16 +8,33 @@ sys.path.append(os.path.join(os.getcwd(), 'src'))
 
 # モック用にconfigをロードしておく
 import config
-# ダミー設定を入れる
+# 新しい構造に合わせてダミー設定を入れる
 config.CONF = {
     'common_defaults': {},
     'school_specific_defaults': {'cl': {}, 'tf': {}},
-    'fields': {'tr_field_mappings': {}},
-    'selectors': {
-        'login_email': 'email', 'login_password': 'pwd', 'login_button': 'btn',
-        'download_button': '#dl'
-    },
+    
     'app': {'login': {'email': 'test', 'password': 'test'}},
+    
+    # 新しいCrowdLog設定
+    'crowdlog_settings': {
+        'selectors': {
+            'login_email': 'email', 'login_password': 'pwd', 'login_button': 'btn',
+            'download_button': '#dl'
+        },
+        'fields': {
+            'StartDate': {'locator': 'from', 'type': 'text'},
+            'EndDate': {'locator': 'to', 'type': 'text'}
+        }
+    },
+    
+    # 新しいTR共通設定
+    'task_report_settings': {
+        'fields': {
+            'Project': {'locator': 'proj', 'type': 'text'},
+            'Comments': {'locator': 'comm', 'type': 'text'}
+        }
+    },
+
     'templates': {'tf': {'comment_template_rendered': 'test_template'}}
 }
 
@@ -52,20 +68,13 @@ class TestHandlers(unittest.TestCase):
         # 実行
         handler.execute()
         
-        # 検証: ログインチェックが呼ばれたか（is_element_presentなど）
-        # mock_utils.is_element_present.assert_called() 
-        # 具体的な呼び出し回数などは実装依存だが、エラーなく通過すればまずはOK
+        # 検証
+        # ログインや入力が呼ばれたか。ここではエラーが出ないことを確認
         print("Execution Test (CrowdLogHandler): OK")
 
     @patch('handlers.task_report_handler.browser_utils')
     def test_task_report_execution(self, mock_utils):
         """TaskReportHandlerのexecuteフロー確認"""
-        # フィールドマッピングのダミー設定
-        config.CONF['fields']['tr_field_mappings'] = {
-            'Project': {'locator': 'proj', 'type': 'text'},
-            'Comments': {'locator': 'comm', 'type': 'text'}
-        }
-        
         context = {'schools_type': 'tf', 'environment_name': 'UAT2'}
         handler = TaskReportHandler(self.mock_driver, context)
         
