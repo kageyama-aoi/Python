@@ -6,7 +6,7 @@ class SelectionApp:
     def __init__(self, root):
         self.root = root
         self.root.title("自動化ツール実行設定")
-        self.root.geometry("500x500")
+        self.root.geometry("500x550")
 
         # 戻り値を格納する変数
         self.result = (None, None) # (school_type, environment_name)
@@ -16,7 +16,8 @@ class SelectionApp:
         self.menus = config.CONF.get('menus', {})
         self.modes = self.menus.get('modes', {})
         self.tr_options = self.menus.get('tr_options', [])
-        self.env_options = self.menus.get('environment_options', {})
+        # リスト形式になったenvironment_optionsを取得
+        self.env_options = self.menus.get('environment_options', [])
 
         # 変数の初期化
         self.selected_mode = tk.StringVar(value="")
@@ -57,27 +58,45 @@ class SelectionApp:
         
         # TR種別のリスト生成
         self.tr_radios = []
+        self.env_combo = None # 後で参照できるように初期化
+
         for opt in self.tr_options:
+            # 各選択肢をラップするフレーム（レイアウト調整用）
+            item_frame = ttk.Frame(self.tr_frame)
+            item_frame.pack(fill="x", pady=2)
+
             rb = ttk.Radiobutton(
-                self.tr_frame,
+                item_frame,
                 text=opt['label'],
                 variable=self.selected_tr_type,
                 value=opt['key'],
                 command=self._on_tr_type_change
             )
-            rb.pack(anchor="w", pady=1)
+            rb.pack(anchor="w")
             self.tr_radios.append(rb)
 
-        # --- 環境選択エリア ---
-        env_frame = ttk.Frame(self.tr_frame, padding=(0, 10, 0, 0))
-        env_frame.pack(fill="x")
-        
-        ttk.Label(env_frame, text="対象環境:").pack(side="left")
-        
-        # 環境リストの作成 (表示用: "key: value")
-        self.env_values = [f"{k}: {v}" for k, v in self.env_options.items()]
-        self.env_combo = ttk.Combobox(env_frame, values=self.env_values, state="disabled", width=30)
-        self.env_combo.pack(side="left", padx=5)
+            # 'requires_environment' フラグがある場合、その直下に環境選択エリアを配置
+            if opt.get('requires_environment'):
+                env_inner_frame = ttk.Frame(item_frame, padding=(25, 2, 0, 5)) # インデント
+                env_inner_frame.pack(fill="x")
+                
+                ttk.Label(env_inner_frame, text="対象環境:").pack(side="left")
+                
+                # 環境リストをそのまま設定
+                self.env_combo = ttk.Combobox(
+                    env_inner_frame, 
+                    values=self.env_options, 
+                    state="disabled", 
+                    width=25
+                )
+                self.env_combo.pack(side="left", padx=5)
+                # デフォルト設定（あれば）
+                if self.env_options:
+                    # 'UAT2' があればそれを、なければ先頭を選択
+                    default_idx = 0
+                    if "UAT2" in self.env_options:
+                        default_idx = self.env_options.index("UAT2")
+                    self.env_combo.current(default_idx)
 
         # --- アクションボタン ---
         btn_frame = ttk.Frame(self.root, padding=10)
@@ -92,43 +111,39 @@ class SelectionApp:
     def _on_mode_change(self):
         """モード変更時のUI制御"""
         mode = self.selected_mode.get()
-        print(f"Mode changed to: {mode}") # Debug
+        print(f"Mode changed to: {mode}")
         
         if mode == 'tr':
             # TRモード: 詳細エリアのラジオボタンを有効化
             for rb in self.tr_radios:
                 rb.configure(state='normal')
-            
-            # TR詳細が未選択なら、最初のものをデフォルトで選択しておくと親切かもしれない
-            # if not self.selected_tr_type.get() and self.tr_radios:
-            #     self.selected_tr_type.set(self.tr_options[0]['key'])
-            
-            # 現在のTR詳細選択状態に合わせて環境プルダウンの状態を更新
-            self._on_tr_type_change()
+            self._on_tr_type_change() # 環境プルダウンの状態更新
 
         else:
-            # 勤怠モード(cl)など: 詳細エリアを無効化
+            # 勤怠モードなど: 詳細エリアを無効化
             for rb in self.tr_radios:
                 rb.configure(state='disabled')
-            self.env_combo.configure(state='disabled')
+            if self.env_combo:
+                self.env_combo.configure(state='disabled')
 
     def _on_tr_type_change(self):
         """TR種別変更時のUI制御"""
-        # 現在TRモードでなければ何もしない（無効化処理は _on_mode_change で実施済）
         if self.selected_mode.get() != 'tr':
             return
 
         current_tr_key = self.selected_tr_type.get()
-        print(f"TR type changed to: {current_tr_key}") # Debug
+        print(f"TR type changed to: {current_tr_key}")
         
         # 選択されたオプションの設定を取得
         selected_opt = next((opt for opt in self.tr_options if opt['key'] == current_tr_key), None)
         
+        # 環境選択が必要なオプションが選ばれているか
         if selected_opt and selected_opt.get('requires_environment'):
-            self.env_combo.configure(state='readonly')
+            if self.env_combo:
+                self.env_combo.configure(state='readonly') # 編集不可、選択のみ
         else:
-            self.env_combo.configure(state='disabled')
-            self.env_combo.set("") # 無効化時にクリア
+            if self.env_combo:
+                self.env_combo.configure(state='disabled')
 
     def _on_submit(self):
         """実行ボタン押下時の処理"""
@@ -152,18 +167,13 @@ class SelectionApp:
             # 環境が必要かチェック
             selected_opt = next((opt for opt in self.tr_options if opt['key'] == final_school_type), None)
             if selected_opt and selected_opt.get('requires_environment'):
-                env_val = self.env_combo.get()
-                if not env_val:
+                # 以前のような split 処理は不要。値をそのまま取得
+                if self.env_combo:
+                    final_env_name = self.env_combo.get()
+                
+                if not final_env_name:
                     messagebox.showwarning("警告", "対象環境を選択してください。")
                     return
-                # "k: v" 形式から v (環境名) を抽出する必要があるが、
-                # 既存ロジックは config.CONF['menus']['environment_list'][key] で取得していた。
-                # ここでは値をそのまま渡すか、キーを渡すか。
-                # form_handler.py は context['environment_name'] をそのまま使う。
-                # Comboboxの値は "t: trainingGCP" のような形式。
-                # ここから "trainingGCP" 部分を取り出すか、単純に選択値を渡すか。
-                # 既存ロジックに合わせて "trainingGCP" (値部分) を渡すのが適切そう。
-                final_env_name = env_val.split(": ", 1)[1] if ": " in env_val else env_val
 
         self.result = (final_school_type, final_env_name)
         self.is_submitted = True
@@ -172,8 +182,6 @@ class SelectionApp:
 def get_user_input_gui():
     """
     GUIを起動し、ユーザー選択結果を返します。
-    Returns:
-        tuple: (school_type, environment_name)
     """
     root = tk.Tk()
     app = SelectionApp(root)
@@ -182,5 +190,4 @@ def get_user_input_gui():
     if app.is_submitted:
         return app.result
     else:
-        # ウィンドウを閉じた場合などは終了とみなす
         return None, None

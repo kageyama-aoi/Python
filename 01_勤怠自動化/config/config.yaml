@@ -45,10 +45,10 @@ menus:
   
   # 環境選択肢 (UP依頼などで使用)
   environment_options:
-    t: "trainigGCP"
-    u: "UAT2"
-    st: "smbcpos_training"
-    su: "smbcpos_uat"
+    - "trainigGCP"
+    - "UAT2"
+    - "smbcpos_training"
+    - "smbcpos_uat"
 
 fields:
   tr_field_mappings:
