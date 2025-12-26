@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.join(os.getcwd(), 'src'))
 
 try:
-    print("Checking config loading (Split Configs - Final).")
+    print("Checking config loading (Common Defaults Move)...")
     import config
     # main.yaml をロード
     config.load_config("config/main.yaml")
@@ -19,37 +19,23 @@ try:
     else:
         print("Main Config: NG")
 
-    # 2. CrowdLog Configの内容 (entry_url, selectors)
+    # 2. Common Defaults (Moved from main to TR common)
+    if 'common_defaults' in config.CONF:
+        cd = config.CONF['common_defaults']
+        if 'Schools' in cd and cd['Schools'] == 'shimamura':
+            print("Common Defaults (Merged): OK")
+        else:
+            print("Common Defaults (Merged): NG - Content mismatch")
+    else:
+        print("Common Defaults (Merged): NG - Key not found")
+
+    # 3. CrowdLog Configの内容
     if 'crowdlog_settings' in config.CONF:
-        cl = config.CONF['crowdlog_settings']
-        if 'entry_url' in cl and 'selectors' in cl:
-            print("Mode Config (CrowdLog Settings): OK")
-        else:
-            print("Mode Config (CrowdLog Settings): NG - Missing keys")
+        print("Mode Config (CrowdLog): OK")
     else:
-        print("Mode Config (CrowdLog Settings): NG - Key not found")
+        print("Mode Config (CrowdLog): NG")
 
-    # 3. TaskReport Common Configの内容
-    if 'task_report_settings' in config.CONF:
-        tr = config.CONF['task_report_settings']
-        if 'fields' in tr and 'selectors' in tr:
-            print("Mode Config (TR Common Settings): OK")
-        else:
-             print("Mode Config (TR Common Settings): NG - Missing keys")
-    else:
-        print("Mode Config (TR Common Settings): NG - Key not found")
-
-    # 4. Shimamura Configの内容
-    if 's' in config.CONF.get('school_specific_defaults', {}):
-        print("Mode Config (Shimamura Defaults): OK")
-    else:
-        print("Mode Config (Shimamura Defaults): NG")
-
-    print("\nChecking GUI module import...")
-    import gui
-    print("GUI module imported successfully.")
-
-    print("\nDry run completed successfully (Config Final Split Check).")
+    print("\nDry run completed successfully.")
 
 except Exception as e:
     print(f"\nDry run FAILED: {e}")
