@@ -1,0 +1,37 @@
+# Task Report共通設定
+
+task_report_settings:
+  # エントリーURL (main.pyで使用予定)
+  entry_url: "https://taskreport.e-school.jp/bugfix.php"
+
+  # セレクタ定義
+  selectors:
+    # 既存ロジック用 (直接URL遷移するようになれば不要かもしれないが念のため)
+    new_bug_button_dom_attribute: "goindex"
+
+  # フィールド定義 (以前の tr_field_mappings)
+  fields:
+    Schools:
+      locator: "who_edit"
+      type: "select"
+    Project:
+      locator: "project"
+      type: "text"
+    Priority:
+      locator: "priority_edit"
+      type: "select"
+    Uploader:
+      locator: "uploader_edit"
+      type: "select"
+    Category:
+      locator: "where_edit"
+      type: "text"
+    Title:
+      locator: "what_edit"
+      type: "text"
+    Owner:
+      locator: "owned_edit"
+      type: "select"
+    Comments:
+      locator: "comments"
+      type: "text"

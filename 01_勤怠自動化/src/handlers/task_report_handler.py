@@ -7,29 +7,28 @@ class TaskReportHandler(BaseHandler):
     タスクレポート（TR）のフォーム入力処理を担当するハンドラ。
     """
 
+    def _get_settings(self):
+        """TaskReport用の設定を取得するヘルパー"""
+        return conf.CONF.get('task_report_settings', {})
+
     def execute(self):
         """
         設定に基づいて入力データを構築し、フォームへの入力を実行します。
         """
         school_type = self.context.get('schools_type')
         environment_name = self.context.get('environment_name', '')
+        tr_settings = self._get_settings()
 
         # 1. 入力データの構築
         merged_settings = conf.CONF['common_defaults'].copy()
         specific_settings = conf.CONF['school_specific_defaults'].get(school_type, {})
         merged_settings.update(specific_settings)
 
-        field_names = list(conf.CONF['fields']['tr_field_mappings'].keys())
+        # フィールド定義の取得 (CrowdLog用のStartDateなどはここには含まれないはず)
+        fields_def = tr_settings.get('fields', {})
         input_data = {}
 
-        # 除外するフィールド（CrowdLog用）
-        excluded_fields = ['StartDate', 'EndDate']
-
-        for field_name in field_names:
-            if field_name in excluded_fields:
-                continue
-
-            field_info = conf.CONF['fields']['tr_field_mappings'][field_name]
+        for field_name, field_info in fields_def.items():
             current_value = merged_settings.get(field_name, "")
             
             # 特殊ケース: 'tf' タイプの 'Comments' フィールド
@@ -37,7 +36,7 @@ class TaskReportHandler(BaseHandler):
                 input_data[field_name] = {
                     'locator': field_info['locator'],
                     'type': field_info['type'],
-                    'value': conf.CONF['templates']['tf']['comment_template_rendered']
+                    'value': conf.CONF.get('templates', {}).get('tf', {}).get('comment_template_rendered', '')
                 }
             else:
                 input_data[field_name] = {
