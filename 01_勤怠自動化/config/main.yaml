@@ -1,0 +1,101 @@
+app:
+  url: "https://app.crowdlog.jp/download/?rm=timesheet"
+  task_report_url: "https://taskreport.e-school.jp/bugfix.php"
+  download_dir: "data/downloads/"
+  # ログイン情報（.envファイルで管理されます）
+  login:
+    email: "YOUR_EMAIL_HERE"
+    password: "YOUR_PASSWORD_HERE"
+
+selectors:
+  new_bug_button_dom_attribute: "goindex"
+  download_button: "#idDownloadForm button"
+  # ログイン画面用
+  login_email: "email"
+  login_password: "passwd"
+  login_button: "#idLoginForm button[type='submit']"
+
+menus:
+  # メインモード定義
+  modes:
+    crowdlog:
+      label: "CrowdLog工数実績ダウンロード (勤怠)"
+      value: "cl"
+    task_report:
+      label: "タスクレポート作成 (TR)"
+      value: "tr"
+
+  # TRモード選択時の詳細オプション
+  tr_options:
+    - key: "h"
+      label: "標準"
+    - key: "y"
+      label: "Yamaha"
+    - key: "tf"
+      label: "Tframe"
+    - key: "s"
+      label: "Shimamura(本番サポート)"
+    - key: "t"
+      label: "Shimamura_SMBCPOS追加開発"
+    - key: "up"
+      label: "Shimamura_UAT_UP依頼"
+      requires_environment: true
+    - key: "sm"
+      label: "Shimamura_mysql対応"
+  
+  # 環境選択肢 (UP依頼などで使用)
+  environment_options:
+    - "trainigGCP"
+    - "UAT2"
+    - "smbcpos_training"
+    - "smbcpos_uat"
+
+fields:
+  tr_field_mappings:
+    # 既存のタスクレポート用
+    Schools:
+      locator: "who_edit"
+      type: "select"
+    Project:
+      locator: "project"
+      type: "text"
+    Priority:
+      locator: "priority_edit"
+      type: "select"
+    Uploader:
+      locator: "uploader_edit"
+      type: "select"
+    Category:
+      locator: "where_edit"
+      type: "text"
+    Title:
+      locator: "what_edit"
+      type: "text"
+    Owner:
+      locator: "owned_edit"
+      type: "select"
+    Comments:
+      locator: "comments"
+      type: "text"
+    # CrowdLog用
+    StartDate:
+      locator: "from"
+      type: "text"
+    EndDate:
+      locator: "to"
+      type: "text"
+
+# 共通のデフォルト値
+common_defaults:
+  Schools: "shimamura"
+  Priority: "Critical"
+  Uploader: "kageyama"
+  Owner: "kageyama"
+  Category: "-"
+  Project: ""
+  Title: ""
+  Comments: ""
+
+# 個別設定のマージ先（ここへ各ファイルからロードされる）
+school_specific_defaults: {}
+templates: {}
