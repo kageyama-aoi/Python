@@ -1,6 +1,5 @@
 app:
   url: "https://app.crowdlog.jp/download/?rm=timesheet"
-  task_report_url: "https://taskreport.e-school.jp/bugfix.php"
   download_dir: "data/downloads/"
   # ログイン情報（.envファイルで管理されます）
   login:
@@ -16,39 +15,30 @@ selectors:
   login_button: "#idLoginForm button[type='submit']"
 
 menus:
-  # メインモード定義
-  modes:
-    crowdlog:
-      label: "CrowdLog工数実績ダウンロード (勤怠)"
-      value: "cl"
-    task_report:
-      label: "タスクレポート作成 (TR)"
-      value: "tr"
+  menu_1_prompt: |
+    今回の対象は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    cl:CrowdLog工数実績ダウンロード
+    h:標準~
+    y:Yamaha
+    tf:Tframe
+    s:Shimamura(本番サポート)~
+    t:Shimamura_SMBCPOS追加開発
+    up:Shimamura_UAT_UP依頼
+    sm:Shimamura_mysql対応
+    ------------------------------------------------------
 
-  # TRモード選択時の詳細オプション
-  tr_options:
-    - key: "h"
-      label: "標準"
-    - key: "y"
-      label: "Yamaha"
-    - key: "tf"
-      label: "Tframe"
-    - key: "s"
-      label: "Shimamura(本番サポート)"
-    - key: "t"
-      label: "Shimamura_SMBCPOS追加開発"
-    - key: "up"
-      label: "Shimamura_UAT_UP依頼"
-      requires_environment: true
-    - key: "sm"
-      label: "Shimamura_mysql対応"
-  
-  # 環境選択肢 (UP依頼などで使用)
-  environment_options:
+  environment_list:
     t: "trainigGCP"
     u: "UAT2"
     st: "smbcpos_training"
     su: "smbcpos_uat"
+  
+  menu_2_prompt: |
+    UP依頼対象環境は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    {{ENVIRONMENT_OPTIONS_STRING}}
+    ------------------------------------------------------
 
 fields:
   tr_field_mappings:
