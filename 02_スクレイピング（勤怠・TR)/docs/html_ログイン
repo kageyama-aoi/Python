@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+<title>ログイン | クラウドログ</title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<meta name="description" content="プロジェクト管理・工数管理 クラウドログ" />
+<meta name="keywords" content="プロジェクト管理,工数管理,原価管理,クラウド,SaaS,ASP" />
+<meta http-equiv="Content-Language" content="ja" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<script type="text/javascript">
+if (typeof Object.assign !== 'function') {
+  // Must be writable: true, enumerable: false, configurable: true
+  Object.defineProperty(Object, "assign", {
+    value: function assign(target, varArgs) { // .length of function is 2
+      'use strict';
+      if (target === null || target === undefined) {
+        throw new TypeError('Cannot convert undefined or null to object');
+      }
+      var to = Object(target);
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+        if (nextSource !== null && nextSource !== undefined) {
+          for (var nextKey in nextSource) {
+            // Avoid bugs when hasOwnProperty is shadowed
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    },
+    writable: true,
+    configurable: true
+  });
+}
+</script>
+<script src="/libs/jquery/jquery.min.js?f799657"></script>
+<script src="/libs/bootstrap/js/bootstrap.min.js?f799657"></script>
+<script>
+  // To fix the conflict among bootstrap and jquery-ui,
+  // both of which uses same name for jquery fn,
+  // we extract the conflicted fn object here so that it can be used after loading jquery-ui
+  window.BsTooltip = $.fn.tooltip;
+</script>
+<script src="/libs/jquery-ui/jquery-ui.min.js?f799657"></script>
+<script src="/libs/jquery.validationEngine/js/jquery.validationEngine.js?f799657"></script>
+<script src="/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js?f799657"></script>
+<script src="/libs/jquery.validationEngine/js/languages/jquery.validationEngine-ja.js?f799657"></script>
+<script src="/libs/bootstrap-datepicker/locales/bootstrap-datepicker.ja.min.js?f799657"></script>
+<script src="/libs/jquery.blockUI.custom.js?f799657"></script>
+<script src="/js/common.js?f799657"></script>
+
+<!-- Datadog Script -->
+<script type="text/javascript" src="https://www.datadoghq-browser-agent.com/datadog-logs.js"></script>
+
+	<script type="text/javascript">
+
+    window.DD_LOGS && DD_LOGS.init({
+        clientToken         : 'pub97e73deac342427094a658fc29b05877',
+        site                : 'datadoghq.com',
+        forwardErrorsToLogs : true,
+        sampleRate          : 100
+    });
+
+    window.onerror = function(error_msg, url, linenumber, colnumber, error) {
+        datadogLog(error_msg, error.stack, 'AC-9000', 'error');
+    }
+
+    function datadogLog(error_msg, stack_msg, code, status){
+        var company_no      = '' > 0 ? '' : 'GUEST';
+        var employee_no     = '0' > 0 ? '0' : 'GUEST';
+        var company_plan    = '' ? '' : 'none';
+
+        DD_LOGS.logger.log(
+            error_msg,
+            {
+                stack_msg   : stack_msg,
+                c_no        : company_no,
+                e_no        : employee_no,
+                plan        : company_plan,
+                code        : code,
+                request_id  : '62cf206535bb9be8971a2418a598340e',
+                host        : 'vega-569ddd7b54-5722l',
+                service     : 'vega-front',
+            },
+            status
+        );
+    }
+
+</script>
+
+
+<link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/icons/css/material-design-iconic-font.min.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery-ui/jquery-ui.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery-ui/jquery-ui.theme.custom.css?f799657" />
+<link rel="stylesheet" href="/libs/jquery.validationEngine/css/validationEngine.jquery.css?f799657" />
+
+<link rel="stylesheet" href="/libs/icons/css/animate.min.css?f799657" />
+<link rel="stylesheet" href="/libs/icons/css/material-design-color-palette.min.css?f799657" />
+<link rel="stylesheet" href="/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css?f799657" />
+<link rel="stylesheet" href="/css/common.css?f799657" />
+<link rel="shortcut icon" href="/image/favicon.ico" />
+<link rel="apple-touch-icon" href="/image/service_logo_120x120x.png" />
+</head>
+<body>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="/libs/ie7/IE9.js"></script>
+<![endif]-->
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+<script src="/libs/html5shiv.js"></script>
+<script src="/libs/respond.js"></script>
+<![endif]-->
+
+
+<style type="text/css">
+body {
+  padding-top: 78px;
+	background-color:#fff;
+}
+.registration-wrapper {
+	padding-top: 48px;
+}
+.registration-link {
+	font-family: 'Meiryo';
+	font-weight: 400;
+	font-size: 16px;
+	line-height: 100%;
+	color: #2064D9;
+}
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('input[name="email"]').focus();
+
+	$('#idLoginForm button').submit(function() {
+		if (!$('#idLoginForm').validationEngine('validate')) {
+			return false;
+		}
+	});
+
+	$('#idLoginForm').validationEngine({
+	});
+});
+
+// create crypt object for OAuth state
+var cryptObj = window.crypto || window.msCrypto;
+function guid() {
+	var buf = new Uint16Array(8);
+	cryptObj.getRandomValues(buf);
+	function s4(num) {
+		var ret = num.toString(16);
+		while (ret.length < 4){
+			ret = '0' + ret;
+		}
+		return ret;
+	}
+	return s4(buf[0]) + s4(buf[1]) + '-' + s4(buf[2]) + '-' + s4(buf[3]) + '-' + s4(buf[4]) + '-' + s4(buf[5]) + s4(buf[6]) + s4(buf[7]);
+}
+
+function login_microsoft() {
+	oauth_state = guid();
+	$.blockUI();
+	$.ajax({
+		type: 'POST',
+		url: '/microsoft.cgi',
+		data: {json: true, oauth_state: oauth_state},
+		dataType: 'json',
+		cache: false
+	}).done(function(response){
+		window.location.href = response.redirectURL;
+	}).fail(function(){
+		alert('Error');
+	}).always(function(){
+		$.unblockUI();
+	});
+}
+
+</script>
+
+<div class="container">
+
+<div class="row">
+<div class="col-lg-offset-3 col-lg-6 col-md-offset-2 col-md-8 col-sm-offset-1 col-sm-10 col-xs-12">
+	<h1><img src="/image/service_logo.png" title="クラウドログ"></h1>
+	<div class="panel panel-default">
+		<div class="panel-body">
+
+			<form method="post" name="formInput" id="idLoginForm" action="/login.cgi">
+			<input type="hidden" name="rm" value="certify" />
+			<input type="hidden" name="url" value="/download/?rm=timesheet" />
+				<div class="form-group form-group-lg">
+					<div class="input-group has-feedback">
+						<span class="input-group-addon"><i class="zmdi zmdi-email zmdi-hc-fw zmdi-hc-2x"></i></span>
+						<input type="email" class="form-control input-lg validate[required,custom[email]]" name="email" value="" placeholder="メールアドレス">
+					</div>
+				</div>
+				<div class="form-group form-group-lg">
+					<div class="input-group has-feedback">
+						<span class="input-group-addon"><i class="zmdi zmdi-lock zmdi-hc-fw zmdi-hc-2x"></i></span>
+						<input type="password" class="form-control input-lg validate[required, minSize[4], maxSize[16]]" name="passwd" placeholder="パスワード" autocomplete="current-password">
+					</div>
+					<div class="text-right" style="margin-top:8px; margin-right:4px;">
+						<a href="/passwordreset/">パスワードをお忘れの方</a>
+					</div>
+				</div>
+				<div class="form-group form-group-lg">
+					<div class="checkbox">
+						<label class="input-lg"><input type="checkbox" name="auto" value="1" /> ログインしたままにする</label>
+					</div>
+				</div>
+				<div class="form-group form-group-lg">
+					<button type="submit" class="btn btn-primary btn-lg btn-block" autocomplete="off">ログイン</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<hr />
+	<a href="/login.cgi?rm=oauth_google" class="btn btn-default btn-lg btn-block"><img class="pull-left" src="/image/btn_google_logo.png" width="24" />Googleアカウントでログイン</a>
+	<a href='#' class="btn btn-default btn-lg btn-block" onclick="login_microsoft();return false;"><img class="pull-left" src="/image/btn_microsoft_logo.png" height="24" />Microsoftアカウントでログイン</a>
+	<div class="text-center registration-wrapper">
+		<a href="https://www.crowdlog.jp/form/trial" class="registration-link">無料トライアルを試す</a>
+	</div>
+</div>
+</div>
+</div>
+
+<div class="text-center" style="margin-top:50px;">copyright &copy; CrowdWorks all rights reserved.</div>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-43HDTBSXNP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-43HDTBSXNP');
+</script>
+
+</body>
+</html>
+
+

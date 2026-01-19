@@ -1,0 +1,25 @@
+crowdlog_settings:
+  # エントリーURL
+  entry_url: "https://app.crowdlog.jp/download/?rm=timesheet"
+
+  # セレクタ定義
+  selectors:
+    login_email: "email"
+    login_password: "passwd"
+    login_button: "#idLoginForm button[type='submit']"
+    download_button: "#idDownloadForm button"
+  
+  # フィールド定義
+  fields:
+    StartDate:
+      locator: "from"
+      type: "text"
+    EndDate:
+      locator: "to"
+      type: "text"
+
+# デフォルト値の上書き設定
+school_specific_defaults:
+  cl:
+    StartDate: "{{DYNAMIC_START_DATE}}"
+    EndDate: "{{DYNAMIC_END_DATE}}"
