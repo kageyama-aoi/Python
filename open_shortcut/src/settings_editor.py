@@ -101,12 +101,77 @@ class SettingsEditor(tk.Toplevel):
             down_button = ttk.Button(button_frame, text="下へ", command=lambda p=page_name: self.move_item(p, "down"))
             down_button.pack(side="left", padx=2)
 
+            # 非表示/表示ボタンを追加
+            hide_button = ttk.Button(button_frame, text="非表示にする", command=lambda p=page_name: self.hide_item(p))
+            hide_button.pack(side="left", padx=2)
+
+            show_button = ttk.Button(button_frame, text="表示する", command=lambda p=page_name: self.show_item(p))
+            show_button.pack(side="left", padx=2)
+
             self.pages_widgets[page_name] = {"listbox": listbox}
+            self._populate_page_listbox(page_name) # Populate listbox initially
 
         # --- 右ペイン (フォーム) ---
         right_pane = ttk.LabelFrame(paned_window, text="ボタン設定")
         paned_window.add(right_pane, weight=1)
         self.create_button_form(right_pane)
+
+    def _populate_page_listbox(self, page_name):
+        """
+        指定されたページのリストボックスをクリアし、configデータに基づいて再構築する。
+        activeプロパティに基づいて表示を調整する。
+        """
+        listbox = self.pages_widgets[page_name]["listbox"]
+        listbox.delete(0, tk.END)
+        entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
+        for i, entry in enumerate(entries):
+            display_name = entry.get(C.ConfigKey.NAME, "(無名)")
+            if not entry.get(C.ConfigKey.ACTIVE, True): # default True if not present
+                display_name = f"（非表示）{display_name}"
+            listbox.insert(tk.END, display_name)
+            # 後でactive状態を示すためにタグ付けすることも可能だが、今回はテキストで示す
+            # if not entry.get(C.ConfigKey.ACTIVE, True):
+            #     listbox.itemconfig(i, fg="grey")
+
+    def hide_item(self, page_name):
+        listbox = self.pages_widgets[page_name]["listbox"]
+        selected_indices = listbox.curselection()
+
+        if not selected_indices:
+            messagebox.showwarning("警告", "非表示にする項目を選択してください。")
+            return
+
+        idx = selected_indices[0]
+        entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
+        
+        if entries[idx].get(C.ConfigKey.ACTIVE, True) is False: # Already hidden
+            messagebox.showinfo("情報", "選択された項目は既に非表示です。")
+            return
+
+        entries[idx][C.ConfigKey.ACTIVE] = False
+        self._populate_page_listbox(page_name)
+        self.clear_button_form()
+        messagebox.showinfo("成功", f"項目 '{entries[idx].get(C.ConfigKey.NAME, '(無名)')}' を非表示にしました。")
+
+    def show_item(self, page_name):
+        listbox = self.pages_widgets[page_name]["listbox"]
+        selected_indices = listbox.curselection()
+
+        if not selected_indices:
+            messagebox.showwarning("警告", "表示する項目を選択してください。")
+            return
+
+        idx = selected_indices[0]
+        entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
+
+        if entries[idx].get(C.ConfigKey.ACTIVE, True) is True: # Already shown
+            messagebox.showinfo("情報", "選択された項目は既に表示されています。")
+            return
+            
+        entries[idx][C.ConfigKey.ACTIVE] = True
+        self._populate_page_listbox(page_name)
+        self.clear_button_form()
+        messagebox.showinfo("成功", f"項目 '{entries[idx].get(C.ConfigKey.NAME, '(無名)')}' を表示しました。")
 
     def add_button(self, page_name):
         # 選択を解除して追加モードにする
@@ -118,6 +183,7 @@ class SettingsEditor(tk.Toplevel):
         listbox = event.widget
         selected_indices = listbox.curselection()
         if not selected_indices:
+            self.clear_button_form() # 選択解除時にフォームをクリア
             return
 
         idx = selected_indices[0]
@@ -178,9 +244,7 @@ class SettingsEditor(tk.Toplevel):
         entries[idx], entries[new_idx] = entries[new_idx], entries[idx]
 
         # リストボックスの表示を更新
-        listbox.delete(0, tk.END)
-        for entry in entries:
-            listbox.insert(tk.END, entry.get(C.ConfigKey.NAME, "(無名)"))
+        self._populate_page_listbox(page_name)
         
         # 選択状態を復元
         listbox.selection_set(new_idx)
@@ -326,7 +390,8 @@ class SettingsEditor(tk.Toplevel):
             self.update_parameter_listbox()
 
     def open_parameter_editor_window(self, index=None, param_data=None):
-        editor_window = ParameterEditor(self, index, param_data)
+        # NOTE: ParameterEditor class is not defined in this file. Assuming it's defined elsewhere or a placeholder.
+        editor_window = ParameterEditor(self, index, param_data) 
         self.master.wait_window(editor_window) # Wait for the editor window to close
         if editor_window.result_param_data: # If data was saved
             if index is not None: # Editing existing parameter
@@ -345,6 +410,10 @@ class SettingsEditor(tk.Toplevel):
             C.ConfigKey.NAME: self.form_entries[C.ConfigKey.NAME].get(),
             C.ConfigKey.ACTION: self.form_entries[C.ConfigKey.ACTION].get(),
         }
+        # 新規追加時、activeをTrueに設定
+        if not listbox.curselection():
+            new_entry[C.ConfigKey.ACTIVE] = True
+
         # アクションに応じてキー名を変える
         action = new_entry[C.ConfigKey.ACTION]
         if action == C.Action.OPEN_DIRECTORY:
@@ -364,15 +433,15 @@ class SettingsEditor(tk.Toplevel):
         selected_indices = listbox.curselection()
         if selected_indices: # 編集モード
             idx = selected_indices[0]
+            # activeの状態は変更しない
+            new_entry[C.ConfigKey.ACTIVE] = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx].get(C.ConfigKey.ACTIVE, True)
             self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx] = new_entry
-            listbox.delete(idx)
-            listbox.insert(idx, new_entry[C.ConfigKey.NAME])
-            listbox.selection_set(idx) # 選択状態を維持
+            
         else: # 追加モード
             self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES].append(new_entry)
-            listbox.insert(tk.END, new_entry[C.ConfigKey.NAME])
-
-        self.clear_button_form()
+            
+        self._populate_page_listbox(page_name) # リストボックスを更新
+        self.clear_button_form() # フォームをクリア
 
     def save_config(self):
         # settingsの保存

@@ -270,7 +270,8 @@
                     "url": "https://www.google.com",
                     "icon": null,
                     "background": "#f1f8e9",
-                    "foreground": "#33691e"
+                    "foreground": "#33691e",
+                    "active": false
                 },
                 {
                     "name": "LogZo",
