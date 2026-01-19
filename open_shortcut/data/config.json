@@ -49,7 +49,7 @@
                 {
                     "name": "テストメニューへ",
                     "action": "show_page",
-                    "target": "test_tframe",
+                    "target": "tframe",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -102,17 +102,27 @@
                     "name": "TaskReport",
                     "action": "open_url",
                     "url": "https://taskreport.e-school.jp/bugfix.php"
+                },
+                {
+                    "name": "HTMLナレッジ集",
+                    "action": "open_url",
+                    "url": "https://github.com/kageyama-aoi/knowledge-base/tree/main/pages"
+                },
+                {
+                    "name": "経費精算書",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\00_kageyama共通資料\\経費精算書"
                 }
             ]
         },
-        "test_tframe": {
+        "tframe": {
             "title": "テスト[Tframe]",
             "window_title": "テスト[Tframe]",
             "entries": [
                 {
                     "name": "テスト[島村]へ",
                     "action": "show_page",
-                    "target": "test_shimamura",
+                    "target": "shimamura",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -167,7 +177,7 @@
                 }
             ]
         },
-        "test_shimamura": {
+        "shimamura": {
             "title": "テスト[島村]",
             "window_title": "テスト[島村]",
             "entries": [
@@ -246,7 +256,7 @@
                 {
                     "name": "メインメニューへ",
                     "action": "show_page",
-                    "target": "memo2",
+                    "target": "mitubishi",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -270,7 +280,7 @@
                 }
             ]
         },
-        "memo2": {
+        "mitubishi": {
             "title": "三菱重工",
             "window_title": "三菱重工",
             "entries": [
@@ -291,23 +301,19 @@
                     "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
                 },
                 {
-                    "name": "2Google検索",
+                    "name": "システム構成図",
                     "action": "open_url",
-                    "url": "https://www.google.com",
-                    "icon": null,
-                    "background": "#f1f8e9",
-                    "foreground": "#33691e"
+                    "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
                 },
                 {
-                    "name": "LogZo",
+                    "name": "自分用作業フォルダ",
                     "action": "open_directory",
-                    "path": "C:\\LogZoV3_LogData",
-                    "icon": "2025-07-02_17h53_40.png"
+                    "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工"
                 },
                 {
-                    "name": "自分用メモ",
+                    "name": "Box",
                     "action": "open_url",
-                    "url": "https://docs.google.com/spreadsheets/d/1qowxLjmxh2LF6OB7HtkYZuMDW7tGrTCBu_1zSfRWqvI/edit?gid=0#gid=0"
+                    "url": "https://ent.box.com/login/mfa?redirectUrl=%2Fs%2F6nysh0ago76wblibdnnu8wmc8irhyboc"
                 }
             ]
         }
