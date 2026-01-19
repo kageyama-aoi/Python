@@ -96,6 +96,10 @@ class DirectoryOpenerApp:
         default_icon_name = settings.get(C.ConfigKey.DEFAULT_BUTTON_ICON)
 
         for entry in page_data.get(C.ConfigKey.ENTRIES, []):
+            # Check if the entry is active. If not specified, default to True.
+            if not entry.get(C.ConfigKey.ACTIVE, True):
+                continue # Skip inactive entries
+            
             if entry.get(C.ConfigKey.TYPE) == C.EntryType.SEPARATOR:
                 separator = ttk.Separator(parent_frame, orient='horizontal')
                 separator.pack(fill='x', pady=10)

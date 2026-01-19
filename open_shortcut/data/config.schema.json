@@ -37,7 +37,7 @@
                         "window_title": {"type": "string"},
                         "entries": {
                             "type": "array",
-                            "items": { "type": "object" }
+                            "items": { "$ref": "#/$defs/entry" }
                         }
                     },
                     "required": ["title", "entries"]
@@ -45,5 +45,110 @@
             }
         }
     },
-    "required": ["settings", "styles", "pages"]
+    "required": ["settings", "styles", "pages"],
+
+    "$defs": {
+        "entry_common_properties": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether the entry is active and should be displayed/functional."
+                },
+                "name": {"type": "string", "description": "Display name of the button."},
+                "icon": {"type": ["string", "null"], "description": "Filename of the icon to display."}, 
+                "background": {"type": "string", "description": "Background color of the button (e.g., #RRGGBB)."},
+                "foreground": {"type": "string", "description": "Foreground color of the button (e.g., #RRGGBB)."}
+            },
+            "required": ["name"]
+        },
+        "open_directory_entry": {
+            "allOf": [
+                { "$ref": "#/$defs/entry_common_properties" },
+                {
+                    "properties": {
+                        "action": {"const": "open_directory"},
+                        "path": {"type": "string", "description": "Path to directory/file."}
+                    },
+                    "required": ["action", "path"]
+                }
+            ]
+        },
+        "open_url_entry": {
+            "allOf": [
+                { "$ref": "#/$defs/entry_common_properties" },
+                {
+                    "properties": {
+                        "action": {"const": "open_url"},
+                        "url": {"type": "string", "format": "uri", "description": "URL to open."}
+                    },
+                    "required": ["action", "url"]
+                }
+            ]
+        },
+        "show_page_entry": {
+            "allOf": [
+                { "$ref": "#/$defs/entry_common_properties" },
+                {
+                    "properties": {
+                        "action": {"const": "show_page"},
+                        "target": {"type": "string", "description": "Target page name for show_page action."}
+                    },
+                    "required": ["action", "target"]
+                }
+            ]
+        },
+        "parameterized_url_entry": {
+            "allOf": [
+                { "$ref": "#/$defs/entry_common_properties" },
+                {
+                    "properties": {
+                        "action": {"const": "open_parameterized_url"},
+                        "base_url": {"type": "string", "format": "uri-template", "description": "Base URL with placeholders (e.g., https://example.com/{param})."},
+                        "parameters": {
+                            "type": "array",
+                            "items": { "$ref": "#/$defs/parameter_definition" }
+                        }
+                    },
+                    "required": ["action", "base_url", "parameters"]
+                }
+            ]
+        },
+        "separator_entry": {
+            "type": "object",
+            "properties": {
+                "type": {"const": "separator"},
+                "active": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether the separator is active and should be displayed."
+                }
+            },
+            "required": ["type"]
+        },
+        "parameter_definition": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "label": {"type": "string"},
+                "type": {"type": "string", "enum": ["text", "pulldown"]},
+                "default_value": {"type": "string"},
+                "options": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            },
+            "required": ["name", "type"]
+        },
+        "entry": {
+            "oneOf": [
+                { "$ref": "#/$defs/open_directory_entry" },
+                { "$ref": "#/$defs/open_url_entry" },
+                { "$ref": "#/$defs/show_page_entry" },
+                { "$ref": "#/$defs/parameterized_url_entry" },
+                { "$ref": "#/$defs/separator_entry" }
+            ]
+        }
+    }
 }

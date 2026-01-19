@@ -35,6 +35,7 @@ class ConfigKey(str, Enum):
     FOREGROUND = "foreground"
     ENTRIES = "entries"
     TITLE = "title"
+    ACTIVE = "active"
 
     # Parameter definition
     LABEL = "label"
