@@ -1,0 +1,149 @@
+app:
+  url: "https://app.crowdlog.jp/download/?rm=timesheet"
+  download_dir: "data/downloads/"
+  # ログイン情報（.envファイルで管理されます）
+  login:
+    email: "YOUR_EMAIL_HERE"
+    password: "YOUR_PASSWORD_HERE"
+
+selectors:
+  new_bug_button_dom_attribute: "goindex"
+  download_button: "#idDownloadForm button"
+  # ログイン画面用
+  login_email: "email"
+  login_password: "passwd"
+  login_button: "#idLoginForm button[type='submit']"
+
+menus:
+  menu_1_prompt: |
+    今回の対象は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    cl:CrowdLog工数実績ダウンロード
+    h:標準~
+    y:Yamaha
+    tf:Tframe
+    s:Shimamura(本番サポート)~
+    t:Shimamura_SMBCPOS追加開発
+    up:Shimamura_UAT_UP依頼
+    sm:Shimamura_mysql対応
+    ------------------------------------------------------
+
+  environment_list:
+    t: "trainigGCP"
+    u: "UAT2"
+    st: "smbcpos_training"
+    su: "smbcpos_uat"
+  
+  menu_2_prompt: |
+    UP依頼対象環境は？次の選択肢の中から入力してください
+    ------------------------------------------------------
+    {{ENVIRONMENT_OPTIONS_STRING}}
+    ------------------------------------------------------
+
+fields:
+  tr_field_mappings:
+    # 既存のタスクレポート用
+    Schools:
+      locator: "who_edit"
+      type: "select"
+    Project:
+      locator: "project"
+      type: "text"
+    Priority:
+      locator: "priority_edit"
+      type: "select"
+    Uploader:
+      locator: "uploader_edit"
+      type: "select"
+    Category:
+      locator: "where_edit"
+      type: "text"
+    Title:
+      locator: "what_edit"
+      type: "text"
+    Owner:
+      locator: "owned_edit"
+      type: "select"
+    Comments:
+      locator: "comments"
+      type: "text"
+    # CrowdLog用
+    StartDate:
+      locator: "from"
+      type: "text"
+    EndDate:
+      locator: "to"
+      type: "text"
+
+# テンプレート定義
+templates:
+  tf:
+    drive_url: "https://drive.google.com/drive/folders/1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti"
+    design_doc_folder_path: "002.Customer(Tframe)/001.JP_Document/002.Culture/01.詳細設計書/☆★43.謝礼合計(shareiTotal)"
+    spec_doc_filename: "43-50.講師謝礼明細（個人）_【CultureT】_20250519.xlsx"
+    comment_template: |
+      保存URL:
+      {{TF_DRIVE_URL}}
+      
+      日本語仕様書フォルダ：
+      {{TF_DESIGN_DOC_FOLDER_PATH}}
+      
+      仕様書：
+      {{TF_SPEC_DOC_FILENAME}}
+
+# 共通のデフォルト値
+common_defaults:
+  Schools: "shimamura"
+  Priority: "Critical"
+  Uploader: "kageyama"
+  Owner: "kageyama"
+  Category: "-"
+  Project: ""
+  Title: ""
+  Comments: ""
+
+# 個別の設定（差分のみ記述）
+school_specific_defaults:
+  cl:
+    StartDate: "{{DYNAMIC_START_DATE}}"
+    EndDate: "{{DYNAMIC_END_DATE}}"
+  s: 
+    Project: "SMMs001PH"
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "sc"
+  y:
+    Schools: "yamaha"
+    Project: "YMHs001PH"
+    Title: "(Redminexxx)-----(GXX)"
+    Comments: "yc"
+  tf:
+    Schools: "tframe"
+    Project: "TCNz004PH"
+    Priority: "Serious"
+    Category: "種別 機能番号"
+    Title: "【Culture】機能名"
+    # Comments は特別な処理が入るため、プレースホルダー的に空文字、またはテンプレートを使用
+    # ここでは便宜上、記述しない（デフォルトの空文字が使われる）か、明示的にテンプレート利用を示す値を設定
+    Comments: "{{TF_COMMENT_TEMPLATE}}" 
+  t:
+    Project: "SMMN003PH"
+    Title: "(UATxxx)-----(SMBCPOS21s)"
+    Comments: "tc"
+  h:
+    Project: "SMMs001PH" # sと同じだが明示的に記述
+    Title: "(UATxxx)-----(shimaXXs)"
+    Comments: "hc"
+  up:
+    Category: "[KANKYOUMEI]環境_更新依頼"
+    Title: "[KANKYOUMEI]環境_更新依頼"
+    Comments: |
+        下記のTRに紐づくschoolmngの資材を[KANKYOUMEI]環境へUPをお願いします。(TOTAL8)
+        XXXXX
+        XXXXX
+        XXXXX
+        
+        今回事前事後対応がありま、、、
+  sm:
+    Project: "TCNz007PH"
+    Title: "(MySQLVerUP対応)-----"
+    Comments: "sc"

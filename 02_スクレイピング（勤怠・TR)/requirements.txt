@@ -1,0 +1,4 @@
+selenium
+PyYAML
+python-dotenv
+ruamel.yaml

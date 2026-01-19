@@ -1,0 +1,182 @@
+[2025-07-23 09:24:33] クリック: INPUT [(テキストなし)]｜ID:loginmodel-username｜Class:form-control｜XPath:id(\"loginmodel-username\")"
+[2025-07-23 09:24:40] クリック: INPUT [(テキストなし)]｜ID:loginmodel-password｜Class:form-control｜XPath:id(\"loginmodel-password\")"
+[2025-07-23 09:24:45] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]"
+[2025-07-23 09:25:08] クリック: DIV [My Home\nお知らせ\n«\n»\nタイトル\n\t\n掲載開始日\n\t\n掲載終了日\n«\n»\n受講生対応履歴（未対応）\n«\n»\n日付\n\t\nタイトル\n\t\n対象者\n\t\nコメント\n«\n»]｜ID:rootWidget｜Class:tf-content｜XPath:id(\"rootWidget\")"
+[2025-07-23 09:25:09] クリック: SPAN [(テキストなし)]｜ID:｜Class:showopacity glyphicon glyphicon-book｜XPath:id(\"tf_wrapper_div\")/DIV[1]/DIV[1]/DIV[1]/DIV[3]/A[1]/SPAN[1]"
+[2025-07-23 09:25:11] クリック: DIV [結合_Apple]｜ID:｜Class:tf-tracker-link pull-left glyphicon glyphicon-book｜XPath:id(\"tf_wrapper_div\")/DIV[1]/DIV[2]/DIV[3]/DIV[2]"
+[2025-07-23 09:25:12] クリック: A [結合_Apple]｜ID:｜Class:｜XPath:id(\"tf_wrapper_div\")/DIV[1]/DIV[2]/DIV[3]/DIV[2]/A[1]"
+[2025-07-23 09:25:17] クリック: A [スケジュール]｜ID:schedule_a｜Class:｜XPath:id(\"schedule_a\")"
+[2025-07-23 09:25:30] クリック: BUTTON [スケジュールの追加]｜ID:scheduleSubpanel[addSchedule]｜Class:tf-data btn btn-primary tf-button｜XPath:id(\"scheduleSubpanel[addSchedule]\")"
+[2025-07-23 09:25:37] クリック: SPAN [(テキストなし)]｜ID:｜Class:fa fa-calendar button-icon｜XPath:id(\"scheduleStartDate_date\")/SPAN[1]/SPAN[1]"
+[2025-07-23 09:25:40] クリック: TD [1]｜ID:｜Class:day｜XPath:id(\"scheduleStartDate_date\")/DIV[1]/UL[1]/LI[1]/DIV[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[1]/TD[3]"
+[2025-07-23 09:25:42] クリック: SPAN [(テキストなし)]｜ID:｜Class:fa fa-calendar button-icon｜XPath:id(\"scheduleEndDate_date\")/SPAN[1]/SPAN[1]"
+[2025-07-23 09:25:43] クリック: TD [31]｜ID:｜Class:day｜XPath:id(\"scheduleEndDate_date\")/DIV[1]/UL[1]/LI[1]/DIV[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[5]/TD[5]"
+[2025-07-23 09:25:46] クリック: SELECT [1]｜ID:｜Class:tf-data form-control input-control tf-select｜XPath:id(\"wrapper_scheduleSettingDay\")/DIV[1]/SELECT[1]"
+[2025-07-23 09:25:47] クリック: SELECT [2]｜ID:｜Class:tf-data form-control input-control tf-select｜XPath:id(\"wrapper_scheduleSettingDay\")/DIV[1]/SELECT[1]"
+[2025-07-23 09:25:48] クリック: DIV [受講生]｜ID:｜Class:tf-group-title col-sm-12｜XPath:id(\"studentListGroup\")/DIV[1]"
+[2025-07-23 09:26:12] クリック: SELECT [設定なし\n木曜日夕方]｜ID:scheduleTemplateDropdown｜Class:tf-data form-control input-control tf-select｜XPath:id(\"scheduleTemplateDropdown\")"
+[2025-07-23 09:26:13] クリック: SELECT [3e8461f9-063e-8682-aa5d-6879f45a59a7]｜ID:scheduleTemplateDropdown｜Class:tf-data form-control input-control tf-select｜XPath:id(\"scheduleTemplateDropdown\")"
+[2025-07-23 09:26:14] クリック: BUTTON [テンプレート適用]｜ID:applyScheduleTemplate｜Class:tf-data btn btn-primary tf-button｜XPath:id(\"applyScheduleTemplate\")"
+[2025-07-23 09:26:15] クリック: SELECT [4]｜ID:｜Class:tf-data form-control input-control tf-select｜XPath:id(\"wrapper_scheduleSettingDay\")/DIV[1]/SELECT[1]"
+[2025-07-23 09:26:16] クリック: SELECT [1]｜ID:｜Class:tf-data form-control input-control tf-select｜XPath:id(\"wrapper_scheduleSettingDay\")/DIV[1]/SELECT[1]"
+[2025-07-23 09:26:17] クリック: INPUT [16:00]｜ID:｜Class:tf-data form-control input-control scheduleStartTimeText tf-dateTime newlyAddedClockPicker｜XPath:id(\"scheduleSettingTimeFrom_date\")/INPUT[1]"
+[2025-07-23 09:26:18] クリック: INPUT [16:00]｜ID:｜Class:tf-data form-control input-control scheduleStartTimeText tf-dateTime newlyAddedClockPicker｜XPath:id(\"scheduleSettingTimeFrom_date\")/INPUT[1]"
+[2025-07-23 09:26:21] クリック: DIV [受講生]｜ID:｜Class:tf-group-title col-sm-12｜XPath:id(\"studentListGroup\")/DIV[1]"
+[2025-07-23 09:26:27] クリック: INPUT [2025-07-01]｜ID:scheduleStartDate｜Class:tf-data form-control input-control tf-date｜XPath:id(\"scheduleStartDate\")"
+[2025-07-23 09:26:28] クリック: INPUT [2025-07-01]｜ID:scheduleStartDate｜Class:tf-data form-control input-control tf-date｜XPath:id(\"scheduleStartDate\")"
+[2025-07-23 09:26:31] クリック: INPUT [2025-07-31]｜ID:scheduleEndDate｜Class:tf-data form-control input-control tf-date｜XPath:id(\"scheduleEndDate\")"
+[2025-07-23 09:26:32] クリック: INPUT [2025-07-31]｜ID:scheduleEndDate｜Class:tf-data form-control input-control tf-date｜XPath:id(\"scheduleEndDate\")"
+[2025-07-23 09:26:39] クリック: INPUT [2025127-31]｜ID:scheduleEndDate｜Class:tf-data form-control input-control tf-date｜XPath:id(\"scheduleEndDate\")"
+[2025-07-23 09:26:47] クリック: DIV [追加スケジュール]｜ID:｜Class:tf-group-title col-sm-12｜XPath:id(\"scheduleDateTimeDetailsGroup\")/DIV[1]"
+[2025-07-23 09:27:57] クリック: BUTTON [キャンセル]｜ID:ewCancelButton｜Class:tf-data btn btn-warning tf-ewCancelButton｜XPath:id(\"ewCancelButton\")"
+[2025-07-23 09:27:59] クリック: A [受講生]｜ID:student_a｜Class:｜XPath:id(\"student_a\")"
+[2025-07-23 09:28:03] クリック: BUTTON [受講生選択]｜ID:studentSubpanel[addRecordOpenPopupBtn]｜Class:tf-data btn btn-primary tf-addRecordOpenPopupButton｜XPath:id(\"studentSubpanel[addRecordOpenPopupBtn]\")"
+[2025-07-23 09:28:06] クリック: SELECT [2025-07-28 11:00:00]｜ID:studentSubpanel[studentAdderPopup][startDateTime]｜Class:tf-data form-control input-control tf-select｜XPath:id(\"studentSubpanel[studentAdderPopup][startDateTime]\")"
+[2025-07-23 09:28:08] クリック: SELECT [2025-05-05 11:00:00]｜ID:studentSubpanel[studentAdderPopup][startDateTime]｜Class:tf-data form-control input-control tf-select｜XPath:id(\"studentSubpanel[studentAdderPopup][startDateTime]\")"
+[2025-07-23 09:28:09] クリック: LABEL [開始日時:]｜ID:｜Class:tf-label｜XPath:id(\"wrapper_studentSubpanel[studentAdderPopup][startDateTime]\")/DIV[1]/LABEL[1]"
+[2025-07-23 09:28:11] クリック: DIV [2025-05-05 (月) 11:00 - 12:00\n2025-05-12 (月) 11:00 - 12:00\n2025-05-19 (月) 11:00 - 12:00\n2025-05-26 (月) 11:00 - 12:00\n2025-06-02 (月) 11:00 - 12:00\n2025-06-09 (月) 11:00 - 12:00\n2025-06-16 (月) 11:00 - 12:00\n2025-06-23 (月) 11:00 - 12:00\n2025-06-30 (月) 11:00 - 12:00\n2025-07-07 (月) 11:00 - 12:00\n2025-07-14 (月) 11:00 - 12:00\n2025-07-21 (月) 11:00 - 12:00\n2025-07-28 (月) 11:00 - 12:00\n2025-08-04 (月) 11:00 - 12:00\n2025-08-11 (月) 11:00 - 12:00\n2025-08-18 (月) 11:00 - 12:00\n2025-08-25 (月) 11:00 - 12:00\n2025-09-01 (月) 11:00 - 12:00\n2025-09-08 (月) 11:00 - 12:00\n2025-09-15 (月) 11:00 - 12:00\n2025-09-22 (月) 11:00 - 12:00\n2025-09-29 (月) 11:00 - 12:00\n2025-10-06 (月) 11:00 - 12:00\n2025-10-13 (月) 11:00 - 12:00\n2025-10-20 (月) 11:00 - 12:00\n2025-10-27 (月) 11:00 - 12:00\n2025-11-03 (月) 11:00 - 12:00\n2025-11-10 (月) 11:00 - 12:00\n2025-11-17 (月) 11:00 - 12:00\n2025-11-24 (月) 11:00 - 12:00\n2025-12-01 (月) 11:00 - 12:00\n2025-12-08 (月) 11:00 - 12:00\n2025-12-15 (月) 11:00 - 12:00\n2025-12-22 (月) 11:00 - 12:00\n2025-12-29 (月) 11:00 - 12:00]｜ID:｜Class:tf-data-div col-sm-7｜XPath:id(\"wrapper_studentSubpanel[studentAdderPopup][endDateTime]\")/DIV[2]"
+[2025-07-23 09:28:11] クリック: SELECT [2025-12-29 12:00:00]｜ID:studentSubpanel[studentAdderPopup][endDateTime]｜Class:tf-data form-control input-control tf-select｜XPath:id(\"studentSubpanel[studentAdderPopup][endDateTime]\")"
+[2025-07-23 09:28:12] クリック: SELECT [2025-12-22 12:00:00]｜ID:studentSubpanel[studentAdderPopup][endDateTime]｜Class:tf-data form-control input-control tf-select｜XPath:id(\"studentSubpanel[studentAdderPopup][endDateTime]\")"
+[2025-07-23 09:28:15] クリック: LABEL [(テキストなし)]｜ID:｜Class:｜XPath:id(\"swDataList[rowSelector_td][627a3bb5-8019-c3b9-75cc-6867834f544a]\")/SPAN[1]/LABEL[1]"
+[2025-07-23 09:28:15] クリック: INPUT [1]｜ID:studentSubpanel[studentAdderPopup][swDataList][rowSelector][627a3bb5-8019-c3b9-75cc-6867834f544a]｜Class:tf-data｜XPath:id(\"studentSubpanel[studentAdderPopup][swDataList][rowSelector][627a3bb5-8019-c3b9-75cc-6867834f544a]\")"
+[2025-07-23 09:28:15] クリック: LABEL [(テキストなし)]｜ID:｜Class:｜XPath:id(\"swDataList[rowSelector_td][6288731f-8bce-082d-3faa-68678395c8b7]\")/SPAN[1]/LABEL[1]"
+[2025-07-23 09:28:15] クリック: INPUT [1]｜ID:studentSubpanel[studentAdderPopup][swDataList][rowSelector][6288731f-8bce-082d-3faa-68678395c8b7]｜Class:tf-data｜XPath:id(\"studentSubpanel[studentAdderPopup][swDataList][rowSelector][6288731f-8bce-082d-3faa-68678395c8b7]\")"
+[2025-07-23 09:28:17] クリック: LABEL [(テキストなし)]｜ID:｜Class:｜XPath:id(\"swDataList[rowSelector_td][a1580db4-7889-f677-2d64-6867836d3a9f]\")/SPAN[1]/LABEL[1]"
+[2025-07-23 09:28:17] クリック: INPUT [1]｜ID:studentSubpanel[studentAdderPopup][swDataList][rowSelector][a1580db4-7889-f677-2d64-6867836d3a9f]｜Class:tf-data｜XPath:id(\"studentSubpanel[studentAdderPopup][swDataList][rowSelector][a1580db4-7889-f677-2d64-6867836d3a9f]\")"
+[2025-07-23 09:28:21] クリック: BUTTON [キャンセル]｜ID:studentSubpanel[studentAdderPopup][cancelAddRecords]｜Class:tf-data btn btn-warning tf-button｜XPath:id(\"studentSubpanel[studentAdderPopup][cancelAddRecords]\")"
+[2026-01-08 11:51:15] クリック: INPUT [(テキストなし)]｜ID:loginmodel-username｜Class:form-control｜XPath:id(\"loginmodel-username\")"
+[2026-01-08 11:51:22] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]"
+[2026-01-08 11:55:22] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 11:55:24] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 11:55:24] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 11:55:25] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 11:55:25] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 11:55:26] クリック: A [25.3.7.1. テストクラス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/A[1]
+[2026-01-08 11:55:27] クリック: A [25.3.7. クラスと関数]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/A[1]
+[2026-01-08 11:55:28] クリック: A [25.3.7.2. テストのグルーピング]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[2]/A[1]
+[2026-01-08 11:55:29] クリック: A [25.3.7.3. テストのロードと起動]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[3]/A[1]
+[2026-01-08 11:57:57] クリック: A [25.3.5. 既存テストコードの再利用]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[5]/A[1]
+[2026-01-08 11:58:08] クリック: A [モジュール]｜ID:｜Class:｜XPath:BODY/DIV[4]/UL[1]/LI[2]/A[1]
+[2026-01-08 11:58:08] クリック: A [モジュール]｜ID:｜Class:｜XPath:BODY/DIV[4]/UL[1]/LI[2]/A[1]
+[2026-01-08 11:58:09] クリック: CODE [aepack]｜ID:｜Class:xref｜XPath:BODY/DIV[3]/DIV[1]/DIV[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[10]/TD[2]/A[1]/CODE[1]
+[2026-01-08 11:58:20] クリック: DD [Python 値 x を変換した値を保持する AEDesc オブジェクトを返します。 forcetype を与えることで、結果のデスクリプタ型を指定できます。それ以外では、Python 型から Apple Event デスクリプタ型へのデフォルトのマッピングが使われます。マッピングは次の通りとなります:\n\nPython の型\n\n\t\n\nデスクリプタの型\n\n\n\n\nFSSpec\n\n\t\n\ntypeFSS\n\n\n\n\nFSRef\n\n\t\n\ntypeFSRef\n\n\n\n\nAlias\n\n\t\n\ntypeAlias\n\n\n\n\ninteger\n\n\t\n\ntypeLong (32 ビット整数)\n\n\n\n\nfloat\n\n\t\n\ntypeFloat (64 ビット浮動小数点数)\n\n\n\n\nstring\n\n\t\n\ntypeText\n\n\n\n\nunicode\n\n\t\n\ntypeUnicodeText\n\n\n\n\nlist\n\n\t\n\ntypeAEList\n\n\n\n\ndictionary\n\n\t\n\ntypeAERecord\n\n\n\n\ninstance\n\n\t\n\n下記参照\n\nx が Python インスタンスなら、この関数は __aepack__() メソッドを呼びだそうとします。このメソッドは AEDesc オブジェクトを返します。\n\nx の変換が上で定義されていない場合は、この関数は、テキストデスクリプタとしてエンコードされた、値の(repr() 関数による) Python 文字列表現が返されます。]｜ID:｜Class:｜XPath:id(\"module-aepack\")/DL[1]/DD[1]
+[2026-01-08 11:58:23] クリック: SPAN [aepack]｜ID:｜Class:pre｜XPath:id(\"module-aepack\")/P[2]/A[1]/CODE[1]/SPAN[1]
+[2026-01-08 11:58:25] クリック: SPAN [aepack]｜ID:｜Class:pre｜XPath:id(\"module-aepack\")/P[1]/A[1]/CODE[1]/SPAN[1]
+[2026-01-08 11:58:27] クリック: A [ソースコードを表示]｜ID:｜Class:｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/DIV[1]/UL[1]/LI[1]/A[1]
+[2026-01-08 12:00:36] 
+============================================================
+[2026-01-08 12:00:36]  セッション開始: 2026-01-08 12:00:36
+[2026-01-08 12:00:36]  初期URL: https://docs.python.org/ja/2.7/library/unittest.html#module-unittest
+[2026-01-08 12:00:36] ============================================================
+
+[2026-01-08 12:00:38] クリック: A [unittest]｜ID:｜Class:reference internal｜XPath:id(\"module-unittest\")/P[4]/A[1]
+[2026-01-08 12:00:40] クリック: A [25.3.7. クラスと関数]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/A[1]
+[2026-01-08 12:00:41] クリック: A [25.3.7.1. テストクラス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/A[1]
+[2026-01-08 12:00:42] クリック: A [25.3.7.1.1. 廃止予定のエイリアス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/UL[1]/LI[1]/A[1]
+[2026-01-08 12:07:52] Test log entry from independent module.
+
+============================================================
+[2026-01-08 12:07:52] セッション開始
+[2026-01-08 12:07:52] 初期URL: http://test.com
+============================================================
+
+============================================================
+[2026-01-08 12:11:29] セッション開始
+[2026-01-08 12:11:29] 初期URL: https://docs.python.org/ja/2.7/library/unittest.html#module-unittest
+============================================================
+
+----------------------------------------
+[2026-01-08 12:11:30] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#organizing-test-code
+----------------------------------------
+
+----------------------------------------
+[2026-01-08 12:11:32] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#re-using-old-test-code
+----------------------------------------
+
+----------------------------------------
+[2026-01-08 12:11:33] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#skipping-tests-and-expected-failures
+----------------------------------------
+
+============================================================
+[2026-01-08 12:12:56] セッション開始
+[2026-01-08 12:12:56] 初期URL: https://docs.python.org/ja/2.7/library/unittest.html#module-unittest
+============================================================
+[2026-01-08 12:12:58] クリック: A [25.3.6. テストのスキップと意図的な失敗]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[6]/A[1]
+[2026-01-08 12:12:59] クリック: A [25.3.5. 既存テストコードの再利用]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[5]/A[1]
+
+----------------------------------------
+[2026-01-08 12:13:01] ページ移動: None
+----------------------------------------
+
+============================================================
+[2026-01-08 12:13:06] セッション開始
+[2026-01-08 12:13:06] 初期URL: https://docs.python.org/ja/2.7/library/unittest.html#module-unittest
+============================================================
+
+----------------------------------------
+[2026-01-08 12:13:07] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#re-using-old-test-code
+----------------------------------------
+[2026-01-08 12:13:07] クリック: A [25.3.5. 既存テストコードの再利用]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[5]/A[1]
+
+----------------------------------------
+[2026-01-08 12:13:08] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#classes-and-functions
+----------------------------------------
+[2026-01-08 12:13:09] クリック: A [25.3.7. クラスと関数]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/A[1]
+[2026-01-08 12:13:09] クリック: A [25.3.7. クラスと関数]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/A[1]
+
+----------------------------------------
+[2026-01-08 12:13:10] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#deprecated-aliases
+----------------------------------------
+[2026-01-08 12:13:10] クリック: A [25.3.7.1.1. 廃止予定のエイリアス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/UL[1]/LI[1]/A[1]
+[2026-01-08 12:13:10] クリック: A [25.3.7.1.1. 廃止予定のエイリアス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/UL[1]/LI[1]/A[1]
+[2026-01-08 12:13:10] クリック: A [25.3.7.1.1. 廃止予定のエイリアス]｜ID:｜Class:reference internal｜XPath:BODY/DIV[3]/DIV[2]/DIV[1]/UL[1]/LI[1]/UL[1]/LI[7]/UL[1]/LI[1]/UL[1]/LI[1]/A[1]
+
+----------------------------------------
+[2026-01-08 12:13:11] ページ移動: https://docs.python.org/ja/2.7/library/unittest.html#unittest.TestCase.assertAlmostEqual
+----------------------------------------
+[2026-01-08 12:13:11] クリック: SPAN [assertAlmostEqual()]｜ID:｜Class:pre｜XPath:id(\"deprecated-aliases\")/BLOCKQUOTE[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[6]/TD[1]/P[1]/A[1]/CODE[1]/SPAN[1]
+[2026-01-08 12:13:11] クリック: SPAN [assertAlmostEqual()]｜ID:｜Class:pre｜XPath:id(\"deprecated-aliases\")/BLOCKQUOTE[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[6]/TD[1]/P[1]/A[1]/CODE[1]/SPAN[1]
+[2026-01-08 12:13:11] クリック: SPAN [assertAlmostEqual()]｜ID:｜Class:pre｜XPath:id(\"deprecated-aliases\")/BLOCKQUOTE[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[6]/TD[1]/P[1]/A[1]/CODE[1]/SPAN[1]
+[2026-01-08 12:13:11] クリック: SPAN [assertAlmostEqual()]｜ID:｜Class:pre｜XPath:id(\"deprecated-aliases\")/BLOCKQUOTE[1]/DIV[1]/TABLE[1]/TBODY[1]/TR[6]/TD[1]/P[1]/A[1]/CODE[1]/SPAN[1]
+
+============================================================
+[2026-01-08 12:19:25] セッション開始
+[2026-01-08 12:19:25] 初期URL: https://newculture.e-school.jp/beta/index.php
+============================================================
+[2026-01-08 12:19:26] クリック: INPUT [(テキストなし)]｜ID:loginmodel-username｜Class:form-control｜XPath:id(\"loginmodel-username\")
+[2026-01-08 12:19:27] クリック: INPUT [(テキストなし)]｜ID:loginmodel-password｜Class:form-control｜XPath:id(\"loginmodel-password\")
+[2026-01-08 12:19:28] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]
+[2026-01-08 12:19:29] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]
+
+============================================================
+[2026-01-08 12:20:34] セッション開始
+[2026-01-08 12:20:34] 初期URL: https://newculture.e-school.jp/beta/index.php
+============================================================
+
+============================================================
+[2026-01-08 12:20:42] セッション開始
+[2026-01-08 12:20:42] 初期URL: https://newculture.e-school.jp/beta/index.php
+============================================================
+[2026-01-08 12:20:43] クリック: INPUT [(テキストなし)]｜ID:loginmodel-password｜Class:form-control｜XPath:id(\"loginmodel-password\")
+[2026-01-08 12:20:44] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]
+[2026-01-08 12:20:45] クリック: BUTTON [サインイン]｜ID:｜Class:btn btn-success btn-block btn-lg｜XPath:id(\"login-form\")/DIV[3]/BUTTON[1]
+
+----------------------------------------
+[2026-01-08 12:20:47] ページ移動: None
+----------------------------------------
+
+============================================================
+[2026-01-08 12:21:00] セッション開始
+[2026-01-08 12:21:00] 初期URL: https://newculture.e-school.jp/beta/index.php
+============================================================
+[2026-01-08 12:21:01] クリック: INPUT [(テキストなし)]｜ID:loginmodel-username｜Class:form-control｜XPath:id(\"loginmodel-username\")
+[2026-01-08 12:21:02] クリック: INPUT [(テキストなし)]｜ID:loginmodel-password｜Class:form-control｜XPath:id(\"loginmodel-password\")
+
+============================================================
+[2026-01-08 12:22:31] セッション開始
+[2026-01-08 12:22:31] 初期URL: https://newculture.e-school.jp/beta/index.php
+============================================================
+[2026-01-08 12:22:32] クリック: FORM [ユーザ名\n\nパスワード\n\nサインイン]｜ID:login-form｜Class:｜XPath:id(\"login-form\")
+[2026-01-08 12:22:33] クリック: DIV [ユーザ名\n\nユーザ名 をご入力ください。]｜ID:｜Class:form-group field-loginmodel-username required has-error｜XPath:id(\"login-form\")/DIV[1]
+[2026-01-08 12:22:34] クリック: H3 [サインイン]｜ID:｜Class:｜XPath:BODY/DIV[1]/DIV[1]/DIV[1]/DIV[2]/H3[1]
+[2026-01-08 12:22:35] クリック: DIV [(テキストなし)]｜ID:｜Class:clearfix｜XPath:BODY/DIV[1]/DIV[1]/DIV[1]/DIV[2]/DIV[2]
