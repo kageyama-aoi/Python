@@ -66,7 +66,7 @@
                     "foreground": "#33691e"
                 },
                 {
-                    "name": "Documents",
+                    "name": "My Documents",
                     "action": "open_directory",
                     "path": "C:\\Users\\kageyama\\Documents",
                     "icon": "2025-07-02_17h53_40.png"
@@ -150,7 +150,7 @@
                     "name": "Local_Work_Floder",
                     "action": "open_directory",
                     "path": "G:\\マイドライブ\\作業フォルダ\\03_Tframe",
-                    "active": true
+                    "active": false
                 },
                 {
                     "name": "【Tframe】DB",

@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environment
+env/
+venv/
+.env
+.venv
+
+# Distribution / build
+.eggs/
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE specific files
+.vscode/
+*.swp
+*~
+*.log
+
+# Gemini CLI agent temporary files
+.gemini/

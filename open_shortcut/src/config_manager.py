@@ -1,3 +1,5 @@
+"""設定ファイルの読み込み・検証・保存を担うモジュール。"""
+
 import os
 import json
 import jsonschema

@@ -1,12 +1,16 @@
+"""設定キーやアクション種別などの定数をまとめたモジュール。"""
+
 from enum import Enum
 
 class Action(str, Enum):
+    """設定で利用するアクション種別。"""
     OPEN_DIRECTORY = "open_directory"
     OPEN_URL = "open_url"
     SHOW_PAGE = "show_page"
     OPEN_PARAMETERIZED_URL = "open_parameterized_url"
 
 class ConfigKey(str, Enum):
+    """設定ファイル内の主要キー定義。"""
     # Top level
     SETTINGS = "settings"
     STYLES = "styles"
@@ -43,8 +47,10 @@ class ConfigKey(str, Enum):
     DEFAULT_VALUE = "default_value"
 
 class EntryType(str, Enum):
+    """ページ内エントリの種別。"""
     SEPARATOR = "separator"
 
 class ParamType(str, Enum):
+    """パラメータ入力のUI種別。"""
     TEXT = "text"
     PULLDOWN = "pulldown"

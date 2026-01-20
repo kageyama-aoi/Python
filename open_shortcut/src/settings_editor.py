@@ -1,3 +1,5 @@
+"""設定編集ウィンドウのUIと操作を提供するモジュール。"""
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
@@ -7,7 +9,9 @@ from .config_manager import ConfigManager
 import copy
 
 class SettingsEditor(tk.Toplevel):
+    """設定ファイル編集用のGUIを提供するウィンドウ。"""
     def __init__(self, master, config_manager: ConfigManager, on_save_callback=None):
+        """設定編集ウィンドウを初期化し、初期フォームを構築する。"""
         super().__init__(master)
         self.title("設定エディタ")
         self.config_manager = config_manager
@@ -21,6 +25,7 @@ class SettingsEditor(tk.Toplevel):
         self.create_widgets()
 
     def create_widgets(self):
+        """ウィンドウ全体のレイアウトとタブを構築する。"""
         main_frame = ttk.Frame(self)
         main_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
@@ -43,6 +48,7 @@ class SettingsEditor(tk.Toplevel):
         save_button.pack(pady=10)
 
     def create_settings_tab(self, parent):
+        """基本設定タブの入力フォームを作成する。"""
         # settingsの編集
         settings_frame = ttk.LabelFrame(parent, text="ウィンドウ設定")
         settings_frame.pack(padx=10, pady=10, fill="x")
@@ -66,6 +72,7 @@ class SettingsEditor(tk.Toplevel):
             entry.pack(side="right", expand=True, fill="x")
 
     def create_pages_tab(self, parent):
+        """ページ一覧とボタン設定フォームを持つタブを作成する。"""
         paned_window = ttk.PanedWindow(parent, orient=tk.HORIZONTAL)
         paned_window.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -134,6 +141,7 @@ class SettingsEditor(tk.Toplevel):
             #     listbox.itemconfig(i, fg="grey")
 
     def hide_item(self, page_name):
+        """選択中の項目を非表示として扱う。"""
         listbox = self.pages_widgets[page_name]["listbox"]
         selected_indices = listbox.curselection()
 
@@ -154,6 +162,7 @@ class SettingsEditor(tk.Toplevel):
         messagebox.showinfo("成功", f"項目 '{entries[idx].get(C.ConfigKey.NAME, '(無名)')}' を非表示にしました。")
 
     def show_item(self, page_name):
+        """選択中の項目を表示状態に戻す。"""
         listbox = self.pages_widgets[page_name]["listbox"]
         selected_indices = listbox.curselection()
 
@@ -174,12 +183,14 @@ class SettingsEditor(tk.Toplevel):
         messagebox.showinfo("成功", f"項目 '{entries[idx].get(C.ConfigKey.NAME, '(無名)')}' を表示しました。")
 
     def add_button(self, page_name):
+        """新規追加モードに切り替える。"""
         # 選択を解除して追加モードにする
         listbox = self.pages_widgets[page_name]["listbox"]
         listbox.selection_clear(0, tk.END)
         self.clear_button_form()
 
     def on_listbox_select(self, event, page_name):
+        """リストボックス選択に応じてフォームへ値を反映する。"""
         listbox = event.widget
         selected_indices = listbox.curselection()
         if not selected_indices:
@@ -224,6 +235,7 @@ class SettingsEditor(tk.Toplevel):
         self.on_action_change(None) # eventオブジェクトは使わないのでNone
 
     def move_item(self, page_name, direction):
+        """選択項目の順序を上下に移動する。"""
         listbox = self.pages_widgets[page_name]["listbox"]
         selected_indices = listbox.curselection()
 
@@ -251,6 +263,7 @@ class SettingsEditor(tk.Toplevel):
         listbox.activate(new_idx)
 
     def on_action_change(self, event):
+        """選択アクションに応じて入力フォームを切り替える。"""
         action = self.form_entries[C.ConfigKey.ACTION].get()
         if action == C.Action.OPEN_DIRECTORY:
             self.path_label.config(text="開くフォルダのパス:")
@@ -273,6 +286,7 @@ class SettingsEditor(tk.Toplevel):
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
     def clear_button_form(self):
+        """フォームの入力内容を初期状態に戻す。"""
         self.form_entries[C.ConfigKey.NAME].set("")
         self.form_entries[C.ConfigKey.ACTION].set("")
         self.form_entries[C.ConfigKey.PATH].set("")
@@ -284,6 +298,7 @@ class SettingsEditor(tk.Toplevel):
         self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
     def create_button_form(self, parent):
+        """右ペインのボタン設定フォームを構築する。"""
         self.form_entries = {}
         
         # Name
@@ -360,6 +375,7 @@ class SettingsEditor(tk.Toplevel):
         self.on_action_change(None)
 
     def update_parameter_listbox(self):
+        """パラメータ一覧の表示を更新する。"""
         self.parameter_listbox.delete(0, tk.END)
         for param in self.current_parameters:
             display_text = f"{param.get(C.ConfigKey.NAME, '')}: {param.get(C.ConfigKey.TYPE, '')}"
@@ -368,9 +384,11 @@ class SettingsEditor(tk.Toplevel):
             self.parameter_listbox.insert(tk.END, display_text)
 
     def add_parameter(self):
+        """パラメータ追加の編集ダイアログを開く。"""
         self.open_parameter_editor_window()
 
     def edit_parameter(self):
+        """選択中のパラメータを編集する。"""
         selected_indices = self.parameter_listbox.curselection()
         if not selected_indices:
             messagebox.showwarning("警告", "編集するパラメータを選択してください。")
@@ -380,6 +398,7 @@ class SettingsEditor(tk.Toplevel):
         self.open_parameter_editor_window(idx, param_data)
 
     def delete_parameter(self):
+        """選択中のパラメータを削除する。"""
         selected_indices = self.parameter_listbox.curselection()
         if not selected_indices:
             messagebox.showwarning("警告", "削除するパラメータを選択してください。")
@@ -390,6 +409,7 @@ class SettingsEditor(tk.Toplevel):
             self.update_parameter_listbox()
 
     def open_parameter_editor_window(self, index=None, param_data=None):
+        """パラメータ編集ウィンドウを開き、結果を取り込む。"""
         # NOTE: ParameterEditor class is not defined in this file. Assuming it's defined elsewhere or a placeholder.
         editor_window = ParameterEditor(self, index, param_data) 
         self.master.wait_window(editor_window) # Wait for the editor window to close
@@ -401,6 +421,7 @@ class SettingsEditor(tk.Toplevel):
             self.update_parameter_listbox()
 
     def save_form_data(self):
+        """フォーム入力を現在のページ設定に保存する。"""
         # 現在アクティブなページ名を取得
         pages_notebook = self.pages_widgets["pages_notebook"]
         page_name = pages_notebook.tab(pages_notebook.select(), "text")
@@ -444,6 +465,7 @@ class SettingsEditor(tk.Toplevel):
         self.clear_button_form() # フォームをクリア
 
     def save_config(self):
+        """編集内容を検証して設定ファイルへ保存する。"""
         # settingsの保存
         settings = self.config.get(C.ConfigKey.SETTINGS, {})
         for key, var in self.settings_vars.items():
