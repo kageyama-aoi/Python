@@ -38,8 +38,8 @@ config.CONF = {
     'templates': {'tf': {'comment_template_rendered': 'test_template'}}
 }
 
-from handlers import CrowdLogHandler, TaskReportHandler
-from form_handler import FormAutomationHandler
+from .src.handlers import CrowdLogHandler, TaskReportHandler
+from .src.form_handler import FormAutomationHandler
 
 class TestHandlers(unittest.TestCase):
     def setUp(self):
