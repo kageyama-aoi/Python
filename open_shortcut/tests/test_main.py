@@ -234,9 +234,8 @@ class TestDirectoryOpenerApp(unittest.TestCase):
 
         # Assert: UIが正しく更新されたことを確認
         logging.info("リロード後のウィジェットツリー:\n%s", self.get_all_widgets_repr(self.app.master))
-        # Tkinterのテスト環境の特性上、reload()が2回呼ばれる場合があるため、call_countを直接検証する。
-        # アプリケーションのreload_ui()は、.after()と_reload_scheduledフラグにより実運用では1回しか実行されない。
-        self.assertEqual(self.mock_config_manager.reload.call_count, 2, "ConfigManager.reload()の呼び出し回数が期待と異なります。")
+        # reload_uiの処理は1回のreloadで完結する。
+        self.assertEqual(self.mock_config_manager.reload.call_count, 1, "ConfigManager.reload()の呼び出し回数が期待と異なります。")
         self.assertButtonNotExists(initial_button_text, f"古いボタン '{initial_button_text}' がUIに残っています。")
         self.assertButtonExists(modified_button_text, f"新しいボタン '{modified_button_text}' が作成されていません。")
 

@@ -300,6 +300,11 @@
                     "type": "separator"
                 },
                 {
+                    "name": "Box",
+                    "action": "open_url",
+                    "url": "https://ent.box.com/login/mfa?redirectUrl=%2Fs%2F6nysh0ago76wblibdnnu8wmc8irhyboc"
+                },
+                {
                     "name": "受領資料",
                     "action": "open_directory",
                     "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
@@ -313,11 +318,6 @@
                     "name": "自分用作業フォルダ",
                     "action": "open_directory",
                     "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工"
-                },
-                {
-                    "name": "Box",
-                    "action": "open_url",
-                    "url": "https://ent.box.com/login/mfa?redirectUrl=%2Fs%2F6nysh0ago76wblibdnnu8wmc8irhyboc"
                 }
             ]
         }

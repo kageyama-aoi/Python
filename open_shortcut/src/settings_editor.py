@@ -59,8 +59,19 @@ class SettingsEditor(tk.Toplevel):
             cleaned_title = page_name
         return f"{cleaned_title} ({page_name})"
 
+    def _build_page_selector_maps(self):
+        """ページ選択用の表示名<->IDマップを構築する。"""
+        self.page_display_to_id = {}
+        self.page_id_to_display = {}
+        pages = self.config.get(C.ConfigKey.PAGES, {})
+        for page_name, page_data in pages.items():
+            display_label = self._format_page_tab_label(page_name, page_data)
+            self.page_display_to_id[display_label] = page_name
+            self.page_id_to_display[page_name] = display_label
+
     def create_widgets(self):
         """ウィンドウ全体のレイアウトとタブを構築する。"""
+        self._build_page_selector_maps()
         main_frame = ttk.Frame(self)
         main_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
@@ -116,17 +127,21 @@ class SettingsEditor(tk.Toplevel):
         initial_page_label.pack(side="left", padx=5)
 
         page_names = list(self.config.get(C.ConfigKey.PAGES, {}).keys())
+        page_display_names = list(self.page_display_to_id.keys())
         initial_page_value = settings.get(C.ConfigKey.INITIAL_PAGE, "")
         if page_names and initial_page_value not in page_names:
             initial_page_value = page_names[0]
+        initial_page_display = self.page_id_to_display.get(initial_page_value, initial_page_value)
+        if page_display_names and initial_page_display not in page_display_names:
+            initial_page_display = page_display_names[0]
 
-        initial_page_var = tk.StringVar(value=initial_page_value)
+        initial_page_var = tk.StringVar(value=initial_page_display)
         self.settings_vars[C.ConfigKey.INITIAL_PAGE] = initial_page_var
 
         initial_page_combo = ttk.Combobox(
             initial_page_frame,
             textvariable=initial_page_var,
-            values=page_names,
+            values=page_display_names,
             state="readonly"
         )
         initial_page_combo.pack(side="right", expand=True, fill="x")
@@ -225,8 +240,16 @@ class SettingsEditor(tk.Toplevel):
             show_button = ttk.Button(button_frame, text="表示する", command=lambda p=page_name: self.show_item(p))
             show_button.pack(side="left", padx=2)
 
-            self.pages_widgets[page_name] = {"listbox": listbox}
+            self.pages_widgets[page_name] = {
+                "listbox": listbox,
+                "add_button": add_button,
+                "up_button": up_button,
+                "down_button": down_button,
+                "hide_button": hide_button,
+                "show_button": show_button,
+            }
             self._populate_page_listbox(page_name) # Populate listbox initially
+            self._update_page_buttons_state(page_name)
 
         # --- 右ペイン (フォーム) ---
         right_pane = ttk.LabelFrame(paned_window, text="ボタン設定")
@@ -249,6 +272,51 @@ class SettingsEditor(tk.Toplevel):
             # 後でactive状態を示すためにタグ付けすることも可能だが、今回はテキストで示す
             # if not entry.get(C.ConfigKey.ACTIVE, True):
             #     listbox.itemconfig(i, fg="grey")
+        self._update_page_buttons_state(page_name)
+
+    def _update_page_buttons_state(self, page_name):
+        """ページ操作ボタンの活性状態を現在の選択状態に合わせて更新する。"""
+        page_widgets = self.pages_widgets.get(page_name, {})
+        listbox = page_widgets.get("listbox")
+        if not listbox:
+            return
+
+        add_button = page_widgets.get("add_button")
+        up_button = page_widgets.get("up_button")
+        down_button = page_widgets.get("down_button")
+        hide_button = page_widgets.get("hide_button")
+        show_button = page_widgets.get("show_button")
+
+        if add_button:
+            add_button.config(state="normal")
+
+        selected = listbox.curselection()
+        if not selected:
+            if up_button:
+                up_button.config(state="disabled")
+            if down_button:
+                down_button.config(state="disabled")
+            if hide_button:
+                hide_button.config(state="disabled")
+            if show_button:
+                show_button.config(state="disabled")
+            return
+
+        idx = selected[0]
+        entries = self.config.get(C.ConfigKey.PAGES, {}).get(page_name, {}).get(C.ConfigKey.ENTRIES, [])
+        size = listbox.size()
+        is_active = True
+        if 0 <= idx < len(entries):
+            is_active = entries[idx].get(C.ConfigKey.ACTIVE, True)
+
+        if up_button:
+            up_button.config(state="normal" if idx > 0 else "disabled")
+        if down_button:
+            down_button.config(state="normal" if idx < size - 1 else "disabled")
+        if hide_button:
+            hide_button.config(state="normal" if is_active else "disabled")
+        if show_button:
+            show_button.config(state="normal" if not is_active else "disabled")
 
     def hide_item(self, page_name):
         """選択中の項目を非表示として扱う。"""
@@ -298,6 +366,7 @@ class SettingsEditor(tk.Toplevel):
         listbox = self.pages_widgets[page_name]["listbox"]
         listbox.selection_clear(0, tk.END)
         self.clear_button_form()
+        self._update_page_buttons_state(page_name)
 
     def on_listbox_select(self, event, page_name):
         """リストボックス選択に応じてフォームへ値を反映する。"""
@@ -305,6 +374,7 @@ class SettingsEditor(tk.Toplevel):
         selected_indices = listbox.curselection()
         if not selected_indices:
             self.clear_button_form() # 選択解除時にフォームをクリア
+            self._update_page_buttons_state(page_name)
             return
 
         idx = selected_indices[0]
@@ -326,7 +396,8 @@ class SettingsEditor(tk.Toplevel):
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
         elif action == C.Action.SHOW_PAGE:
-            path_value = entry_data.get(C.ConfigKey.TARGET, "")
+            target_page_id = entry_data.get(C.ConfigKey.TARGET, "")
+            path_value = self.page_id_to_display.get(target_page_id, target_page_id)
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
         elif action == C.Action.OPEN_PARAMETERIZED_URL:
@@ -343,6 +414,7 @@ class SettingsEditor(tk.Toplevel):
 
         # ラベルも更新
         self.on_action_change(None) # eventオブジェクトは使わないのでNone
+        self._update_page_buttons_state(page_name)
 
     def move_item(self, page_name, direction):
         """選択項目の順序を上下に移動する。"""
@@ -371,20 +443,29 @@ class SettingsEditor(tk.Toplevel):
         # 選択状態を復元
         listbox.selection_set(new_idx)
         listbox.activate(new_idx)
+        self._update_page_buttons_state(page_name)
 
     def on_action_change(self, event):
         """選択アクションに応じて入力フォームを切り替える。"""
         action = self.form_entries[C.ConfigKey.ACTION].get()
+        page_display_names = list(self.page_display_to_id.keys())
         if action == C.Action.OPEN_DIRECTORY:
             self.path_label.config(text="開くフォルダのパス:")
+            self.path_entry.pack(fill="x", padx=5)
+            self.target_page_combo.pack_forget()
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
         elif action == C.Action.OPEN_URL:
             self.path_label.config(text="開くWebサイトのURL:")
+            self.path_entry.pack(fill="x", padx=5)
+            self.target_page_combo.pack_forget()
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
         elif action == C.Action.SHOW_PAGE:
             self.path_label.config(text="表示するページ名:")
+            self.target_page_combo.config(values=page_display_names, state="readonly")
+            self.target_page_combo.pack(fill="x", padx=5)
+            self.path_entry.pack_forget()
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Show path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
         elif action == C.Action.OPEN_PARAMETERIZED_URL:
@@ -392,6 +473,8 @@ class SettingsEditor(tk.Toplevel):
             self.parameterized_url_frame.pack(fill="both", expand=True, padx=5, pady=2) # Show parameterized URL frame
         else:
             self.path_label.config(text="パス/URL/ターゲット:")
+            self.path_entry.pack(fill="x", padx=5)
+            self.target_page_combo.pack_forget()
             self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Default to showing path entry
             self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
@@ -404,12 +487,15 @@ class SettingsEditor(tk.Toplevel):
         self.current_parameters = [] # Clear current parameters
         self.update_parameter_listbox() # Update listbox
         self.path_label.config(text="パス/URL/ターゲット:")
+        self.path_entry.pack(fill="x", padx=5)
+        self.target_page_combo.pack_forget()
         self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Default to showing path entry
         self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
 
     def create_button_form(self, parent):
         """右ペインのボタン設定フォームを構築する。"""
         self.form_entries = {}
+        self._build_page_selector_maps()
         
         # Name
         name_label = ttk.Label(parent, text="名前:")
@@ -435,8 +521,14 @@ class SettingsEditor(tk.Toplevel):
         self.path_label = ttk.Label(self.path_entry_frame, text="パス/URL/ターゲット:")
         self.path_label.pack(pady=2)
         path_var = tk.StringVar()
-        path_entry = ttk.Entry(self.path_entry_frame, textvariable=path_var)
-        path_entry.pack(fill="x", padx=5)
+        self.path_entry = ttk.Entry(self.path_entry_frame, textvariable=path_var)
+        self.path_entry.pack(fill="x", padx=5)
+        self.target_page_combo = ttk.Combobox(
+            self.path_entry_frame,
+            textvariable=path_var,
+            values=list(self.page_display_to_id.keys()),
+            state="readonly",
+        )
         self.form_entries[C.ConfigKey.PATH] = path_var # path, url, targetを同じEntryで使い回す
 
         # --- Parameterized URL Settings (特殊なボタン用) ---
@@ -556,7 +648,8 @@ class SettingsEditor(tk.Toplevel):
         elif action == C.Action.OPEN_URL:
             new_entry[C.ConfigKey.URL] = self.form_entries[C.ConfigKey.PATH].get()
         elif action == C.Action.SHOW_PAGE:
-            new_entry[C.ConfigKey.TARGET] = self.form_entries[C.ConfigKey.PATH].get()
+            target_display_or_id = self.form_entries[C.ConfigKey.PATH].get()
+            new_entry[C.ConfigKey.TARGET] = self.page_display_to_id.get(target_display_or_id, target_display_or_id)
         elif action == C.Action.OPEN_PARAMETERIZED_URL:
             new_entry[C.ConfigKey.BASE_URL] = self.form_entries[C.ConfigKey.BASE_URL].get()
             new_entry[C.ConfigKey.PARAMETERS] = self.current_parameters
@@ -602,10 +695,11 @@ class SettingsEditor(tk.Toplevel):
                 settings[key] = normalized_value
             elif key == C.ConfigKey.INITIAL_PAGE:
                 page_names = set(self.config.get(C.ConfigKey.PAGES, {}).keys())
-                if value not in page_names:
+                normalized_value = self.page_display_to_id.get(value, value)
+                if normalized_value not in page_names:
                     messagebox.showerror("入力エラー", f"'{C.ConfigKey.INITIAL_PAGE}' は既存ページから選択してください。")
                     return
-                settings[key] = value
+                settings[key] = normalized_value
             else:
                 settings[key] = value
         self.config[C.ConfigKey.SETTINGS] = settings

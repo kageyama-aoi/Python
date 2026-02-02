@@ -112,29 +112,13 @@ class DirectoryOpenerApp:
             self.master.destroy()
             return
         self.config = self.config_manager.get_config()
+        self.ui_builder.config = self.config
 
         # 4. Re-create UI content
         self._setup_window()
         self._setup_styles()
         self.page_container.pack(fill=tk.BOTH, expand=True) # 再パック
         self.ui_builder.create_widgets_content() # UIBuilderを使ってコンテンツを再構築
-        
-        # 5. Show initial page
-        initial_page = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.INITIAL_PAGE, "home")
-        self.show_page(initial_page)
-        
-        print("UI reloaded successfully.")
-
-        # 3. Reload config
-        if not self.config_manager.reload():
-            self.master.destroy()
-            return
-        self.config = self.config_manager.get_config()
-
-        # 4. Re-create UI
-        self._setup_window()
-        self._setup_styles()
-        self.ui_builder.create_widgets() # UIBuilderを使って再構築
         
         # 5. Show initial page
         initial_page = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.INITIAL_PAGE, "home")
