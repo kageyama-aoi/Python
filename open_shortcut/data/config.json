@@ -9,7 +9,7 @@
         "icon_folder": "assets/icons",
         "window_icon": "app_icon.ico",
         "default_button_icon": "2025-07-02_17h53_40.png",
-        "initial_page": "mitubishi",
+        "initial_page": "main_menu",
         "menu_order": "normal"
     },
     "styles": {
@@ -50,7 +50,7 @@
                 {
                     "name": "テストメニューへ",
                     "action": "show_page",
-                    "target": "tframe",
+                    "target": "mitubishi",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -114,15 +114,14 @@
                     "action": "open_directory",
                     "path": "G:\\マイドライブ\\作業フォルダ\\00_kageyama共通資料\\経費精算書"
                 }
-            ],
-            "menu_order": "normal"
+            ]
         },
-        "tframe": {
-            "title": "テスト[Tframe]",
-            "window_title": "テスト[Tframe]",
+        "mitubishi": {
+            "title": "三菱重工",
+            "window_title": "三菱重工",
             "entries": [
                 {
-                    "name": "テスト[島村]へ",
+                    "name": "メインメニューへ",
                     "action": "show_page",
                     "target": "shimamura",
                     "icon": null,
@@ -133,50 +132,24 @@
                     "type": "separator"
                 },
                 {
-                    "name": "要件定義マイページ",
+                    "name": "Box",
                     "action": "open_url",
-                    "url": "https://drive.google.com/drive/folders/1TYHL-YoD3SEGaxsK5DfU17ItYhFvXKDl"
+                    "url": "https://ent.box.com/login/mfa?redirectUrl=%2Fs%2F6nysh0ago76wblibdnnu8wmc8irhyboc"
                 },
                 {
-                    "name": "JP_Culture(設計書、テーブル定義、WBS)",
+                    "name": "受領資料",
                     "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture",
-                    "icon": null
+                    "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
                 },
                 {
-                    "name": "テスト欄作成(マクロ)",
-                    "action": "open_directory",
-                    "path": "G:\\マイドライブ\\作業フォルダ\\01_PJ(島村）\\★TOOL★\\14_in(設計書)_out(テスト結果記入表)"
-                },
-                {
-                    "name": "Local_Work_Floder",
-                    "action": "open_directory",
-                    "path": "G:\\マイドライブ\\作業フォルダ\\03_Tframe",
-                    "active": true
-                },
-                {
-                    "name": "【Tframe】DB",
+                    "name": "システム構成図",
                     "action": "open_url",
-                    "url": "https://newsms-db.e-school.jp/phpmyadmin/",
-                    "icon": null
+                    "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
                 },
                 {
-                    "name": "【Tframe】Culture_Beta",
-                    "action": "open_url",
-                    "url": "https://newculture.e-school.jp/beta/",
-                    "icon": null
-                },
-                {
-                    "name": "要件定義",
+                    "name": "自分用作業フォルダ",
                     "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1jH_G05JnxoSaBkg8wNGFp9YYUi6zmKe1\\【Culture】講師謝礼",
-                    "icon": "2025-07-02_17h53_40.png"
-                },
-                {
-                    "name": "JP_Culture(ユーザーマニュアル)",
-                    "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture\\04.ユーザーマニュアル",
-                    "icon": null
+                    "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工"
                 }
             ]
         },
@@ -259,7 +232,7 @@
                 {
                     "name": "メインメニューへ",
                     "action": "show_page",
-                    "target": "mitubishi",
+                    "target": "tframe",
                     "icon": null,
                     "background": "#e0f7fa",
                     "foreground": "#006064"
@@ -284,12 +257,12 @@
                 }
             ]
         },
-        "mitubishi": {
-            "title": "三菱重工",
-            "window_title": "三菱重工",
+        "tframe": {
+            "title": "テスト[Tframe]",
+            "window_title": "テスト[Tframe]",
             "entries": [
                 {
-                    "name": "メインメニューへ",
+                    "name": "テスト[島村]へ",
                     "action": "show_page",
                     "target": "main_menu",
                     "icon": null,
@@ -300,24 +273,50 @@
                     "type": "separator"
                 },
                 {
-                    "name": "Box",
+                    "name": "要件定義マイページ",
                     "action": "open_url",
-                    "url": "https://ent.box.com/login/mfa?redirectUrl=%2Fs%2F6nysh0ago76wblibdnnu8wmc8irhyboc"
+                    "url": "https://drive.google.com/drive/folders/1TYHL-YoD3SEGaxsK5DfU17ItYhFvXKDl"
                 },
                 {
-                    "name": "受領資料",
+                    "name": "JP_Culture(設計書、テーブル定義、WBS)",
                     "action": "open_directory",
-                    "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
+                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture",
+                    "icon": null
                 },
                 {
-                    "name": "システム構成図",
+                    "name": "テスト欄作成(マクロ)",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\01_PJ(島村）\\★TOOL★\\14_in(設計書)_out(テスト結果記入表)"
+                },
+                {
+                    "name": "Local_Work_Floder",
+                    "action": "open_directory",
+                    "path": "G:\\マイドライブ\\作業フォルダ\\03_Tframe",
+                    "active": true
+                },
+                {
+                    "name": "【Tframe】DB",
                     "action": "open_url",
-                    "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
+                    "url": "https://newsms-db.e-school.jp/phpmyadmin/",
+                    "icon": null
                 },
                 {
-                    "name": "自分用作業フォルダ",
+                    "name": "【Tframe】Culture_Beta",
+                    "action": "open_url",
+                    "url": "https://newculture.e-school.jp/beta/",
+                    "icon": null
+                },
+                {
+                    "name": "要件定義",
                     "action": "open_directory",
-                    "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工"
+                    "path": "G:\\.shortcut-targets-by-id\\1jH_G05JnxoSaBkg8wNGFp9YYUi6zmKe1\\【Culture】講師謝礼",
+                    "icon": "2025-07-02_17h53_40.png"
+                },
+                {
+                    "name": "JP_Culture(ユーザーマニュアル)",
+                    "action": "open_directory",
+                    "path": "G:\\.shortcut-targets-by-id\\1H5jEButNwT_J55h7B4B6V7lqjHfvr-Ti\\002.Customer(TFrame)\\001.JP_Document\\002.Culture\\04.ユーザーマニュアル",
+                    "icon": null
                 }
             ]
         }
