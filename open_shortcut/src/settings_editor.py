@@ -152,7 +152,8 @@ class SettingsEditor(tk.Toplevel):
             initial_page_frame,
             textvariable=initial_page_var,
             values=page_display_names,
-            state="readonly"
+            state="readonly",
+            justify="right",
         )
         initial_page_combo.pack(side="right", expand=True, fill="x")
         self.initial_page_combo = initial_page_combo
@@ -174,7 +175,8 @@ class SettingsEditor(tk.Toplevel):
             menu_order_frame,
             textvariable=menu_order_var,
             values=["通常", "逆順"],
-            state="readonly"
+            state="readonly",
+            justify="right",
         )
         menu_order_combo.pack(side="right", expand=True, fill="x")
 
@@ -210,7 +212,13 @@ class SettingsEditor(tk.Toplevel):
                 target_id = entry.get(C.ConfigKey.TARGET, "")
                 target_display = self.page_id_to_display.get(target_id, target_id)
                 target_var = tk.StringVar(value=target_display)
-                target_combo = ttk.Combobox(row, textvariable=target_var, values=page_display_names, state="readonly")
+                target_combo = ttk.Combobox(
+                    row,
+                    textvariable=target_var,
+                    values=page_display_names,
+                    state="readonly",
+                    justify="right",
+                )
                 target_combo.pack(side="right", fill="x", expand=True)
                 target_combo.bind("<<ComboboxSelected>>", self._on_transition_target_change)
 
@@ -375,6 +383,7 @@ class SettingsEditor(tk.Toplevel):
                 textvariable=page_menu_order_var,
                 values=["全体設定に従う", "通常", "逆順"],
                 state="readonly",
+                justify="right",
                 width=12,
             )
             page_order_combo.pack(side="left", padx=2)
@@ -693,6 +702,7 @@ class SettingsEditor(tk.Toplevel):
             textvariable=path_var,
             values=list(self.page_display_to_id.keys()),
             state="readonly",
+            justify="right",
         )
         self.form_entries[C.ConfigKey.PATH] = path_var # path, url, targetを同じEntryで使い回す
 
