@@ -1,0 +1,33 @@
+/* html/style.css */
+
+body {
+  font-family: system-ui, sans-serif;
+  padding: 2rem;
+  line-height: 1.6;
+}
+
+pre {
+  background: #f6f8fa;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* 追加したいクラス */
+.alert {
+  color: red;
+  font-weight: bold;
+}
+
+.danger {
+  color: red;
+  font-weight: bold;
+}
+
+.warn {
+  color: orange;
+  font-weight: bold;
+}
+
+.note {
+  color: #555;
+}
