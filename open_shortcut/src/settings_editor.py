@@ -4,12 +4,32 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import json
 import os
+import re
 from . import constants as C
 from .config_manager import ConfigManager
 import copy
 
 class SettingsEditor(tk.Toplevel):
     """設定ファイル編集用のGUIを提供するウィンドウ。"""
+    SETTING_LABELS = {
+        "window_title": "ウィンドウタイトル",
+        "geometry": "ウィンドウサイズ",
+        "resizable": "サイズ変更可否",
+        "icon_folder": "アイコンフォルダ",
+        "window_icon": "ウィンドウアイコン",
+        "default_button_icon": "デフォルトボタンアイコン",
+        "initial_page": "起動時のページ",
+        "menu_order": "メニュー表示順",
+    }
+    MENU_ORDER_DISPLAY_TO_VALUE = {
+        "通常": "normal",
+        "逆順": "reverse",
+        "全体設定に従う": "global",
+    }
+    MENU_ORDER_VALUE_TO_DISPLAY = {
+        value: key for key, value in MENU_ORDER_DISPLAY_TO_VALUE.items()
+    }
+
     def __init__(self, master, config_manager: ConfigManager, on_save_callback=None):
         """設定編集ウィンドウを初期化し、初期フォームを構築する。"""
         super().__init__(master)
@@ -23,6 +43,21 @@ class SettingsEditor(tk.Toplevel):
 
         self.current_parameters = []
         self.create_widgets()
+
+    def _format_setting_label(self, key: str) -> str:
+        """設定キーを「日本語（英語）」形式のラベルへ変換する。"""
+        key_value = key.value if hasattr(key, "value") else key
+        ja = self.SETTING_LABELS.get(key_value, key_value)
+        return f"{ja} ({key_value})"
+
+    def _format_page_tab_label(self, page_name: str, page_data: dict) -> str:
+        """ページタブを「日本語（英語）」形式で表示する。"""
+        title = page_data.get(C.ConfigKey.TITLE, page_name)
+        # 日本語タイトル内の英語補足（例: [Tframe], (memo)）を除去して重複表記を防ぐ
+        cleaned_title = re.sub(r"\s*[\[\(（]\s*[A-Za-z0-9_\- ]+\s*[\]\)）]\s*", "", str(title)).strip()
+        if not cleaned_title:
+            cleaned_title = page_name
+        return f"{cleaned_title} ({page_name})"
 
     def create_widgets(self):
         """ウィンドウ全体のレイアウトとタブを構築する。"""
@@ -56,13 +91,16 @@ class SettingsEditor(tk.Toplevel):
         self.settings_vars = {}
         settings = self.config.get(C.ConfigKey.SETTINGS, {})
         for key, value in settings.items():
+            if key in (C.ConfigKey.MENU_ORDER, C.ConfigKey.INITIAL_PAGE):
+                continue
+
             if isinstance(value, list):
                 value = ", ".join(map(str, value))
             
             frame = ttk.Frame(settings_frame)
             frame.pack(fill="x", pady=2)
             
-            label = ttk.Label(frame, text=key)
+            label = ttk.Label(frame, text=self._format_setting_label(key))
             label.pack(side="left", padx=5)
             
             var = tk.StringVar(value=value)
@@ -70,6 +108,49 @@ class SettingsEditor(tk.Toplevel):
             
             entry = ttk.Entry(frame, textvariable=var)
             entry.pack(side="right", expand=True, fill="x")
+
+        # 初期ページはページ一覧から選択して入力ミスを防ぐ
+        initial_page_frame = ttk.Frame(settings_frame)
+        initial_page_frame.pack(fill="x", pady=2)
+        initial_page_label = ttk.Label(initial_page_frame, text=self._format_setting_label(C.ConfigKey.INITIAL_PAGE))
+        initial_page_label.pack(side="left", padx=5)
+
+        page_names = list(self.config.get(C.ConfigKey.PAGES, {}).keys())
+        initial_page_value = settings.get(C.ConfigKey.INITIAL_PAGE, "")
+        if page_names and initial_page_value not in page_names:
+            initial_page_value = page_names[0]
+
+        initial_page_var = tk.StringVar(value=initial_page_value)
+        self.settings_vars[C.ConfigKey.INITIAL_PAGE] = initial_page_var
+
+        initial_page_combo = ttk.Combobox(
+            initial_page_frame,
+            textvariable=initial_page_var,
+            values=page_names,
+            state="readonly"
+        )
+        initial_page_combo.pack(side="right", expand=True, fill="x")
+
+        # メニュー表示順は選択式で編集しやすくする
+        menu_order_frame = ttk.Frame(settings_frame)
+        menu_order_frame.pack(fill="x", pady=2)
+        menu_order_label = ttk.Label(menu_order_frame, text=self._format_setting_label(C.ConfigKey.MENU_ORDER))
+        menu_order_label.pack(side="left", padx=5)
+
+        menu_order_value = settings.get(C.ConfigKey.MENU_ORDER, "normal")
+        if menu_order_value not in ("normal", "reverse"):
+            menu_order_value = "normal"
+
+        menu_order_var = tk.StringVar(value=self.MENU_ORDER_VALUE_TO_DISPLAY[menu_order_value])
+        self.settings_vars[C.ConfigKey.MENU_ORDER] = menu_order_var
+
+        menu_order_combo = ttk.Combobox(
+            menu_order_frame,
+            textvariable=menu_order_var,
+            values=["通常", "逆順"],
+            state="readonly"
+        )
+        menu_order_combo.pack(side="right", expand=True, fill="x")
 
     def create_pages_tab(self, parent):
         """ページ一覧とボタン設定フォームを持つタブを作成する。"""
@@ -83,11 +164,40 @@ class SettingsEditor(tk.Toplevel):
         pages_notebook = ttk.Notebook(left_pane)
         pages_notebook.pack(fill="both", expand=True)
         self.pages_widgets = {"pages_notebook": pages_notebook}
+        self.page_menu_order_vars = {}
+        self.page_frame_to_name = {}
 
         pages = self.config.get(C.ConfigKey.PAGES, {})
-        for page_name, page_data in pages.items():
+        settings = self.config.get(C.ConfigKey.SETTINGS, {})
+        tab_order = list(pages.items())
+        if settings.get(C.ConfigKey.MENU_ORDER, "normal") == "reverse":
+            tab_order.reverse()
+
+        for page_name, page_data in tab_order:
             list_frame = ttk.Frame(pages_notebook)
-            pages_notebook.add(list_frame, text=page_name)
+            pages_notebook.add(list_frame, text=self._format_page_tab_label(page_name, page_data))
+            self.page_frame_to_name[list_frame] = page_name
+
+            # ページごとのメニュー表示順
+            page_order_frame = ttk.Frame(list_frame)
+            page_order_frame.pack(fill="x", pady=2)
+
+            ttk.Label(page_order_frame, text="表示順:").pack(side="left", padx=2)
+            page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, "global")
+            if page_menu_order not in ("global", "normal", "reverse"):
+                page_menu_order = "global"
+
+            page_menu_order_var = tk.StringVar(value=self.MENU_ORDER_VALUE_TO_DISPLAY[page_menu_order])
+            self.page_menu_order_vars[page_name] = page_menu_order_var
+
+            page_order_combo = ttk.Combobox(
+                page_order_frame,
+                textvariable=page_menu_order_var,
+                values=["全体設定に従う", "通常", "逆順"],
+                state="readonly",
+                width=12,
+            )
+            page_order_combo.pack(side="left", padx=2)
 
             listbox = tk.Listbox(list_frame)
             listbox.pack(fill="both", expand=True)
@@ -424,7 +534,11 @@ class SettingsEditor(tk.Toplevel):
         """フォーム入力を現在のページ設定に保存する。"""
         # 現在アクティブなページ名を取得
         pages_notebook = self.pages_widgets["pages_notebook"]
-        page_name = pages_notebook.tab(pages_notebook.select(), "text")
+        current_frame = pages_notebook.nametowidget(pages_notebook.select())
+        page_name = self.page_frame_to_name.get(current_frame)
+        if not page_name:
+            messagebox.showerror("エラー", "現在のページ情報を取得できませんでした。")
+            return
         listbox = self.pages_widgets[page_name]["listbox"]
 
         new_entry = {
@@ -480,9 +594,38 @@ class SettingsEditor(tk.Toplevel):
                 except Exception as e:
                     messagebox.showerror("入力エラー", f"'{C.ConfigKey.RESIZABLE}' の値は 'True, False' のようにカンマ区切りの真偽値で入力してください。\nエラー: {e}")
                     return
+            elif key == C.ConfigKey.MENU_ORDER:
+                normalized_value = self.MENU_ORDER_DISPLAY_TO_VALUE.get(value, value)
+                if normalized_value not in ("normal", "reverse"):
+                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.MENU_ORDER}' は 通常 または 逆順 を選択してください。")
+                    return
+                settings[key] = normalized_value
+            elif key == C.ConfigKey.INITIAL_PAGE:
+                page_names = set(self.config.get(C.ConfigKey.PAGES, {}).keys())
+                if value not in page_names:
+                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.INITIAL_PAGE}' は既存ページから選択してください。")
+                    return
+                settings[key] = value
             else:
                 settings[key] = value
         self.config[C.ConfigKey.SETTINGS] = settings
+
+        # pagesのmenu_order保存（globalは未設定として扱う）
+        for page_name, var in self.page_menu_order_vars.items():
+            display_value = var.get()
+            value = self.MENU_ORDER_DISPLAY_TO_VALUE.get(display_value, display_value)
+            if value not in ("global", "normal", "reverse"):
+                messagebox.showerror("入力エラー", f"ページ '{page_name}' の表示順は 全体設定に従う / 通常 / 逆順 のいずれかを選択してください。")
+                return
+
+            page_data = self.config.get(C.ConfigKey.PAGES, {}).get(page_name)
+            if not page_data:
+                continue
+
+            if value == "global":
+                page_data.pop(C.ConfigKey.MENU_ORDER, None)
+            else:
+                page_data[C.ConfigKey.MENU_ORDER] = value
 
         # 新しい設定をConfigManager経由で保存
         if self.config_manager.save_config(self.config):

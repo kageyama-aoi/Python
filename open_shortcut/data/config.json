@@ -9,7 +9,8 @@
         "icon_folder": "assets/icons",
         "window_icon": "app_icon.ico",
         "default_button_icon": "2025-07-02_17h53_40.png",
-        "initial_page": "main_menu"
+        "initial_page": "mitubishi",
+        "menu_order": "normal"
     },
     "styles": {
         "TButton": {
@@ -113,7 +114,8 @@
                     "action": "open_directory",
                     "path": "G:\\マイドライブ\\作業フォルダ\\00_kageyama共通資料\\経費精算書"
                 }
-            ]
+            ],
+            "menu_order": "normal"
         },
         "tframe": {
             "title": "テスト[Tframe]",

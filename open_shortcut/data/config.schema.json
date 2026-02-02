@@ -18,7 +18,8 @@
                 "icon_folder": {"type": "string"},
                 "window_icon": {"type": "string"},
                 "default_button_icon": {"type": "string"},
-                "initial_page": {"type": "string"}
+                "initial_page": {"type": "string"},
+                "menu_order": {"type": "string", "enum": ["normal", "reverse"], "default": "normal"}
             },
             "required": ["window_title", "icon_folder", "initial_page"]
         },
@@ -35,6 +36,7 @@
                     "properties": {
                         "title": {"type": "string"},
                         "window_title": {"type": "string"},
+                        "menu_order": {"type": "string", "enum": ["global", "normal", "reverse"], "default": "global"},
                         "entries": {
                             "type": "array",
                             "items": { "$ref": "#/$defs/entry" }

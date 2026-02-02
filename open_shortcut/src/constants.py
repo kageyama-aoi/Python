@@ -24,6 +24,7 @@ class ConfigKey(str, Enum):
     WINDOW_ICON = "window_icon"
     DEFAULT_BUTTON_ICON = "default_button_icon"
     INITIAL_PAGE = "initial_page"
+    MENU_ORDER = "menu_order"
 
     # Page entry
     TYPE = "type"

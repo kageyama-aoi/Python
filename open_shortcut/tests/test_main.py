@@ -161,6 +161,48 @@ class TestDirectoryOpenerApp(unittest.TestCase):
         self.assertEqual(self.app.master.title(), expected_title, "ページ切り替え後のウィンドウタイトルが正しくありません。")
         self.assertIn(target_page_name, self.app.status_label.cget("text"), "ステータスバーのメッセージが正しくありません。")
 
+    def test_menu_order_reverse_displays_entries_in_reverse(self):
+        """menu_order=reverse のとき、メニュー項目が逆順で表示されることをテストする。"""
+        self.config["settings"]["menu_order"] = "reverse"
+
+        # reverse設定を反映した新しいアプリを作成
+        if self.root.winfo_exists():
+            self.root.destroy()
+        self.root = tk.Tk()
+        self.root.withdraw()
+        self.app = DirectoryOpenerApp(self.root)
+
+        main_page = self.app.pages["main_menu"]
+        button_texts = [
+            widget.cget("text")
+            for widget in main_page.winfo_children()
+            if isinstance(widget, ttk.Button)
+        ]
+
+        self.assertTrue(button_texts, "メインメニューにボタンが表示されていません。")
+        self.assertEqual(button_texts[0], "📁 経費精算書", "逆順表示時の先頭ボタンが期待と異なります。")
+
+    def test_page_menu_order_overrides_global_setting(self):
+        """ページ個別menu_orderが全体settings.menu_orderより優先されることをテストする。"""
+        self.config["settings"]["menu_order"] = "reverse"
+        self.config["pages"]["main_menu"]["menu_order"] = "normal"
+
+        if self.root.winfo_exists():
+            self.root.destroy()
+        self.root = tk.Tk()
+        self.root.withdraw()
+        self.app = DirectoryOpenerApp(self.root)
+
+        main_page = self.app.pages["main_menu"]
+        button_texts = [
+            widget.cget("text")
+            for widget in main_page.winfo_children()
+            if isinstance(widget, ttk.Button)
+        ]
+
+        self.assertTrue(button_texts, "メインメニューにボタンが表示されていません。")
+        self.assertEqual(button_texts[0], "→ テストメニューへ", "ページ個別表示順が全体設定を上書きできていません。")
+
     def test_dynamic_ui_reload(self):
         """動的リロード機能がUIを正しく再構築するかテストする。"""
         initial_button_text = "📁 Documents"
