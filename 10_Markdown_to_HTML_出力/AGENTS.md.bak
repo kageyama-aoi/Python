@@ -1,0 +1,32 @@
+# Repository Guidelines
+
+## プロジェクト構成 / モジュール整理
+- `build.py`: Markdown を HTML に変換し、`html/index.html` を生成する主スクリプト。
+- `md/`: 入力 Markdown（`*.md`）の置き場。ここが変換対象。
+- `html/`: 生成物の出力先。`index.html`、各 Markdown の HTML、`style.css` を配置。
+- `run_build.ps1` / `run_build.bat`: PowerShell / CMD からビルドを実行するラッパー。
+
+## ビルド / テスト / 開発コマンド
+- `python build.py`: 環境チェック後、`md/*.md` を `html/` に変換。
+- `.\run_build.ps1`: PowerShell から `python build.py` を実行。
+- `.\run_build.bat`: CMD から PowerShell スクリプトを実行。
+
+補足: `build.py` は Python の `markdown` パッケージが必要です。Python を PATH に通してください。
+
+## コーディング規約 / 命名
+- Python は 4 スペースインデント（PEP 8 準拠）。
+- `md` / `html` はコード内で固定参照のため、ディレクトリ名は変更しないでください。
+- Markdown は `.md` 拡張子を使用。ファイル名が HTML のタイトルと出力名になります。
+
+## テスト方針
+- 現在、自動テストはありません。
+- テストを追加する場合は、使用フレームワークと実行方法をここに追記してください。
+
+## コミット / PR ガイドライン
+- このフォルダは Git 管理されていません（`.git` なし）。
+- もし Git 管理を始める場合は、明確で短い命令形のコミットメッセージを推奨します。
+  PR には変更概要と検証手順を簡潔に記載してください。
+
+## セキュリティ / 設定の注意
+- ビルド時に `html/` へ書き込み、`.write_test` の一時ファイルを作成します。
+  `html/` に書き込み権限があることを確認してください。
