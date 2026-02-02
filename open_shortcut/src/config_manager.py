@@ -15,9 +15,19 @@ class ConfigManager:
         :param config_path: 設定ファイルのパス。
         :param schema_path: スキーマファイルのパス。
         """
-        self.config_path = config_path
-        self.schema_path = schema_path
+        self.config_path = self._resolve_project_path(config_path)
+        self.schema_path = self._resolve_project_path(schema_path)
         self.config = self.load_and_validate_config()
+
+    def _resolve_project_path(self, path: str) -> str:
+        """
+        相対パス指定をリポジトリルート基準の絶対パスへ解決する。
+        絶対パスが渡された場合はそのまま返す。
+        """
+        if os.path.isabs(path):
+            return path
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(project_root, path)
 
     def load_and_validate_config(self) -> dict | None:
         """
