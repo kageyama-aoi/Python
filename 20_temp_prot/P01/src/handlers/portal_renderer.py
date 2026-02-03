@@ -44,16 +44,17 @@ class PortalRenderer:
 
         fixed_total = sum(fixed_widths)
         fixed_group_style = build_group_sticky_style(0, fixed_total)
+        table_groups = build_table_groups(events, columns)
+        grouped_columns = [col for _, cols in table_groups for col in cols]
+
         header_group = (
             f"<th class='group-header sticky-top-1 sticky-col' style='{fixed_group_style}' "
             f"colspan='{len(self.fixed_columns)}'>"
             "対象・フロー（固定）</th>"
-            f"<th class='group-header sticky-top-1' colspan='{len(columns)}'>"
+            f"<th class='group-header sticky-top-1' colspan='{len(grouped_columns)}'>"
             f"<div class='group-title'>変更カラム（イベント内の更新）{legend_html}</div>"
             "</th>"
         )
-
-        table_groups = build_table_groups(events, columns)
         table_group_cells = [
             f"<th class='sticky-top-2 group-header sticky-col' style='{fixed_group_style}' "
             f"colspan='{len(self.fixed_columns)}'></th>"
@@ -69,7 +70,7 @@ class PortalRenderer:
             header_cells.append(
                 f"<th class='sticky-col sticky-top-3' style='{style}'>{col}</th>"
             )
-        for col in columns:
+        for col in grouped_columns:
             header_cells.append(f"<th class='sticky-top-3'>{col}</th>")
 
         body_rows = []
@@ -80,7 +81,7 @@ class PortalRenderer:
             row_cells = []
 
             fixed_values = [
-        event.get("case_id", ""),
+                event.get("case_id", ""),
                 event.get("table", ""),
                 event.get("operation", ""),
                 event.get("trigger", ""),
@@ -91,7 +92,7 @@ class PortalRenderer:
                     f"<td class='sticky-col' style='{style}'>{escape_html(value)}</td>"
                 )
 
-            for col in columns:
+            for col in grouped_columns:
                 change = event["changes"].get(col)
                 if not change:
                     row_cells.append("<td class='empty'></td>")
@@ -551,7 +552,18 @@ def build_table_groups(events, columns):
             seen.add(table)
             table_names.append(table)
 
+    attr_table_map = {}
+    for event in events:
+        table = (event.get("table") or "").strip()
+        if not table:
+            continue
+        for attr in event.get("changes", {}).keys():
+            if attr not in attr_table_map:
+                attr_table_map[attr] = table
+
     def resolve_group(col):
+        if col in attr_table_map:
+            return attr_table_map[col]
         for table in table_names:
             prefixes = [f"{table}_"]
             if table.endswith("s") and len(table) > 1:
@@ -561,28 +573,20 @@ def build_table_groups(events, columns):
                     return table
         return ""
 
-    groups = []
-    current_label = None
-    current_cols = []
-    for col in columns:
-        label = resolve_group(col)
-        if label == "":
-            if current_label:
-                label = current_label
-            elif table_names:
-                label = table_names[0]
-            else:
-                label = ""
-        if current_label is None:
-            current_label = label
-            current_cols = [col]
-            continue
-        if label == current_label:
-            current_cols.append(col)
+    grouped = []
+    used = set()
+    for table in table_names:
+        cols = [col for col in columns if resolve_group(col) == table]
+        if cols:
+            grouped.append((table, cols))
+            used.update(cols)
+
+    leftover = [col for col in columns if col not in used]
+    if leftover:
+        label = table_names[-1] if table_names else ""
+        if grouped and grouped[-1][0] == label:
+            grouped[-1] = (label, grouped[-1][1] + leftover)
         else:
-            groups.append((current_label, current_cols))
-            current_label = label
-            current_cols = [col]
-    if current_label is not None:
-        groups.append((current_label, current_cols))
-    return groups
+            grouped.append((label, leftover))
+
+    return grouped
