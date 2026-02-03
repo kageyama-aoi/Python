@@ -29,6 +29,11 @@ python src/main.py --config config/main.yaml
 - `--output data/output/portal`（configの出力先を上書き）
 - `--open`（生成後にブラウザで開く）
 
+### 入力ファイル指定の実行例
+```bash
+python src/main.py --config config/main.yaml --input data/input/data_flow_dummy_alt.csv
+```
+
 ## CSV仕様（概要）
 必須列: `case_id`, `attr_type`  
 推奨列: `table`, `operation`, `trigger`, `before`, `after`, `note`, `sql`
