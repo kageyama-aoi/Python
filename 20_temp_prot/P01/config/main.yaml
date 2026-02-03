@@ -1,0 +1,43 @@
+app:
+  name: "data-flow-portal"
+  version: "0.1.0"
+
+paths:
+  input_csv: "data/input/data_flow_dummy.csv"
+  output_dir: "data/output/portal"
+  assets_dir: "data/output/portal/assets"
+  log_dir: "logs"
+
+csv:
+  required_columns:
+    - event_id
+    - attr_type
+  optional_columns:
+    - table
+    - operation
+    - trigger
+    - before
+    - after
+    - note
+    - sql
+  carry_forward_columns:
+    - table
+    - operation
+    - trigger
+    - sql
+  null_values:
+    - "NULL"
+    - "null"
+    - "None"
+    - ""
+
+display:
+  fixed_columns:
+    - event_id
+    - table
+    - operation
+    - trigger
+  priority_columns: []
+  show_generated_at: true
+  show_input_name: true
+  show_legend: true

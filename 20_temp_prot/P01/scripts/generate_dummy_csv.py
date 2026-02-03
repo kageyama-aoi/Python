@@ -1,0 +1,202 @@
+import csv
+import os
+
+
+def build_rows():
+    return [
+        {
+            "event_id": "E001",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "注文確定",
+            "attr_type": "status",
+            "before": "NEW",
+            "after": "PAID",
+            "note": "決済完了",
+            "sql": "UPDATE orders SET ...",
+        },
+        {
+            "event_id": "E001",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "amount",
+            "before": "1000",
+            "after": "1000",
+            "note": "金額変更なし",
+            "sql": "",
+        },
+        {
+            "event_id": "E001",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "paid_at",
+            "before": "NULL",
+            "after": "2026-02-01",
+            "note": "決済日時",
+            "sql": "",
+        },
+        {
+            "event_id": "E001",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "deleted_flag",
+            "before": "0",
+            "after": "0",
+            "note": "変更なし",
+            "sql": "",
+        },
+        {
+            "event_id": "E002",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "キャンセル",
+            "attr_type": "status",
+            "before": "PAID",
+            "after": "CANCEL",
+            "note": "ユーザー操作",
+            "sql": "UPDATE orders SET ...",
+        },
+        {
+            "event_id": "E002",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "canceled_at",
+            "before": "NULL",
+            "after": "2026-02-02",
+            "note": "取消日時",
+            "sql": "",
+        },
+        {
+            "event_id": "E002",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "amount",
+            "before": "1000",
+            "after": "1000",
+            "note": "金額変更なし",
+            "sql": "",
+        },
+        {
+            "event_id": "E003",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "SupportTool",
+            "attr_type": "status",
+            "before": "CANCEL",
+            "after": "REFUND",
+            "note": "",
+            "sql": "UPDATE orders SET status='canceled' WHERE ...",
+        },
+        {
+            "event_id": "E003",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "canceled_at",
+            "before": "",
+            "after": "2026-02-03",
+            "note": "",
+            "sql": "",
+        },
+        {
+            "event_id": "E003",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "amount",
+            "before": "1000",
+            "after": "NULL",
+            "note": "",
+            "sql": "",
+        },
+        {
+            "event_id": "E004",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "BatchJob",
+            "attr_type": "deleted_flag",
+            "before": "0",
+            "after": "1",
+            "note": "",
+            "sql": "UPDATE orders SET deleted_flag=1 WHERE ...",
+        },
+        {
+            "event_id": "E004",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "status",
+            "before": "REFUND",
+            "after": "REFUND",
+            "note": "変更なし",
+            "sql": "",
+        },
+        {
+            "event_id": "E005",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "AdminUI",
+            "attr_type": "amount",
+            "before": "1000",
+            "after": "1500",
+            "note": "手動調整",
+            "sql": "UPDATE orders SET amount=1500 WHERE ...",
+        },
+        {
+            "event_id": "E005",
+            "table": "",
+            "operation": "",
+            "trigger": "",
+            "attr_type": "status",
+            "before": "REFUND",
+            "after": "REFUND",
+            "note": "",
+            "sql": "",
+        },
+        {
+            "event_id": "E006",
+            "table": "orders",
+            "operation": "UPDATE",
+            "trigger": "RefundAPI",
+            "attr_type": "paid_at",
+            "before": "2026-02-02",
+            "after": "NULL",
+            "note": "",
+            "sql": "UPDATE orders SET paid_at=NULL WHERE ...",
+        },
+    ]
+
+
+def main():
+    output_dir = os.path.join("data", "input")
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, "data_flow_dummy.csv")
+
+    rows = build_rows()
+    headers = [
+        "event_id",
+        "table",
+        "operation",
+        "trigger",
+        "attr_type",
+        "before",
+        "after",
+        "note",
+        "sql",
+    ]
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print(f"Generated: {output_path}")
+
+
+if __name__ == "__main__":
+    main()

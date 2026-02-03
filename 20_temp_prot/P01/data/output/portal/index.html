@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Data Flow Portal</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <h1>Data Flow Portal</h1>
+    <div class="meta">Generated: 2026-02-03 10:52:21 | Input: data_flow_dummy.csv</div>
+    
+            <div class="legend">
+              <span class="badge added">added</span>
+              <span class="badge removed">removed</span>
+              <span class="badge changed">changed</span>
+              <span class="badge same">same</span>
+            </div>
+            
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>event_id</th><th class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>table</th><th class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>operation</th><th class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>trigger</th><th>status</th><th>amount</th><th>paid_at</th><th>deleted_flag</th><th>canceled_at</th></tr>
+        </thead>
+        <tbody>
+          <tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E001</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>注文確定</td><td><span class='change'><span class='before'>NEW</span><span class='arrow'>→</span><span class='after changed'>PAID</span></span></td><td><span class='change same'>1000</span></td><td><span class='change'><span class='after added'>2026-02-01</span></span></td><td><span class='change same'>0</span></td><td class='empty'></td></tr><tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E002</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>キャンセル</td><td><span class='change'><span class='before'>PAID</span><span class='arrow'>→</span><span class='after changed'>CANCEL</span></span></td><td><span class='change same'>1000</span></td><td class='empty'></td><td class='empty'></td><td><span class='change'><span class='after added'>2026-02-02</span></span></td></tr><tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E003</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>SupportTool</td><td><span class='change'><span class='before'>CANCEL</span><span class='arrow'>→</span><span class='after changed'>REFUND</span></span></td><td><span class='change'><span class='before'>1000</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td><td class='empty'></td><td class='empty'></td><td><span class='change'><span class='after added'>2026-02-03</span></span></td></tr><tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E004</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>BatchJob</td><td><span class='change same'>REFUND</span></td><td class='empty'></td><td class='empty'></td><td><span class='change'><span class='before'>0</span><span class='arrow'>→</span><span class='after changed'>1</span></span></td><td class='empty'></td></tr><tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E005</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>AdminUI</td><td><span class='change same'>REFUND</span></td><td><span class='change'><span class='before'>1000</span><span class='arrow'>→</span><span class='after changed'>1500</span></span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E006</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>RefundAPI</td><td class='empty'></td><td class='empty'></td><td><span class='change'><span class='before'>2026-02-02</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td><td class='empty'></td><td class='empty'></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
