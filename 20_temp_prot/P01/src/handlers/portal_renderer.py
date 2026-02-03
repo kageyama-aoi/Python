@@ -553,16 +553,26 @@ def build_table_groups(events, columns):
 
     def resolve_group(col):
         for table in table_names:
-            prefix = f"{table}_"
-            if col.startswith(prefix):
-                return table
-        return "その他"
+            prefixes = [f"{table}_"]
+            if table.endswith("s") and len(table) > 1:
+                prefixes.append(f"{table[:-1]}_")
+            for prefix in prefixes:
+                if col.startswith(prefix):
+                    return table
+        return ""
 
     groups = []
     current_label = None
     current_cols = []
     for col in columns:
         label = resolve_group(col)
+        if label == "":
+            if current_label:
+                label = current_label
+            elif table_names:
+                label = table_names[0]
+            else:
+                label = ""
         if current_label is None:
             current_label = label
             current_cols = [col]
