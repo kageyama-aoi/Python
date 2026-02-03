@@ -128,6 +128,19 @@ td.empty {
   border-left: 4px solid var(--delete);
 }
 
+.op-insert td.sticky-col {
+  background: #ecfdf3;
+}
+
+.op-update td.sticky-col {
+  background: #fff7ed;
+}
+
+.op-delete td.sticky-col {
+  background: #f3f4f6;
+  color: var(--muted);
+}
+
 .change {
   display: inline-flex;
   align-items: center;
