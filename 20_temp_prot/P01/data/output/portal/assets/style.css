@@ -4,7 +4,7 @@
   --line: #e2e5ea;
   --text: #1f2a37;
   --muted: #6b7280;
-  --added: #0f766e;
+  --added: #22c55e;
   --removed: #b91c1c;
   --changed: #111827;
   --same: #9ca3af;
@@ -213,6 +213,10 @@ td.sticky-col {
 
 .change.same {
   color: var(--same);
+}
+
+.change.current {
+  color: var(--muted);
 }
 
 .detail-hover {

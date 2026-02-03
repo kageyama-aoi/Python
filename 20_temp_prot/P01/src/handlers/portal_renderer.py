@@ -105,7 +105,16 @@ class PortalRenderer:
                 change = event["changes"].get(col)
                 if not change:
                     group = col_group_map.get(col, "")
-                    row_cells.append(f"<td class='empty' data-group='{group}'></td>")
+                    current = (event.get("current_values") or {}).get(col)
+                    if current is not None and not is_null(current, self.null_values):
+                        current_text = display_value(current, self.null_values)
+                        row_cells.append(
+                            f"<td data-group='{group}'>"
+                            f"<span class='change current'>{current_text}</span>"
+                            "</td>"
+                        )
+                    else:
+                        row_cells.append(f"<td class='empty' data-group='{group}'></td>")
                     continue
                 cell_html = render_change(
                     event.get("case_id", ""),
@@ -172,7 +181,7 @@ def build_css():
   --line: #e2e5ea;
   --text: #1f2a37;
   --muted: #6b7280;
-  --added: #0f766e;
+  --added: #22c55e;
   --removed: #b91c1c;
   --changed: #111827;
   --same: #9ca3af;
@@ -381,6 +390,10 @@ td.sticky-col {
 
 .change.same {
   color: var(--same);
+}
+
+.change.current {
+  color: var(--muted);
 }
 
 .detail-hover {
