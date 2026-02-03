@@ -41,6 +41,26 @@ h1 {
   margin-bottom: 12px;
 }
 
+.legend.inline {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.controls {
+  margin: 8px 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -99,6 +119,13 @@ th {
 .group-header {
   text-align: center;
   letter-spacing: 0.02em;
+}
+
+.group-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 tr:hover td {
@@ -168,4 +195,40 @@ td.empty {
 
 .change.same {
   color: var(--same);
+}
+
+.detail-hover {
+  position: relative;
+  cursor: help;
+}
+
+.detail-hover:hover::after,
+.detail-hover:focus::after {
+  content: attr(data-detail);
+  white-space: pre-line;
+  position: absolute;
+  left: 0;
+  bottom: 120%;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.detail-hover:hover::before,
+.detail-hover:focus::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  bottom: 110%;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: #111827 transparent transparent transparent;
+  z-index: 10;
 }
