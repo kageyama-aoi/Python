@@ -36,7 +36,7 @@ class TestTableGrouping(unittest.TestCase):
         columns = plan_columns(filled, config["display"].get("priority_columns", []))
 
         renderer = PortalRenderer(config)
-        html = renderer._build_html(events, columns, config["paths"]["input_csv"], "assets/style.css")
+        html = renderer.build_html(events, columns, config["paths"]["input_csv"], "assets/style.css")
 
         thead_match = re.search(r"<thead>(.*?)</thead>", html, re.DOTALL)
         self.assertIsNotNone(thead_match, "thead not found in HTML")
