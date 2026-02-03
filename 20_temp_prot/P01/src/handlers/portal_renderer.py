@@ -92,6 +92,7 @@ class PortalRenderer:
             operation = (event.get("operation") or "").lower()
             row_class = f"op-{operation}" if operation else ""
             table_value = escape_html(event.get("table", ""))
+            case_value = escape_html(event.get("case_id", ""))
             row_cells = []
 
             for idx, col in enumerate(self.fixed_columns):
@@ -137,7 +138,7 @@ class PortalRenderer:
                 )
 
             body_rows.append(
-                f"<tr class='{row_class}' data-table='{table_value}'>"
+                f"<tr class='{row_class}' data-table='{table_value}' data-case='{case_value}'>"
                 + "".join(row_cells)
                 + "</tr>"
             )
@@ -606,6 +607,24 @@ def build_table_filter(events):
     return f"<select id='tableFilter'>{''.join(options)}</select>"
 
 
+def build_case_filter(events):
+    cases = []
+    seen = set()
+    for event in events:
+        case_id = (event.get("case_id") or "").strip()
+        if case_id and case_id not in seen:
+            seen.add(case_id)
+            trigger = (event.get("trigger") or "").strip()
+            label = f"{case_id}:{trigger}" if trigger else case_id
+            cases.append((case_id, label))
+    options = ["<option value=''>すべて</option>"]
+    for case_id, label in cases:
+        options.append(
+            f"<option value='{escape_html(case_id)}'>{escape_html(label)}</option>"
+        )
+    return f"<select id='caseFilter'>{''.join(options)}</select>"
+
+
 def build_controls(events, input_candidates, current_input):
     options = []
     for path in input_candidates:
@@ -615,6 +634,8 @@ def build_controls(events, input_candidates, current_input):
         "<div class=\"controls\">"
         "<label for=\"tableFilter\">テーブル絞り込み:</label>"
         f"{build_table_filter(events)}"
+        "<label for=\"caseFilter\">ケース絞り込み:</label>"
+        f"{build_case_filter(events)}"
         "<label for=\"inputSelector\">入力CSV:</label>"
         f"<select id=\"inputSelector\">{''.join(options)}</select>"
         "<span class=\"hint\" id=\"inputHint\">選択後は再生成が必要です</span>"
@@ -635,22 +656,27 @@ def build_filter_script():
     return """
   <script>
     const tableFilter = document.getElementById('tableFilter');
-    if (tableFilter) {
+    const caseFilter = document.getElementById('caseFilter');
+    if (tableFilter || caseFilter) {
       const changeGroupHeader = document.getElementById('changeGroupHeader');
       const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
       const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
-      tableFilter.addEventListener('change', () => {
-        const value = tableFilter.value;
+      const applyFilters = () => {
+        const tableValue = tableFilter ? tableFilter.value : '';
+        const caseValue = caseFilter ? caseFilter.value : '';
         document.querySelectorAll('tbody tr').forEach((row) => {
           const table = row.getAttribute('data-table') || '';
-          row.style.display = (value === '' || table === value) ? '' : 'none';
+          const caseId = row.getAttribute('data-case') || '';
+          const tableOk = (tableValue === '' || table === tableValue);
+          const caseOk = (caseValue === '' || caseId === caseValue);
+          row.style.display = (tableOk && caseOk) ? '' : 'none';
         });
 
         const visibleGroups = new Map();
         groupHeaderCells.forEach((th) => {
           const group = th.getAttribute('data-group') || '';
           const count = parseInt(th.getAttribute('data-count') || '0', 10);
-          const visible = (value === '' || group === value);
+          const visible = (tableValue === '' || group === tableValue);
           th.style.display = visible ? '' : 'none';
           if (visible) {
             visibleGroups.set(group, count);
@@ -660,19 +686,26 @@ def build_filter_script():
 
         columnCells.forEach((cell) => {
           const group = cell.getAttribute('data-group') || '';
-          const visible = (value === '' || group === value);
+          const visible = (tableValue === '' || group === tableValue);
           cell.style.display = visible ? '' : 'none';
         });
 
         if (changeGroupHeader) {
           let total = 0;
           visibleGroups.forEach((count) => { total += count; });
-          if (value === '') {
+          if (tableValue === '') {
             total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
           }
           changeGroupHeader.setAttribute('colspan', String(total));
         }
-      });
+      };
+
+      if (tableFilter) {
+        tableFilter.addEventListener('change', applyFilters);
+      }
+      if (caseFilter) {
+        caseFilter.addEventListener('change', applyFilters);
+      }
     }
 
     const inputSelector = document.getElementById('inputSelector');
