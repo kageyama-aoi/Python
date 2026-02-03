@@ -61,6 +61,11 @@ h1 {
   background: #fff;
 }
 
+.controls .hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -128,6 +133,10 @@ th {
 .group-header {
   text-align: center;
   letter-spacing: 0.02em;
+  font-size: 14px;
+  font-weight: 700;
+  background: #eef2f7;
+  border-bottom: 2px solid #cbd5e1;
 }
 
 .group-title {
@@ -139,6 +148,10 @@ th {
 
 tr:hover td {
   background: #f3f4f6;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafafa;
 }
 
 td.empty {
@@ -155,10 +168,16 @@ td.empty {
 
 th.sticky-col {
   z-index: 7;
+  color: var(--muted);
+  font-size: 12px;
+  background: #f7f7f9;
 }
 
 td.sticky-col {
   z-index: 3;
+  color: var(--muted);
+  font-size: 12px;
+  background: #f7f7f9;
 }
 
 .op-insert td:first-child {
@@ -199,16 +218,25 @@ td.sticky-col {
 .change .after.added {
   color: var(--added);
   font-weight: 600;
+  background: #dcfce7;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change .after.removed {
   color: var(--removed);
   font-weight: 600;
+  background: #fee2e2;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change .after.changed {
   color: var(--changed);
   font-weight: 700;
+  background: #fef3c7;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change.same {
@@ -217,6 +245,15 @@ td.sticky-col {
 
 .change.current {
   color: var(--muted);
+  font-style: italic;
+}
+
+.group-start {
+  border-left: 3px solid #94a3b8 !important;
+}
+
+.fixed-header-top {
+  border-top: 3px solid #94a3b8 !important;
 }
 
 .detail-hover {

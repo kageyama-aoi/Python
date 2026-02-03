@@ -48,3 +48,6 @@ display:
     products: "商品登録"
     shipments: "出荷"
     subscriptions: "契約"
+  input_candidates:
+    - "data/input/data_flow_dummy.csv"
+    - "data/input/data_flow_dummy_alt.csv"
