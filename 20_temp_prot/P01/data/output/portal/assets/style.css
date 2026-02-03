@@ -81,6 +81,26 @@ th {
   z-index: 3;
 }
 
+.sticky-top-1 {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #eef2f7;
+  font-weight: 600;
+}
+
+.sticky-top-2 {
+  position: sticky;
+  top: 32px;
+  z-index: 3;
+  background: #f9fafb;
+}
+
+.group-header {
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
 tr:hover td {
   background: #f3f4f6;
 }
