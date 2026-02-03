@@ -31,11 +31,23 @@ class PortalRenderer:
         fixed_widths = build_fixed_widths(self.fixed_columns)
         left_offsets = build_left_offsets(fixed_widths)
 
+        legend_html = ""
+        if self.config["display"].get("show_legend", True):
+            legend_html = """
+            <div class="legend inline">
+              <span class="badge added">added</span>
+              <span class="badge removed">removed</span>
+              <span class="badge changed">changed</span>
+              <span class="badge same">same</span>
+            </div>
+            """
+
         header_group = (
             f"<th class='group-header sticky-top-1' colspan='{len(self.fixed_columns)}'>"
             "対象・フロー（固定）</th>"
             f"<th class='group-header sticky-top-1' colspan='{len(columns)}'>"
-            "変更カラム（イベント内の更新）</th>"
+            f"<div class='group-title'>変更カラム（イベント内の更新）{legend_html}</div>"
+            "</th>"
         )
 
         header_cells = []
@@ -51,6 +63,7 @@ class PortalRenderer:
         for event in events:
             operation = (event.get("operation") or "").lower()
             row_class = f"op-{operation}" if operation else ""
+            table_value = escape_html(event.get("table", ""))
             row_cells = []
 
             fixed_values = [
@@ -71,26 +84,21 @@ class PortalRenderer:
                     row_cells.append("<td class='empty'></td>")
                     continue
                 cell_html = render_change(
+                    event.get("event_id", ""),
+                    col,
                     change.get("before", ""),
                     change.get("after", ""),
                     self.null_values,
+                    event.get("operation", ""),
+                    event.get("trigger", ""),
                 )
                 row_cells.append(f"<td>{cell_html}</td>")
 
             body_rows.append(
-                f"<tr class='{row_class}'>" + "".join(row_cells) + "</tr>"
+                f"<tr class='{row_class}' data-table='{table_value}'>"
+                + "".join(row_cells)
+                + "</tr>"
             )
-
-        legend_html = ""
-        if self.config["display"].get("show_legend", True):
-            legend_html = """
-            <div class="legend">
-              <span class="badge added">added</span>
-              <span class="badge removed">removed</span>
-              <span class="badge changed">changed</span>
-              <span class="badge same">same</span>
-            </div>
-            """
 
         meta_parts = []
         if self.config["display"].get("show_generated_at", True):
@@ -114,7 +122,10 @@ class PortalRenderer:
   <div class="portal-container">
     <h1>Data Flow Portal</h1>
     <div class="meta">{meta_html}</div>
-    {legend_html}
+    <div class="controls">
+      <label for="tableFilter">テーブル絞り込み:</label>
+      {build_table_filter(events)}
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -127,6 +138,18 @@ class PortalRenderer:
       </table>
     </div>
   </div>
+  <script>
+    const tableFilter = document.getElementById('tableFilter');
+    if (tableFilter) {{
+      tableFilter.addEventListener('change', () => {{
+        const value = tableFilter.value;
+        document.querySelectorAll('tbody tr').forEach((row) => {{
+          const table = row.getAttribute('data-table') || '';
+          row.style.display = (value === '' || table === value) ? '' : 'none';
+        }});
+      }});
+    }}
+  </script>
 </body>
 </html>
 """
@@ -174,6 +197,26 @@ h1 {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.legend.inline {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.controls {
+  margin: 8px 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
 }
 
 .badge {
@@ -234,6 +277,13 @@ th {
 .group-header {
   text-align: center;
   letter-spacing: 0.02em;
+}
+
+.group-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 tr:hover td {
@@ -304,6 +354,42 @@ td.empty {
 .change.same {
   color: var(--same);
 }
+
+.detail-hover {
+  position: relative;
+  cursor: help;
+}
+
+.detail-hover:hover::after,
+.detail-hover:focus::after {
+  content: attr(data-detail);
+  white-space: pre-line;
+  position: absolute;
+  left: 0;
+  bottom: 120%;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.detail-hover:hover::before,
+.detail-hover:focus::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  bottom: 110%;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: #111827 transparent transparent transparent;
+  z-index: 10;
+}
 """
 
 
@@ -333,32 +419,44 @@ def build_sticky_style(left, width):
     return f"left: {left}px; min-width: {width}px; max-width: {width}px;"
 
 
-def render_change(before, after, null_values):
+def render_change(event_id, attr_type, before, after, null_values, operation, trigger):
+    detail_text = (
+        f"{event_id} / {attr_type}\n"
+        f"operation: {operation}\n"
+        f"trigger: {trigger}\n"
+        "詳細は後で追記"
+    )
     before_text = display_value(before, null_values)
     after_text = display_value(after, null_values)
     before_is_null = is_null(before, null_values)
     after_is_null = is_null(after, null_values)
 
     if before_is_null and after_is_null:
-        return f"<span class='change same'>{before_text}</span>"
+        return (
+            f"<span class='change same detail-hover' data-detail='{escape_html(detail_text)}'>"
+            f"{before_text}</span>"
+        )
     if not before_is_null and not after_is_null and before_text == after_text:
-        return f"<span class='change same'>{before_text}</span>"
+        return (
+            f"<span class='change same detail-hover' data-detail='{escape_html(detail_text)}'>"
+            f"{before_text}</span>"
+        )
     if before_is_null and not after_is_null:
         return (
-            "<span class='change'>"
+            f"<span class='change detail-hover' data-detail='{escape_html(detail_text)}'>"
             f"<span class='after added'>{after_text}</span>"
             "</span>"
         )
     if not before_is_null and after_is_null:
         return (
-            "<span class='change'>"
+            f"<span class='change detail-hover' data-detail='{escape_html(detail_text)}'>"
             f"<span class='before'>{before_text}</span>"
             "<span class='arrow'>→</span>"
             f"<span class='after removed'>{after_text}</span>"
             "</span>"
         )
     return (
-        "<span class='change'>"
+        f"<span class='change detail-hover' data-detail='{escape_html(detail_text)}'>"
         f"<span class='before'>{before_text}</span>"
         "<span class='arrow'>→</span>"
         f"<span class='after changed'>{after_text}</span>"
@@ -389,3 +487,17 @@ def escape_html(text):
         .replace('"', "&quot;")
         .replace("'", "&#39;")
     )
+
+
+def build_table_filter(events):
+    tables = []
+    seen = set()
+    for event in events:
+        table = (event.get("table") or "").strip()
+        if table and table not in seen:
+            seen.add(table)
+            tables.append(table)
+    options = ["<option value=''>すべて</option>"]
+    for table in tables:
+        options.append(f"<option value='{escape_html(table)}'>{escape_html(table)}</option>")
+    return f"<select id='tableFilter'>{''.join(options)}</select>"
