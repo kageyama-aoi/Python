@@ -32,7 +32,7 @@ class TestTableGrouping(unittest.TestCase):
             config["csv"]["carry_forward_columns"],
             config["csv"]["required_columns"],
         )
-        events = aggregate_events(filled)
+        events = aggregate_events(filled, config["csv"]["null_values"])
         columns = plan_columns(filled, config["display"].get("priority_columns", []))
 
         renderer = PortalRenderer(config)

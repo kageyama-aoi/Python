@@ -50,7 +50,7 @@ def main():
             config["csv"]["carry_forward_columns"],
             config["csv"]["required_columns"],
         )
-        events = aggregate_events(filled_rows)
+        events = aggregate_events(filled_rows, config["csv"]["null_values"])
         columns = plan_columns(
             filled_rows,
             config["display"].get("priority_columns", []),
