@@ -48,7 +48,14 @@ class TestTableGrouping(unittest.TestCase):
         labels = [re.sub(r"<.*?>", "", label).strip() for label in labels]
         labels = [label for label in labels if label]
 
-        expected_order = ["products", "shipments", "subscriptions"]
+        expected_order = []
+        seen = set()
+        for event in events:
+            table = (event.get("table") or "").strip()
+            if table and table not in seen:
+                seen.add(table)
+                expected_order.append(table)
+
         self.assertEqual(labels, expected_order)
         self.assertEqual(len(labels), len(set(labels)), "table group labels are repeated")
 

@@ -1,11 +1,17 @@
 case_id,table,operation,trigger,attr_type,before,after,note,sql
-CASE-A01,products,INSERT,商品登録,product_name,NULL,Widget-A,初回登録,INSERT INTO products ...
-CASE-A01,,,,price,NULL,300,初期価格,
-CASE-A01,,,,stock,NULL,50,初期在庫,
-CASE-A02,shipments,UPDATE,出荷処理,shipment_status,READY,SHIPPED,出荷完了,UPDATE shipments SET ...
-CASE-A02,,,,shipped_at,NULL,2026-02-03,出荷日時,
-CASE-A03,subscriptions,UPDATE,契約更新,plan_code,BASIC,PRO,上位プランへ,UPDATE subscriptions SET ...
-CASE-A03,,,,renewed_at,NULL,2026-02-04,更新日,
-CASE-A03,,,,next_billing,NULL,2026-03-04,次回課金,
-CASE-A04,products,DELETE,商品廃止,deleted_flag,0,1,廃止,DELETE FROM products WHERE ...
-CASE-A05,shipments,UPDATE,配送遅延,delay_reason,NULL,WEATHER,天候,UPDATE shipments SET ...
+CASE-KV01,event_contacts,INSERT,クラス適用ｗ (画面B),event_contact_status,NULL,0,受講生としてクラスに紐付け [2],"INSERT INTO event_contacts (contact_id, event_id, event_contact_status) VALUES (..., '0');"
+CASE-KV01,keiri_shori_status,INSERT,クラス適用 (画面B),gamen,NULL,B,経理処理ステータスを画面Bで開始 [1, 3],"INSERT INTO keiri_shori_status (contact_id, event_id, gamen, class_keiri_status) VALUES (..., 'B', 'active');"
+CASE-KV02,sms_fee,INSERT,コース料金設定 (画面B),fee_subcategory,NULL,20,月謝料金(20)レコード作成 [4],"INSERT INTO sms_fee (contact_id, fee_subcategory, basic_fee, start_date) VALUES (..., '20', ...);"
+CASE-KV02,keiri_shori_status,UPDATE,コース料金設定 (画面B),class_keiri_status,active,inactive,コース設定完了により待機状態へ [5],"UPDATE keiri_shori_status SET class_keiri_status = 'inactive', fees_id = 'SF001' WHERE ...;"
+CASE-KV03,event_shimacourse_contacts,INSERT,コース追加/レンタル設定 (画面C),fee_start_date,NULL,2025-11-01,レンタル等の追加コース契約作成 [6],"INSERT INTO event_shimacourse_contacts (contact_id, course_id, fee_start_date) VALUES (...);"
+CASE-KV03,sms_fee,INSERT,コース追加/レンタル設定 (画面C),fee_subcategory,NULL,50,楽器レンタル費(50)レコード作成 [7],"INSERT INTO sms_fee (contact_id, fee_subcategory, basic_fee, input_location) VALUES (..., '50', ..., 'KV_C');"
+CASE-KV03,keiri_shori_status,UPDATE,コース追加/レンタル設定 (画面C),gamen,B,C,現在の操作画面情報をCに更新 [1, 8],"UPDATE keiri_shori_status SET gamen = 'C' WHERE ...;"
+CASE-KV04,sms_fee,INSERT,商品追加設定 (画面D),fee_subcategory,NULL,100,物販商品(100)の料金レコード作成 [9],"INSERT INTO sms_fee (contact_id, fee_subcategory, basic_fee, input_location) VALUES (..., '100', ..., 'KV_D');"
+CASE-KV04,keiri_shori_status,UPDATE,商品追加設定 (画面D),gamen,C,D,現在の操作画面情報をDに更新 [1, 10],"UPDATE keiri_shori_status SET gamen = 'D' WHERE ...;"
+CASE-KV05,resource_sub1,UPDATE,売上計上する (共通),last_invoice_id_c,100,101,店舗の最終明細番号を採番 [11, 12],"UPDATE resource_sub1 SET last_invoice_id_c = last_invoice_id_c + 1 WHERE id_sub1 = ...;"
+CASE-KV05,sms_salesgroup,INSERT,売上計上する (共通),salesno,NULL,S001-00000101,請求明細ヘッダーを新規作成 [11, 13],"INSERT INTO sms_salesgroup (contact_id, salesno, sell_date) VALUES (...);"
+CASE-KV05,sms_transaction,INSERT,売上計上する (共通),actual_in_amount,NULL,0,入金額0(未入金)で明細を作成 [14, 15],"INSERT INTO sms_transaction (fee_id, in_amount, actual_in_amount) VALUES (..., 5500, 0);"
+CASE-KV05,keiri_shori_status,UPDATE,売上計上する (共通),gamen,B/C/D,E,確認画面Eへ遷移するためのステータス更新 [1, 16],"UPDATE keiri_shori_status SET gamen = 'E' WHERE ...;"
+CASE-KV06,keiri_shori_status,DELETE,確認完了 (画面E),deleted,0,1,処理終了した経理情報を論理削除 [1, 17],"UPDATE keiri_shori_status SET deleted = 1 WHERE contact_id = ...;"
+CASE-KV07,keiri_shori_status,DELETE,操作内容取消 (共通),deleted,0,1,未完了の経理中情報を破棄 [18, 19],"DELETE FROM keiri_shori_status WHERE contact_id = ... AND deleted = 0;"
+CASE-KV07,sms_fee,UPDATE,操作内容取消 (共通),deleted,0,1,経理途中で作成された料金を論理削除 [20, 21],"UPDATE sms_fee SET deleted = 1 WHERE id = ...;"

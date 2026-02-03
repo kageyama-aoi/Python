@@ -53,21 +53,21 @@ class PortalRenderer:
                 col_group_map[col] = label
 
         header_group = (
-            f"<th class='group-header sticky-top-1 sticky-col' style='{fixed_group_style}' "
-            f"colspan='{len(self.fixed_columns)}'>"
+            f"<th class='group-header sticky-top-1 sticky-col fixed-header-top' "
+            f"style='{fixed_group_style}' colspan='{len(self.fixed_columns)}'>"
             "対象・フロー（固定）</th>"
-            f"<th id='changeGroupHeader' class='group-header sticky-top-1' "
+            f"<th id='changeGroupHeader' class='group-header sticky-top-1 fixed-header-top' "
             f"data-count='{len(grouped_columns)}' colspan='{len(grouped_columns)}'>"
             f"<div class='group-title'>変更カラム（イベント内の更新）{legend_html}</div>"
             "</th>"
         )
         table_group_cells = [
-            f"<th class='sticky-top-2 group-header sticky-col' style='{fixed_group_style}' "
-            f"colspan='{len(self.fixed_columns)}'></th>"
+            f"<th class='sticky-top-2 group-header sticky-col fixed-header-top' "
+            f"style='{fixed_group_style}' colspan='{len(self.fixed_columns)}'></th>"
         ]
         for label, cols in table_groups:
             table_group_cells.append(
-                f"<th class='sticky-top-2 group-header' data-group='{label}' "
+                f"<th class='sticky-top-2 group-header fixed-header-top' data-group='{label}' "
                 f"data-count='{len(cols)}' colspan='{len(cols)}'>{label}</th>"
             )
 
@@ -75,12 +75,16 @@ class PortalRenderer:
         for idx, col in enumerate(self.fixed_columns):
             style = build_sticky_style(left_offsets[idx], fixed_widths[idx])
             header_cells.append(
-                f"<th class='sticky-col sticky-top-3' style='{style}'>{col}</th>"
+                f"<th class='sticky-col sticky-top-3 fixed-header-top' "
+                f"style='{style}'>{col}</th>"
             )
+        group_starts = build_group_starts(table_groups)
         for col in grouped_columns:
             group = col_group_map.get(col, "")
+            start_class = " group-start" if col in group_starts else ""
+            label = extract_attr_label(col)
             header_cells.append(
-                f"<th class='sticky-top-3' data-group='{group}'>{col}</th>"
+                f"<th class='sticky-top-3 fixed-header-top{start_class}' data-group='{group}'>{label}</th>"
             )
 
         body_rows = []
@@ -109,16 +113,18 @@ class PortalRenderer:
                     if current is not None and not is_null(current, self.null_values):
                         current_text = display_value(current, self.null_values)
                         row_cells.append(
-                            f"<td data-group='{group}'>"
+                            f"<td data-group='{group}'{(' class=\"group-start\"' if col in group_starts else '')}>"
                             f"<span class='change current'>{current_text}</span>"
                             "</td>"
                         )
                     else:
-                        row_cells.append(f"<td class='empty' data-group='{group}'></td>")
+                        row_cells.append(
+                            f"<td class='empty{(' group-start' if col in group_starts else '')}' data-group='{group}'></td>"
+                        )
                     continue
                 cell_html = render_change(
                     event.get("case_id", ""),
-                    col,
+                    extract_attr_label(col),
                     change.get("before", ""),
                     change.get("after", ""),
                     self.null_values,
@@ -126,7 +132,9 @@ class PortalRenderer:
                     event.get("trigger", ""),
                 )
                 group = col_group_map.get(col, "")
-                row_cells.append(f"<td data-group='{group}'>{cell_html}</td>")
+                row_cells.append(
+                    f"<td data-group='{group}'{(' class=\"group-start\"' if col in group_starts else '')}>{cell_html}</td>"
+                )
 
             body_rows.append(
                 f"<tr class='{row_class}' data-table='{table_value}'>"
@@ -140,7 +148,11 @@ class PortalRenderer:
             self.config["display"].get("show_generated_at", True),
             self.config["display"].get("show_input_name", True),
         )
-        controls_html = build_controls(events)
+        controls_html = build_controls(
+            events,
+            self.config["display"].get("input_candidates", []),
+            input_csv,
+        )
         script_html = build_filter_script()
 
         return f"""<!DOCTYPE html>
@@ -238,6 +250,11 @@ h1 {
   background: #fff;
 }
 
+.controls .hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -305,6 +322,10 @@ th {
 .group-header {
   text-align: center;
   letter-spacing: 0.02em;
+  font-size: 14px;
+  font-weight: 700;
+  background: #eef2f7;
+  border-bottom: 2px solid #cbd5e1;
 }
 
 .group-title {
@@ -316,6 +337,10 @@ th {
 
 tr:hover td {
   background: #f3f4f6;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafafa;
 }
 
 td.empty {
@@ -332,10 +357,16 @@ td.empty {
 
 th.sticky-col {
   z-index: 7;
+  color: var(--muted);
+  font-size: 12px;
+  background: #f7f7f9;
 }
 
 td.sticky-col {
   z-index: 3;
+  color: var(--muted);
+  font-size: 12px;
+  background: #f7f7f9;
 }
 
 .op-insert td:first-child {
@@ -376,16 +407,25 @@ td.sticky-col {
 .change .after.added {
   color: var(--added);
   font-weight: 600;
+  background: #dcfce7;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change .after.removed {
   color: var(--removed);
   font-weight: 600;
+  background: #fee2e2;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change .after.changed {
   color: var(--changed);
   font-weight: 700;
+  background: #fef3c7;
+  padding: 1px 3px;
+  border-radius: 4px;
 }
 
 .change.same {
@@ -394,6 +434,15 @@ td.sticky-col {
 
 .change.current {
   color: var(--muted);
+  font-style: italic;
+}
+
+.group-start {
+  border-left: 3px solid #94a3b8 !important;
+}
+
+.fixed-header-top {
+  border-top: 3px solid #94a3b8 !important;
 }
 
 .detail-hover {
@@ -557,11 +606,18 @@ def build_table_filter(events):
     return f"<select id='tableFilter'>{''.join(options)}</select>"
 
 
-def build_controls(events):
+def build_controls(events, input_candidates, current_input):
+    options = []
+    for path in input_candidates:
+        selected = " selected" if path == current_input else ""
+        options.append(f"<option value='{escape_html(path)}'{selected}>{escape_html(os.path.basename(path))}</option>")
     return (
         "<div class=\"controls\">"
         "<label for=\"tableFilter\">テーブル絞り込み:</label>"
         f"{build_table_filter(events)}"
+        "<label for=\"inputSelector\">入力CSV:</label>"
+        f"<select id=\"inputSelector\">{''.join(options)}</select>"
+        "<span class=\"hint\" id=\"inputHint\">選択後は再生成が必要です</span>"
         "</div>"
     )
 
@@ -618,18 +674,27 @@ def build_filter_script():
         }
       });
     }
+
+    const inputSelector = document.getElementById('inputSelector');
+    if (inputSelector) {
+      inputSelector.addEventListener('change', () => {
+        const hint = document.getElementById('inputHint');
+        if (hint) {
+          hint.textContent = '選択後は再生成が必要です';
+        }
+      });
+    }
   </script>
     """
 
 
 def build_table_groups(events, columns):
     table_names = extract_table_names(events)
-    attr_table_map = build_attr_table_map(events)
 
     grouped = []
     used = set()
     for table in table_names:
-        cols = [col for col in columns if resolve_group(col, table_names, attr_table_map) == table]
+        cols = [col for col in columns if resolve_group(col, table_names) == table]
         if cols:
             grouped.append((table, cols))
             used.update(cols)
@@ -645,6 +710,14 @@ def build_table_groups(events, columns):
     return grouped
 
 
+def build_group_starts(table_groups):
+    starts = set()
+    for _, cols in table_groups:
+        if cols:
+            starts.add(cols[0])
+    return starts
+
+
 def extract_table_names(events):
     table_names = []
     seen = set()
@@ -656,21 +729,10 @@ def extract_table_names(events):
     return table_names
 
 
-def build_attr_table_map(events):
-    attr_table_map = {}
-    for event in events:
-        table = (event.get("table") or "").strip()
-        if not table:
-            continue
-        for attr in event.get("changes", {}).keys():
-            if attr not in attr_table_map:
-                attr_table_map[attr] = table
-    return attr_table_map
-
-
-def resolve_group(column, table_names, attr_table_map):
-    if column in attr_table_map:
-        return attr_table_map[column]
+def resolve_group(column, table_names):
+    table, _ = split_attr_key(column)
+    if table:
+        return table
     for table in table_names:
         prefixes = [f"{table}_"]
         if table.endswith("s") and len(table) > 1:
@@ -679,3 +741,15 @@ def resolve_group(column, table_names, attr_table_map):
             if column.startswith(prefix):
                 return table
     return ""
+
+
+def split_attr_key(column):
+    if "::" in column:
+        table, attr = column.split("::", 1)
+        return table, attr
+    return "", column
+
+
+def extract_attr_label(column):
+    _, attr = split_attr_key(column)
+    return attr
