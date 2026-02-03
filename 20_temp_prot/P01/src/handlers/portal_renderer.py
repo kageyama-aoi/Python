@@ -30,6 +30,7 @@ class PortalRenderer:
         generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fixed_widths = build_fixed_widths(self.fixed_columns)
         left_offsets = build_left_offsets(fixed_widths)
+        table_labels = self.config["display"].get("table_labels", {})
 
         legend_html = ""
         if self.config["display"].get("show_legend", True):
@@ -89,16 +90,15 @@ class PortalRenderer:
             table_value = escape_html(event.get("table", ""))
             row_cells = []
 
-            fixed_values = [
-                event.get("case_id", ""),
-                event.get("table", ""),
-                event.get("operation", ""),
-                event.get("trigger", ""),
-            ]
-            for idx, value in enumerate(fixed_values):
+            for idx, col in enumerate(self.fixed_columns):
+                value = event.get(col, "")
                 style = build_sticky_style(left_offsets[idx], fixed_widths[idx])
+                if col == "table":
+                    cell_value = format_table_value(value, table_labels)
+                else:
+                    cell_value = escape_html(value)
                 row_cells.append(
-                    f"<td class='sticky-col' style='{style}'>{escape_html(value)}</td>"
+                    f"<td class='sticky-col' style='{style}'>{cell_value}</td>"
                 )
 
             for col in grouped_columns:
@@ -520,6 +520,16 @@ def escape_html(text):
     )
 
 
+def format_table_value(value, table_labels):
+    logical = (value or "").strip()
+    if not logical:
+        return ""
+    label = table_labels.get(logical)
+    if not label:
+        return escape_html(logical)
+    return f"{escape_html(logical)}<br>({escape_html(label)})"
+
+
 def build_table_filter(events):
     tables = []
     seen = set()
@@ -600,39 +610,13 @@ def build_filter_script():
 
 
 def build_table_groups(events, columns):
-    table_names = []
-    seen = set()
-    for event in events:
-        table = (event.get("table") or "").strip()
-        if table and table not in seen:
-            seen.add(table)
-            table_names.append(table)
-
-    attr_table_map = {}
-    for event in events:
-        table = (event.get("table") or "").strip()
-        if not table:
-            continue
-        for attr in event.get("changes", {}).keys():
-            if attr not in attr_table_map:
-                attr_table_map[attr] = table
-
-    def resolve_group(col):
-        if col in attr_table_map:
-            return attr_table_map[col]
-        for table in table_names:
-            prefixes = [f"{table}_"]
-            if table.endswith("s") and len(table) > 1:
-                prefixes.append(f"{table[:-1]}_")
-            for prefix in prefixes:
-                if col.startswith(prefix):
-                    return table
-        return ""
+    table_names = extract_table_names(events)
+    attr_table_map = build_attr_table_map(events)
 
     grouped = []
     used = set()
     for table in table_names:
-        cols = [col for col in columns if resolve_group(col) == table]
+        cols = [col for col in columns if resolve_group(col, table_names, attr_table_map) == table]
         if cols:
             grouped.append((table, cols))
             used.update(cols)
@@ -646,3 +630,39 @@ def build_table_groups(events, columns):
             grouped.append((label, leftover))
 
     return grouped
+
+
+def extract_table_names(events):
+    table_names = []
+    seen = set()
+    for event in events:
+        table = (event.get("table") or "").strip()
+        if table and table not in seen:
+            seen.add(table)
+            table_names.append(table)
+    return table_names
+
+
+def build_attr_table_map(events):
+    attr_table_map = {}
+    for event in events:
+        table = (event.get("table") or "").strip()
+        if not table:
+            continue
+        for attr in event.get("changes", {}).keys():
+            if attr not in attr_table_map:
+                attr_table_map[attr] = table
+    return attr_table_map
+
+
+def resolve_group(column, table_names, attr_table_map):
+    if column in attr_table_map:
+        return attr_table_map[column]
+    for table in table_names:
+        prefixes = [f"{table}_"]
+        if table.endswith("s") and len(table) > 1:
+            prefixes.append(f"{table[:-1]}_")
+        for prefix in prefixes:
+            if column.startswith(prefix):
+                return table
+    return ""

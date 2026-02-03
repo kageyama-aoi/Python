@@ -34,10 +34,17 @@ csv:
 display:
   fixed_columns:
     - case_id
-    - table
-    - operation
     - trigger
+    - operation
+    - table
   priority_columns: []
   show_generated_at: true
   show_input_name: true
   show_legend: true
+  table_labels:
+    orders: "受注"
+    payments: "決済"
+    customers: "顧客"
+    products: "商品登録"
+    shipments: "出荷"
+    subscriptions: "契約"
