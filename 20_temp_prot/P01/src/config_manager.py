@@ -67,8 +67,8 @@ class ConfigManager:
                 raise UserInputError(f"paths.{key} が未設定です。")
 
         required_columns = csv_conf.get("required_columns", [])
-        if "event_id" not in required_columns or "attr_type" not in required_columns:
-            raise UserInputError("csv.required_columns に event_id と attr_type が必要です。")
+        if "case_id" not in required_columns or "attr_type" not in required_columns:
+            raise UserInputError("csv.required_columns に case_id と attr_type が必要です。")
 
         fixed_columns = display.get("fixed_columns", [])
         if not fixed_columns:

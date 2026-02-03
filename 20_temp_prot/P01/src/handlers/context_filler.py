@@ -8,13 +8,13 @@ def fill_context(rows, carry_columns, required_columns):
 
     for row in rows:
         line_no = row.get("_line_no")
-        event_id = row.get("event_id", "")
-        if is_blank(event_id):
-            raise UserInputError("event_id が欠落しています。", line_no, row)
+        case_id = row.get("case_id", "")
+        if is_blank(case_id):
+            raise UserInputError("case_id が欠落しています。", line_no, row)
 
-        if event_id != current_event_id:
+        if case_id != current_event_id:
             context = {}
-            current_event_id = event_id
+            current_event_id = case_id
 
         for column in carry_columns:
             value = row.get(column, "")

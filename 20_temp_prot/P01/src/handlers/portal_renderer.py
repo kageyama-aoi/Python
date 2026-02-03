@@ -42,22 +42,35 @@ class PortalRenderer:
             </div>
             """
 
+        fixed_total = sum(fixed_widths)
+        fixed_group_style = build_group_sticky_style(0, fixed_total)
         header_group = (
-            f"<th class='group-header sticky-top-1' colspan='{len(self.fixed_columns)}'>"
+            f"<th class='group-header sticky-top-1 sticky-col' style='{fixed_group_style}' "
+            f"colspan='{len(self.fixed_columns)}'>"
             "対象・フロー（固定）</th>"
             f"<th class='group-header sticky-top-1' colspan='{len(columns)}'>"
             f"<div class='group-title'>変更カラム（イベント内の更新）{legend_html}</div>"
             "</th>"
         )
 
+        table_groups = build_table_groups(events, columns)
+        table_group_cells = [
+            f"<th class='sticky-top-2 group-header sticky-col' style='{fixed_group_style}' "
+            f"colspan='{len(self.fixed_columns)}'></th>"
+        ]
+        for label, cols in table_groups:
+            table_group_cells.append(
+                f"<th class='sticky-top-2 group-header' colspan='{len(cols)}'>{label}</th>"
+            )
+
         header_cells = []
         for idx, col in enumerate(self.fixed_columns):
             style = build_sticky_style(left_offsets[idx], fixed_widths[idx])
             header_cells.append(
-                f"<th class='sticky-col sticky-top-2' style='{style}'>{col}</th>"
+                f"<th class='sticky-col sticky-top-3' style='{style}'>{col}</th>"
             )
         for col in columns:
-            header_cells.append(f"<th class='sticky-top-2'>{col}</th>")
+            header_cells.append(f"<th class='sticky-top-3'>{col}</th>")
 
         body_rows = []
         for event in events:
@@ -67,7 +80,7 @@ class PortalRenderer:
             row_cells = []
 
             fixed_values = [
-                event.get("event_id", ""),
+        event.get("case_id", ""),
                 event.get("table", ""),
                 event.get("operation", ""),
                 event.get("trigger", ""),
@@ -84,7 +97,7 @@ class PortalRenderer:
                     row_cells.append("<td class='empty'></td>")
                     continue
                 cell_html = render_change(
-                    event.get("event_id", ""),
+                    event.get("case_id", ""),
                     col,
                     change.get("before", ""),
                     change.get("after", ""),
@@ -130,6 +143,7 @@ class PortalRenderer:
       <table>
         <thead>
           <tr>{header_group}</tr>
+          <tr>{''.join(table_group_cells)}</tr>
           <tr>{''.join(header_cells)}</tr>
         </thead>
         <tbody>
@@ -243,6 +257,7 @@ table {
   width: max-content;
   min-width: 100%;
   font-size: 13px;
+  table-layout: fixed;
 }
 
 th, td {
@@ -250,6 +265,7 @@ th, td {
   padding: 8px 10px;
   text-align: left;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 th {
@@ -262,14 +278,21 @@ th {
 .sticky-top-1 {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 5;
   background: #eef2f7;
   font-weight: 600;
 }
 
 .sticky-top-2 {
   position: sticky;
-  top: 32px;
+  top: 28px;
+  z-index: 4;
+  background: #f3f4f6;
+}
+
+.sticky-top-3 {
+  position: sticky;
+  top: 56px;
   z-index: 3;
   background: #f9fafb;
 }
@@ -299,6 +322,15 @@ td.empty {
   left: 0;
   background: #fff;
   z-index: 2;
+  box-shadow: 2px 0 0 var(--line);
+}
+
+th.sticky-col {
+  z-index: 7;
+}
+
+td.sticky-col {
+  z-index: 3;
 }
 
 .op-insert td:first-child {
@@ -416,12 +448,19 @@ def build_left_offsets(widths):
 
 
 def build_sticky_style(left, width):
+    return (
+        f"left: {left}px; width: {width}px; min-width: {width}px; "
+        f"max-width: {width}px;"
+    )
+
+
+def build_group_sticky_style(left, width):
     return f"left: {left}px; min-width: {width}px; max-width: {width}px;"
 
 
-def render_change(event_id, attr_type, before, after, null_values, operation, trigger):
+def render_change(case_id, attr_type, before, after, null_values, operation, trigger):
     detail_text = (
-        f"{event_id} / {attr_type}\n"
+        f"{case_id} / {attr_type}\n"
         f"operation: {operation}\n"
         f"trigger: {trigger}\n"
         "詳細は後で追記"
@@ -501,3 +540,39 @@ def build_table_filter(events):
     for table in tables:
         options.append(f"<option value='{escape_html(table)}'>{escape_html(table)}</option>")
     return f"<select id='tableFilter'>{''.join(options)}</select>"
+
+
+def build_table_groups(events, columns):
+    table_names = []
+    seen = set()
+    for event in events:
+        table = (event.get("table") or "").strip()
+        if table and table not in seen:
+            seen.add(table)
+            table_names.append(table)
+
+    def resolve_group(col):
+        for table in table_names:
+            prefix = f"{table}_"
+            if col.startswith(prefix):
+                return table
+        return "その他"
+
+    groups = []
+    current_label = None
+    current_cols = []
+    for col in columns:
+        label = resolve_group(col)
+        if current_label is None:
+            current_label = label
+            current_cols = [col]
+            continue
+        if label == current_label:
+            current_cols.append(col)
+        else:
+            groups.append((current_label, current_cols))
+            current_label = label
+            current_cols = [col]
+    if current_label is not None:
+        groups.append((current_label, current_cols))
+    return groups

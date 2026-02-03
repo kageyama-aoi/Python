@@ -10,7 +10,7 @@ paths:
 
 csv:
   required_columns:
-    - event_id
+    - case_id
     - attr_type
   optional_columns:
     - table
@@ -33,7 +33,7 @@ csv:
 
 display:
   fixed_columns:
-    - event_id
+    - case_id
     - table
     - operation
     - trigger
