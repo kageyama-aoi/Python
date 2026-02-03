@@ -31,12 +31,21 @@ class PortalRenderer:
         fixed_widths = build_fixed_widths(self.fixed_columns)
         left_offsets = build_left_offsets(fixed_widths)
 
+        header_group = (
+            f"<th class='group-header sticky-top-1' colspan='{len(self.fixed_columns)}'>"
+            "対象・フロー（固定）</th>"
+            f"<th class='group-header sticky-top-1' colspan='{len(columns)}'>"
+            "変更カラム（イベント内の更新）</th>"
+        )
+
         header_cells = []
         for idx, col in enumerate(self.fixed_columns):
             style = build_sticky_style(left_offsets[idx], fixed_widths[idx])
-            header_cells.append(f"<th class='sticky-col' style='{style}'>{col}</th>")
+            header_cells.append(
+                f"<th class='sticky-col sticky-top-2' style='{style}'>{col}</th>"
+            )
         for col in columns:
-            header_cells.append(f"<th>{col}</th>")
+            header_cells.append(f"<th class='sticky-top-2'>{col}</th>")
 
         body_rows = []
         for event in events:
@@ -109,6 +118,7 @@ class PortalRenderer:
     <div class="table-wrap">
       <table>
         <thead>
+          <tr>{header_group}</tr>
           <tr>{''.join(header_cells)}</tr>
         </thead>
         <tbody>
@@ -204,6 +214,26 @@ th {
   top: 0;
   background: #f9fafb;
   z-index: 3;
+}
+
+.sticky-top-1 {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #eef2f7;
+  font-weight: 600;
+}
+
+.sticky-top-2 {
+  position: sticky;
+  top: 32px;
+  z-index: 3;
+  background: #f9fafb;
+}
+
+.group-header {
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 tr:hover td {
