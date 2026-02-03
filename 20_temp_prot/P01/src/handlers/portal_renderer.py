@@ -21,12 +21,12 @@ class PortalRenderer:
         css_path = os.path.join(assets_dir, "style.css")
         write_text(css_path, build_css())
 
-        html = self._build_html(events, columns, input_csv, "assets/style.css")
+        html = self.build_html(events, columns, input_csv, "assets/style.css")
         index_path = os.path.join(output_dir, "index.html")
         write_text(index_path, html)
         return index_path
 
-    def _build_html(self, events, columns, input_csv, css_path):
+    def build_html(self, events, columns, input_csv, css_path):
         generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fixed_widths = build_fixed_widths(self.fixed_columns)
         left_offsets = build_left_offsets(fixed_widths)
@@ -43,7 +43,7 @@ class PortalRenderer:
             """
 
         fixed_total = sum(fixed_widths)
-        fixed_group_style = build_group_sticky_style(0, fixed_total)
+        fixed_group_style = build_sticky_style(0, fixed_total)
         table_groups = build_table_groups(events, columns)
         grouped_columns = [col for _, cols in table_groups for col in cols]
         col_group_map = {}
@@ -125,12 +125,14 @@ class PortalRenderer:
                 + "</tr>"
             )
 
-        meta_parts = []
-        if self.config["display"].get("show_generated_at", True):
-            meta_parts.append(f"Generated: {generated_at}")
-        if self.config["display"].get("show_input_name", True):
-            meta_parts.append(f"Input: {os.path.basename(input_csv)}")
-        meta_html = " | ".join(meta_parts)
+        meta_html = build_meta(
+            generated_at,
+            input_csv,
+            self.config["display"].get("show_generated_at", True),
+            self.config["display"].get("show_input_name", True),
+        )
+        controls_html = build_controls(events)
+        script_html = build_filter_script()
 
         return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -138,19 +140,12 @@ class PortalRenderer:
   <meta charset="utf-8" />
   <title>Data Flow Portal</title>
   <link rel="stylesheet" href="{css_path}">
-  <style>
-    table {{ border-collapse: collapse; }}
-    th, td {{ border: 1px solid #cbd5e1; padding: 6px 8px; }}
-  </style>
 </head>
 <body>
   <div class="portal-container">
     <h1>Data Flow Portal</h1>
     <div class="meta">{meta_html}</div>
-    <div class="controls">
-      <label for="tableFilter">テーブル絞り込み:</label>
-      {build_table_filter(events)}
-    </div>
+    {controls_html}
     <div class="table-wrap">
       <table>
         <thead>
@@ -164,48 +159,7 @@ class PortalRenderer:
       </table>
     </div>
   </div>
-  <script>
-    const tableFilter = document.getElementById('tableFilter');
-    if (tableFilter) {{
-      const changeGroupHeader = document.getElementById('changeGroupHeader');
-      const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
-      const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
-      tableFilter.addEventListener('change', () => {{
-        const value = tableFilter.value;
-        document.querySelectorAll('tbody tr').forEach((row) => {{
-          const table = row.getAttribute('data-table') || '';
-          row.style.display = (value === '' || table === value) ? '' : 'none';
-        }});
-
-        const visibleGroups = new Map();
-        groupHeaderCells.forEach((th) => {{
-          const group = th.getAttribute('data-group') || '';
-          const count = parseInt(th.getAttribute('data-count') || '0', 10);
-          const visible = (value === '' || group === value);
-          th.style.display = visible ? '' : 'none';
-          if (visible) {{
-            visibleGroups.set(group, count);
-            th.setAttribute('colspan', String(count));
-          }}
-        }});
-
-        columnCells.forEach((cell) => {{
-          const group = cell.getAttribute('data-group') || '';
-          const visible = (value === '' || group === value);
-          cell.style.display = visible ? '' : 'none';
-        }});
-
-        if (changeGroupHeader) {{
-          let total = 0;
-          visibleGroups.forEach((count) => {{ total += count; }});
-          if (value === '') {{
-            total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
-          }}
-          changeGroupHeader.setAttribute('colspan', String(total));
-        }}
-      }});
-    }}
-  </script>
+  {script_html}
 </body>
 </html>
 """
@@ -469,7 +423,7 @@ td.sticky-col {
 
 def build_fixed_widths(columns):
     defaults = {
-        "event_id": 110,
+        "case_id": 110,
         "table": 140,
         "operation": 110,
         "trigger": 150,
@@ -494,10 +448,6 @@ def build_sticky_style(left, width):
         f"left: {left}px; width: {width}px; min-width: {width}px; "
         f"max-width: {width}px;"
     )
-
-
-def build_group_sticky_style(left, width):
-    return f"left: {left}px; min-width: {width}px; max-width: {width}px;"
 
 
 def render_change(case_id, attr_type, before, after, null_values, operation, trigger):
@@ -582,6 +532,71 @@ def build_table_filter(events):
     for table in tables:
         options.append(f"<option value='{escape_html(table)}'>{escape_html(table)}</option>")
     return f"<select id='tableFilter'>{''.join(options)}</select>"
+
+
+def build_controls(events):
+    return (
+        "<div class=\"controls\">"
+        "<label for=\"tableFilter\">テーブル絞り込み:</label>"
+        f"{build_table_filter(events)}"
+        "</div>"
+    )
+
+
+def build_meta(generated_at, input_csv, show_generated_at, show_input_name):
+    meta_parts = []
+    if show_generated_at:
+        meta_parts.append(f"Generated: {generated_at}")
+    if show_input_name:
+        meta_parts.append(f"Input: {os.path.basename(input_csv)}")
+    return " | ".join(meta_parts)
+
+
+def build_filter_script():
+    return """
+  <script>
+    const tableFilter = document.getElementById('tableFilter');
+    if (tableFilter) {
+      const changeGroupHeader = document.getElementById('changeGroupHeader');
+      const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
+      const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
+      tableFilter.addEventListener('change', () => {
+        const value = tableFilter.value;
+        document.querySelectorAll('tbody tr').forEach((row) => {
+          const table = row.getAttribute('data-table') || '';
+          row.style.display = (value === '' || table === value) ? '' : 'none';
+        });
+
+        const visibleGroups = new Map();
+        groupHeaderCells.forEach((th) => {
+          const group = th.getAttribute('data-group') || '';
+          const count = parseInt(th.getAttribute('data-count') || '0', 10);
+          const visible = (value === '' || group === value);
+          th.style.display = visible ? '' : 'none';
+          if (visible) {
+            visibleGroups.set(group, count);
+            th.setAttribute('colspan', String(count));
+          }
+        });
+
+        columnCells.forEach((cell) => {
+          const group = cell.getAttribute('data-group') || '';
+          const visible = (value === '' || group === value);
+          cell.style.display = visible ? '' : 'none';
+        });
+
+        if (changeGroupHeader) {
+          let total = 0;
+          visibleGroups.forEach((count) => { total += count; });
+          if (value === '') {
+            total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
+          }
+          changeGroupHeader.setAttribute('colspan', String(total));
+        }
+      });
+    }
+  </script>
+    """
 
 
 def build_table_groups(events, columns):
