@@ -12,7 +12,7 @@
 <body>
   <div class="portal-container">
     <h1>Data Flow Portal</h1>
-    <div class="meta">Generated: 2026-02-03 11:09:41 | Input: data_flow_dummy.csv</div>
+    <div class="meta">Generated: 2026-02-03 13:24:09 | Input: data_flow_dummy.csv</div>
     <div class="controls">
       <label for="tableFilter">テーブル絞り込み:</label>
       <select id='tableFilter'><option value=''>すべて</option><option value='orders'>orders</option><option value='payments'>payments</option><option value='customers'>customers</option></select>
@@ -20,7 +20,7 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th class='group-header sticky-top-1' colspan='4'>対象・フロー（固定）</th><th class='group-header sticky-top-1' colspan='5'><div class='group-title'>変更カラム（イベント内の更新）
+          <tr><th class='group-header sticky-top-1 sticky-col' style='left: 0px; min-width: 540px; max-width: 540px;' colspan='4'>対象・フロー（固定）</th><th class='group-header sticky-top-1' colspan='11'><div class='group-title'>変更カラム（イベント内の更新）
             <div class="legend inline">
               <span class="badge added">added</span>
               <span class="badge removed">removed</span>
@@ -28,64 +28,74 @@
               <span class="badge same">same</span>
             </div>
             </div></th></tr>
-          <tr><th class='sticky-col sticky-top-2' style='left: 0px; min-width: 110px; max-width: 110px;'>event_id</th><th class='sticky-col sticky-top-2' style='left: 110px; min-width: 140px; max-width: 140px;'>table</th><th class='sticky-col sticky-top-2' style='left: 250px; min-width: 110px; max-width: 110px;'>operation</th><th class='sticky-col sticky-top-2' style='left: 360px; min-width: 150px; max-width: 150px;'>trigger</th><th class='sticky-top-2'>status</th><th class='sticky-top-2'>amount</th><th class='sticky-top-2'>paid_at</th><th class='sticky-top-2'>deleted_flag</th><th class='sticky-top-2'>canceled_at</th></tr>
+          <tr><th class='sticky-top-2 group-header sticky-col' style='left: 0px; min-width: 540px; max-width: 540px;' colspan='4'></th><th class='sticky-top-2 group-header' colspan='11'>その他</th></tr>
+          <tr><th class='sticky-col sticky-top-3' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>case_id</th><th class='sticky-col sticky-top-3' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>table</th><th class='sticky-col sticky-top-3' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>operation</th><th class='sticky-col sticky-top-3' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>trigger</th><th class='sticky-top-3'>order_status</th><th class='sticky-top-3'>order_amount</th><th class='sticky-top-3'>order_paid_at</th><th class='sticky-top-3'>order_deleted_flag</th><th class='sticky-top-3'>order_canceled_at</th><th class='sticky-top-3'>payment_amount</th><th class='sticky-top-3'>payment_status</th><th class='sticky-top-3'>payment_method</th><th class='sticky-top-3'>customer_status</th><th class='sticky-top-3'>customer_tier</th><th class='sticky-top-3'>customer_last_paid_at</th></tr>
         </thead>
         <tbody>
-          <tr class='op-insert' data-table='orders'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E000</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>INSERT</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>新規作成</td><td><span class='change detail-hover' data-detail='E000 / status
+          <tr class='op-insert' data-table='orders'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-000</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>INSERT</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>新規作成</td><td><span class='change detail-hover' data-detail='CASE-000 / order_status
 operation: INSERT
 trigger: 新規作成
-詳細は後で追記'><span class='after added'>NEW</span></span></td><td><span class='change detail-hover' data-detail='E000 / amount
+詳細は後で追記'><span class='after added'>NEW</span></span></td><td><span class='change detail-hover' data-detail='CASE-000 / order_amount
 operation: INSERT
 trigger: 新規作成
-詳細は後で追記'><span class='after added'>1000</span></span></td><td><span class='change same detail-hover' data-detail='E000 / paid_at
+詳細は後で追記'><span class='after added'>1000</span></span></td><td><span class='change same detail-hover' data-detail='CASE-000 / order_paid_at
 operation: INSERT
 trigger: 新規作成
-詳細は後で追記'>NULL</span></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E001</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>注文確定</td><td><span class='change detail-hover' data-detail='E001 / status
+詳細は後で追記'>NULL</span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-001</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>注文確定</td><td><span class='change detail-hover' data-detail='CASE-001 / order_status
 operation: UPDATE
 trigger: 注文確定
-詳細は後で追記'><span class='before'>NEW</span><span class='arrow'>→</span><span class='after changed'>PAID</span></span></td><td><span class='change same detail-hover' data-detail='E001 / amount
+詳細は後で追記'><span class='before'>NEW</span><span class='arrow'>→</span><span class='after changed'>PAID</span></span></td><td><span class='change same detail-hover' data-detail='CASE-001 / order_amount
 operation: UPDATE
 trigger: 注文確定
-詳細は後で追記'>1000</span></td><td><span class='change detail-hover' data-detail='E001 / paid_at
+詳細は後で追記'>1000</span></td><td><span class='change detail-hover' data-detail='CASE-001 / order_paid_at
 operation: UPDATE
 trigger: 注文確定
-詳細は後で追記'><span class='after added'>2026-02-01</span></span></td><td><span class='change same detail-hover' data-detail='E001 / deleted_flag
+詳細は後で追記'><span class='after added'>2026-02-01</span></span></td><td><span class='change same detail-hover' data-detail='CASE-001 / order_deleted_flag
 operation: UPDATE
 trigger: 注文確定
-詳細は後で追記'>0</span></td><td class='empty'></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E002</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>キャンセル</td><td><span class='change detail-hover' data-detail='E002 / status
+詳細は後で追記'>0</span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-002</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>キャンセル</td><td><span class='change detail-hover' data-detail='CASE-002 / order_status
 operation: UPDATE
 trigger: キャンセル
-詳細は後で追記'><span class='before'>PAID</span><span class='arrow'>→</span><span class='after changed'>CANCEL</span></span></td><td><span class='change same detail-hover' data-detail='E002 / amount
+詳細は後で追記'><span class='before'>PAID</span><span class='arrow'>→</span><span class='after changed'>CANCEL</span></span></td><td><span class='change same detail-hover' data-detail='CASE-002 / order_amount
 operation: UPDATE
 trigger: キャンセル
-詳細は後で追記'>1000</span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='E002 / canceled_at
+詳細は後で追記'>1000</span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='CASE-002 / order_canceled_at
 operation: UPDATE
 trigger: キャンセル
-詳細は後で追記'><span class='after added'>2026-02-02</span></span></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E003</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>SupportTool</td><td><span class='change detail-hover' data-detail='E003 / status
+詳細は後で追記'><span class='after added'>2026-02-02</span></span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='orders'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-003</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>SupportTool</td><td><span class='change detail-hover' data-detail='CASE-003 / order_status
 operation: UPDATE
 trigger: SupportTool
-詳細は後で追記'><span class='before'>CANCEL</span><span class='arrow'>→</span><span class='after changed'>REFUND</span></span></td><td><span class='change detail-hover' data-detail='E003 / amount
+詳細は後で追記'><span class='before'>CANCEL</span><span class='arrow'>→</span><span class='after changed'>REFUND</span></span></td><td><span class='change detail-hover' data-detail='CASE-003 / order_amount
 operation: UPDATE
 trigger: SupportTool
-詳細は後で追記'><span class='before'>1000</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='E003 / canceled_at
+詳細は後で追記'><span class='before'>1000</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='CASE-003 / order_canceled_at
 operation: UPDATE
 trigger: SupportTool
-詳細は後で追記'><span class='after added'>2026-02-03</span></span></td></tr><tr class='op-delete' data-table='orders'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E004</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>DELETE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>BatchJob</td><td><span class='change same detail-hover' data-detail='E004 / status
+詳細は後で追記'><span class='after added'>2026-02-03</span></span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-delete' data-table='orders'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-004</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>orders</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>DELETE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>BatchJob</td><td><span class='change same detail-hover' data-detail='CASE-004 / order_status
 operation: DELETE
 trigger: BatchJob
-詳細は後で追記'>REFUND</span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='E004 / deleted_flag
+詳細は後で追記'>REFUND</span></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='CASE-004 / order_deleted_flag
 operation: DELETE
 trigger: BatchJob
-詳細は後で追記'><span class='before'>0</span><span class='arrow'>→</span><span class='after changed'>1</span></span></td><td class='empty'></td></tr><tr class='op-update' data-table='payments'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E005</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>payments</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>AdminUI</td><td><span class='change detail-hover' data-detail='E005 / status
+詳細は後で追記'><span class='before'>0</span><span class='arrow'>→</span><span class='after changed'>1</span></span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='payments'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-005</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>payments</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>AdminUI</td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='CASE-005 / payment_amount
 operation: UPDATE
 trigger: AdminUI
-詳細は後で追記'><span class='before'>PENDING</span><span class='arrow'>→</span><span class='after changed'>PAID</span></span></td><td><span class='change detail-hover' data-detail='E005 / amount
+詳細は後で追記'><span class='before'>1000</span><span class='arrow'>→</span><span class='after changed'>1500</span></span></td><td><span class='change detail-hover' data-detail='CASE-005 / payment_status
 operation: UPDATE
 trigger: AdminUI
-詳細は後で追記'><span class='before'>1000</span><span class='arrow'>→</span><span class='after changed'>1500</span></span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='customers'><td class='sticky-col' style='left: 0px; min-width: 110px; max-width: 110px;'>E006</td><td class='sticky-col' style='left: 110px; min-width: 140px; max-width: 140px;'>customers</td><td class='sticky-col' style='left: 250px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 360px; min-width: 150px; max-width: 150px;'>RefundAPI</td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='E006 / paid_at
+詳細は後で追記'><span class='before'>PENDING</span><span class='arrow'>→</span><span class='after changed'>PAID</span></span></td><td><span class='change same detail-hover' data-detail='CASE-005 / payment_method
+operation: UPDATE
+trigger: AdminUI
+詳細は後で追記'>card</span></td><td class='empty'></td><td class='empty'></td><td class='empty'></td></tr><tr class='op-update' data-table='customers'><td class='sticky-col' style='left: 0px; width: 140px; min-width: 140px; max-width: 140px;'>CASE-006</td><td class='sticky-col' style='left: 140px; width: 140px; min-width: 140px; max-width: 140px;'>customers</td><td class='sticky-col' style='left: 280px; width: 110px; min-width: 110px; max-width: 110px;'>UPDATE</td><td class='sticky-col' style='left: 390px; width: 150px; min-width: 150px; max-width: 150px;'>RefundAPI</td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td class='empty'></td><td><span class='change detail-hover' data-detail='CASE-006 / customer_status
 operation: UPDATE
 trigger: RefundAPI
-詳細は後で追記'><span class='before'>2026-02-02</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td><td class='empty'></td><td class='empty'></td></tr>
+詳細は後で追記'><span class='before'>ACTIVE</span><span class='arrow'>→</span><span class='after changed'>SUSPENDED</span></span></td><td><span class='change detail-hover' data-detail='CASE-006 / customer_tier
+operation: UPDATE
+trigger: RefundAPI
+詳細は後で追記'><span class='before'>GOLD</span><span class='arrow'>→</span><span class='after changed'>SILVER</span></span></td><td><span class='change detail-hover' data-detail='CASE-006 / customer_last_paid_at
+operation: UPDATE
+trigger: RefundAPI
+詳細は後で追記'><span class='before'>2026-02-02</span><span class='arrow'>→</span><span class='after removed'>NULL</span></span></td></tr>
         </tbody>
       </table>
     </div>

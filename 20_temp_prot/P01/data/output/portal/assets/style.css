@@ -85,6 +85,7 @@ table {
   width: max-content;
   min-width: 100%;
   font-size: 13px;
+  table-layout: fixed;
 }
 
 th, td {
@@ -92,6 +93,7 @@ th, td {
   padding: 8px 10px;
   text-align: left;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 th {
@@ -104,14 +106,21 @@ th {
 .sticky-top-1 {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 5;
   background: #eef2f7;
   font-weight: 600;
 }
 
 .sticky-top-2 {
   position: sticky;
-  top: 32px;
+  top: 28px;
+  z-index: 4;
+  background: #f3f4f6;
+}
+
+.sticky-top-3 {
+  position: sticky;
+  top: 56px;
   z-index: 3;
   background: #f9fafb;
 }
@@ -141,6 +150,15 @@ td.empty {
   left: 0;
   background: #fff;
   z-index: 2;
+  box-shadow: 2px 0 0 var(--line);
+}
+
+th.sticky-col {
+  z-index: 7;
+}
+
+td.sticky-col {
+  z-index: 3;
 }
 
 .op-insert td:first-child {

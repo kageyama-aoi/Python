@@ -30,13 +30,13 @@ python src/main.py --config config/main.yaml
 - `--open`（生成後にブラウザで開く）
 
 ## CSV仕様（概要）
-必須列: `event_id`, `attr_type`  
+必須列: `case_id`, `attr_type`  
 推奨列: `table`, `operation`, `trigger`, `before`, `after`, `note`, `sql`
 
 補完ルール:
-- 同一 `event_id` 内では `table/operation/trigger/sql` を省略可能（直前の値を引き継ぐ）
-- `event_id` が変わると補完コンテキストはリセット
-- `event_id` / `attr_type` 欠落は即エラー（行番号付き）
+- 同一 `case_id` 内では `table/operation/trigger/sql` を省略可能（直前の値を引き継ぐ）
+- `case_id` が変わると補完コンテキストはリセット
+- `case_id` / `attr_type` 欠落は即エラー（行番号付き）
 
 ## 設定（config/main.yaml）
 - 入力CSV/出力ディレクトリ

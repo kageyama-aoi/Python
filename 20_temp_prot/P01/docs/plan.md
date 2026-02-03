@@ -5,15 +5,15 @@ CSVで管理された「イベント単位の更新履歴」を、静的HTMLの�
 
 ## データモデル
 - RawRow: CSVの1行（行番号付き）
-- FilledRow: 省略補完済みの行（event_id内でcarry-forward）
-- Event: `event_id` 単位の集約結果
+- FilledRow: 省略補完済みの行（case_id内でcarry-forward）
+- Event: `case_id` 単位の集約結果
   - meta: table/operation/trigger/sql
   - changes: attr_type -> {before, after, note}
 
 ## 処理フロー
 1) CsvLoader: CSV読込・ヘッダ検証  
-2) ContextFiller: 省略補完（同event_id内のcarry-forward）  
-3) EventAggregator: event_id 単位で集約  
+2) ContextFiller: 省略補完（同case_id内のcarry-forward）  
+3) EventAggregator: case_id 単位で集約  
 4) ColumnPlanner: 動的列抽出（頻度優先→登場順）  
 5) PortalRenderer: HTML/CSS生成、出力
 
@@ -23,7 +23,7 @@ CSVで管理された「イベント単位の更新履歴」を、静的HTMLの�
 
 ## エラーハンドリング方針
 - 必須列不足: 不足列名の一覧を提示。
-- event_id/attr_type 欠落: 行番号と行内容の抜粋を提示。
+- case_id/attr_type 欠落: 行番号と行内容の抜粋を提示。
 - ユーザーがCSVを修正できる情報に限定して出力。
 
 ## 出力仕様（概要）
