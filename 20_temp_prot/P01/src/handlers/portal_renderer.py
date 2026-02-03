@@ -46,12 +46,17 @@ class PortalRenderer:
         fixed_group_style = build_group_sticky_style(0, fixed_total)
         table_groups = build_table_groups(events, columns)
         grouped_columns = [col for _, cols in table_groups for col in cols]
+        col_group_map = {}
+        for label, cols in table_groups:
+            for col in cols:
+                col_group_map[col] = label
 
         header_group = (
             f"<th class='group-header sticky-top-1 sticky-col' style='{fixed_group_style}' "
             f"colspan='{len(self.fixed_columns)}'>"
             "対象・フロー（固定）</th>"
-            f"<th class='group-header sticky-top-1' colspan='{len(grouped_columns)}'>"
+            f"<th id='changeGroupHeader' class='group-header sticky-top-1' "
+            f"data-count='{len(grouped_columns)}' colspan='{len(grouped_columns)}'>"
             f"<div class='group-title'>変更カラム（イベント内の更新）{legend_html}</div>"
             "</th>"
         )
@@ -61,7 +66,8 @@ class PortalRenderer:
         ]
         for label, cols in table_groups:
             table_group_cells.append(
-                f"<th class='sticky-top-2 group-header' colspan='{len(cols)}'>{label}</th>"
+                f"<th class='sticky-top-2 group-header' data-group='{label}' "
+                f"data-count='{len(cols)}' colspan='{len(cols)}'>{label}</th>"
             )
 
         header_cells = []
@@ -71,7 +77,10 @@ class PortalRenderer:
                 f"<th class='sticky-col sticky-top-3' style='{style}'>{col}</th>"
             )
         for col in grouped_columns:
-            header_cells.append(f"<th class='sticky-top-3'>{col}</th>")
+            group = col_group_map.get(col, "")
+            header_cells.append(
+                f"<th class='sticky-top-3' data-group='{group}'>{col}</th>"
+            )
 
         body_rows = []
         for event in events:
@@ -95,7 +104,8 @@ class PortalRenderer:
             for col in grouped_columns:
                 change = event["changes"].get(col)
                 if not change:
-                    row_cells.append("<td class='empty'></td>")
+                    group = col_group_map.get(col, "")
+                    row_cells.append(f"<td class='empty' data-group='{group}'></td>")
                     continue
                 cell_html = render_change(
                     event.get("case_id", ""),
@@ -106,7 +116,8 @@ class PortalRenderer:
                     event.get("operation", ""),
                     event.get("trigger", ""),
                 )
-                row_cells.append(f"<td>{cell_html}</td>")
+                group = col_group_map.get(col, "")
+                row_cells.append(f"<td data-group='{group}'>{cell_html}</td>")
 
             body_rows.append(
                 f"<tr class='{row_class}' data-table='{table_value}'>"
@@ -156,12 +167,42 @@ class PortalRenderer:
   <script>
     const tableFilter = document.getElementById('tableFilter');
     if (tableFilter) {{
+      const changeGroupHeader = document.getElementById('changeGroupHeader');
+      const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
+      const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
       tableFilter.addEventListener('change', () => {{
         const value = tableFilter.value;
         document.querySelectorAll('tbody tr').forEach((row) => {{
           const table = row.getAttribute('data-table') || '';
           row.style.display = (value === '' || table === value) ? '' : 'none';
         }});
+
+        const visibleGroups = new Map();
+        groupHeaderCells.forEach((th) => {{
+          const group = th.getAttribute('data-group') || '';
+          const count = parseInt(th.getAttribute('data-count') || '0', 10);
+          const visible = (value === '' || group === value);
+          th.style.display = visible ? '' : 'none';
+          if (visible) {{
+            visibleGroups.set(group, count);
+            th.setAttribute('colspan', String(count));
+          }}
+        }});
+
+        columnCells.forEach((cell) => {{
+          const group = cell.getAttribute('data-group') || '';
+          const visible = (value === '' || group === value);
+          cell.style.display = visible ? '' : 'none';
+        }});
+
+        if (changeGroupHeader) {{
+          let total = 0;
+          visibleGroups.forEach((count) => {{ total += count; }});
+          if (value === '') {{
+            total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
+          }}
+          changeGroupHeader.setAttribute('colspan', String(total));
+        }}
       }});
     }}
   </script>
