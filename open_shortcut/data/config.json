@@ -142,11 +142,6 @@
                     "path": "G:\\.shortcut-targets-by-id\\11Icuy8ilXa06RO9L3j8mOWC85uMuTKJI\\3067_三菱重工"
                 },
                 {
-                    "name": "システム構成図",
-                    "action": "open_url",
-                    "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
-                },
-                {
                     "name": "自分用作業フォルダ",
                     "action": "open_directory",
                     "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工"
@@ -156,6 +151,17 @@
                     "action": "open_url",
                     "active": true,
                     "url": "https://notebooklm.google.com/notebook/1bedda6f-1bb5-4b3a-a9c9-4572170a474c"
+                },
+                {
+                    "name": "gemini",
+                    "action": "open_url",
+                    "active": true,
+                    "url": "https://gemini.google.com/gem/5f63aac8b018"
+                },
+                {
+                    "name": "システム構成図",
+                    "action": "open_url",
+                    "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
                 }
             ]
         },
