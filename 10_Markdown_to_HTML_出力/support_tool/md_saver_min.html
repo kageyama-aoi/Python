@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MD 保存ツール（最小版）</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 16px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+    input, button, textarea { font: inherit; }
+    input { padding: 8px; width: 320px; max-width: 100%; }
+    button { padding: 10px 14px; cursor: pointer; }
+    textarea { width: 100%; height: 55vh; padding: 10px; }
+    .hint { color: #555; font-size: 13px; margin-bottom: 10px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+  </style>
+</head>
+<body>
+  <h1>MD 保存ツール（最小版）</h1>
+
+  <div class="row">
+    <label>
+      保存名（任意）:
+      <input id="baseName" placeholder="空なら先頭見出し(# )から自動生成" />
+    </label>
+    <button id="saveBtn">MDとして保存</button>
+  </div>
+
+  <div class="hint">
+    ファイル名は <b class="mono">YYYYMMDD_名前.md</b>（JST）になります。<br>
+    「名前」が空なら、MDの先頭の <b># 見出し</b> を使います（なければ <span class="mono">memo</span>）。
+  </div>
+
+  <textarea id="md" placeholder="# タイトル&#10;&#10;ここにMarkdownを貼り付け"></textarea>
+
+  <script>
+    const mdEl = document.getElementById("md");
+    const baseNameEl = document.getElementById("baseName");
+    const saveBtn = document.getElementById("saveBtn");
+
+    // JSTでYYYYMMDD
+    function yyyymmddJST() {
+      const now = new Date();
+      const jst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60 * 1000);
+      const y = jst.getFullYear();
+      const m = String(jst.getMonth() + 1).padStart(2, "0");
+      const d = String(jst.getDate()).padStart(2, "0");
+      return `${y}${m}${d}`;
+    }
+
+    // 先頭の # 見出しを拾う
+    function firstH1(md) {
+      const lines = md.split(/\r?\n/);
+      for (const line of lines) {
+        const m = line.match(/^#\s+(.+)\s*$/);
+        if (m) return m[1].trim();
+      }
+      return "";
+    }
+
+    // ファイル名に使えるように最低限整形
+    function sanitizeName(name) {
+      return (name || "")
+        .replace(/[\\/:*?"<>|]/g, "") // Windows NG文字
+        .replace(/\s+/g, "_")
+        .replace(/_+/g, "_")
+        .trim()
+        .slice(0, 80) || "memo";
+    }
+
+    saveBtn.addEventListener("click", () => {
+      const md = mdEl.value || "";
+
+      const base = baseNameEl.value.trim() || firstH1(md) || "memo";
+      const safeBase = sanitizeName(base);
+      const filename = `${yyyymmddJST()}_${safeBase}.md`;
+
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

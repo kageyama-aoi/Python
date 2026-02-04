@@ -1,0 +1,10 @@
+"""
+title: YouTube URL からチャンネルIDを抽出
+tags: youtube, html, scraping
+inputs: YouTubeチャンネルURL
+outputs: チャンネルID（文字列）
+example: python get_channel_id.py https://www.youtube.com/@xxxx
+dependencies: requests, beautifulsoup4
+owner: aoi
+last_verified: 2026-02-02
+"""
