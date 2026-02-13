@@ -17,37 +17,68 @@ def stop(title: str, message: str):
     print("=" * 60 + "\n")
     sys.exit(1)
 
+
+def log_info(message: str):
+    print(f"[INFO] {message}")
+
+
+def log_ok(message: str):
+    print(f"[OK]   {message}")
+
+
+def log_read(message: str):
+    print(f"[READ] {message}")
+
+
+def print_warning_summary(warnings: list[str]):
+    print("\n" + "=" * 56)
+    print("WARNING SUMMARY")
+    print("=" * 56)
+    if not warnings:
+        print("- 警告はありません。")
+    else:
+        for warning in warnings:
+            print(f"- {warning}")
+    print("=" * 56 + "\n")
+
 # ---------- 事前チェック ----------
-def check_environment():
-    # md ディレクトリ
+def check_and_prepare_structure():
+    log_info("フォルダ構成チェックを開始します")
+
     if not MD_DIR.exists():
-        stop(
-            "md ディレクトリが見つかりません",
-            f"以下のディレクトリを作成してください。\n\n  {MD_DIR.resolve()}"
-        )
+        try:
+            MD_DIR.mkdir(parents=True, exist_ok=True)
+            log_info(f"md ディレクトリを作成しました: {MD_DIR.resolve()}")
+        except Exception as e:
+            stop("md ディレクトリの作成に失敗しました", f"対象: {MD_DIR.resolve()}\n理由: {e}")
+    elif not MD_DIR.is_dir():
+        stop("md のパスがディレクトリではありません", f"対象: {MD_DIR.resolve()}")
+    else:
+        log_ok(f"md ディレクトリを確認しました: {MD_DIR.resolve()}")
 
-    # html ディレクトリ
     if not HTML_DIR.exists():
-        stop(
-            "html ディレクトリが見つかりません",
-            f"以下のディレクトリを作成してください。\n\n  {HTML_DIR.resolve()}"
-        )
+        try:
+            HTML_DIR.mkdir(parents=True, exist_ok=True)
+            log_info(f"html ディレクトリを作成しました: {HTML_DIR.resolve()}")
+        except Exception as e:
+            stop("html ディレクトリの作成に失敗しました", f"対象: {HTML_DIR.resolve()}\n理由: {e}")
+    elif not HTML_DIR.is_dir():
+        stop("html のパスがディレクトリではありません", f"対象: {HTML_DIR.resolve()}")
+    else:
+        log_ok(f"html ディレクトリを確認しました: {HTML_DIR.resolve()}")
 
-    # html 書き込み権限
-    if not HTML_DIR.is_dir() or not os_access_writable(HTML_DIR):
-        stop(
-            "html ディレクトリに書き込めません",
-            "書き込み権限があるか確認してください。"
-        )
+    if not os_access_writable(HTML_DIR):
+        stop("html ディレクトリに書き込めません", "書き込み権限があるか確認してください。")
+    log_ok("html ディレクトリの書き込み権限を確認しました")
 
-    # md ファイル存在チェック
-    md_files = list(MD_DIR.glob("*.md"))
+
+def check_environment(warnings: list[str]):
+    md_files = sorted(MD_DIR.glob("*.md"))
     if not md_files:
-        stop(
-            "Markdown ファイルがありません",
-            "md ディレクトリに .md ファイルを1つ以上配置してください。"
+        warnings.append(
+            "md ディレクトリに Markdown ファイルがありません。"
+            " .md ファイルを追加して再実行してください。"
         )
-
     return md_files
 
 def os_access_writable(path: Path) -> bool:
@@ -129,20 +160,18 @@ def add_default_img_width_attr(html: str, width: int = 1000) -> str:
 
 # ---------- メイン処理 ----------
 def main():
-    print("環境チェック中...")
-    md_files = check_environment()
-    print("環境チェック OK\n")
+    warnings: list[str] = []
+    check_and_prepare_structure()
+    md_files = check_environment(warnings)
 
     import markdown  # ← ここで初めて import
-
-    HTML_DIR.mkdir(exist_ok=True)
 
     extensions = ["fenced_code", "tables"]
     try:
         import pymdownx.tasklist  # noqa: F401
         extensions.append("pymdownx.tasklist")
     except Exception:
-        print("注意: pymdown-extensions が未インストールのため、タスクリストは無効です。")
+        warnings.append("pymdown-extensions が未インストールのため、タスクリストは無効です。")
 
     # カテゴリ順（任意）
     category_order = []
@@ -155,20 +184,27 @@ def main():
                 category_order.append(line)
         except Exception as e:
             stop("カテゴリ順ファイルの読み込みに失敗しました", f"対象: {CATEGORY_ORDER_FILE}\n理由: {e}")
+    else:
+        warnings.append(f"{CATEGORY_ORDER_FILE} が見つかりません。カテゴリ順はデフォルト順で処理します。")
 
     items = []
+    uncategorized_count = 0
 
     for md_file in sorted(md_files):
         html_name = md_file.stem + ".html"
         html_path = HTML_DIR / html_name
 
         try:
+            log_read(f"{md_file.name} を読み込み中...")
             text = md_file.read_text(encoding="utf-8")
+            log_ok(f"{md_file.name} 読み込み成功 ({len(text):,} 文字)")
         except Exception as e:
             stop("Markdown 読み込みに失敗しました", f"対象: {md_file}\n理由: {e}")
 
         front_matter, content = parse_front_matter(text)
         category = str(front_matter.get("category") or DEFAULT_CATEGORY_NAME)
+        if category == DEFAULT_CATEGORY_NAME:
+            uncategorized_count += 1
         tags = front_matter.get("tags") or []
         if isinstance(tags, str):
             tags = [tags]
@@ -181,6 +217,7 @@ def main():
                 extensions=extensions
             )
             body = add_default_img_width_attr(body, width=1000)
+            log_ok(f"{md_file.name} を HTML に変換しました")
         except Exception as e:
             stop("Markdown 変換に失敗しました", f"対象: {md_file}\n理由: {e}")
 
@@ -202,6 +239,7 @@ def main():
 
         try:
             html_path.write_text(html, encoding="utf-8")
+            log_ok(f"{html_name} を出力しました")
         except Exception as e:
             stop("HTML 書き込みに失敗しました", f"対象: {html_path}\n理由: {e}")
         items.append({
@@ -388,8 +426,15 @@ def main():
     except Exception as e:
         stop("index.html 書き込みに失敗しました", f"対象: {HTML_DIR / 'index.html'}\n理由: {e}")
 
+    if uncategorized_count > 0:
+        warnings.append(
+            f"category 未指定の Markdown が {uncategorized_count} 件あります。"
+            f"未指定分は '{DEFAULT_CATEGORY_NAME}' で表示されます。"
+        )
+
     print("HTML 生成が完了しました")
     print(f"{HTML_DIR / 'index.html'} をブラウザで開いてください")
+    print_warning_summary(warnings)
 
 # ---------- 実行 ----------
 if __name__ == "__main__":

@@ -1,22 +1,30 @@
 @echo off
-REM この bat 自身のあるディレクトリに移動
+REM Move to this .bat directory
 cd /d "%~dp0"
 
-echo === Markdown build 開始 ===
-echo 作業ディレクトリ: %cd%
+echo === Markdown build start ===
+echo Working directory: %cd%
 echo.
 
-REM PowerShell を呼び出す
+REM Run PowerShell wrapper
 powershell -ExecutionPolicy Bypass -File "%~dp0run_build.ps1"
 
-REM 終了コード確認
+REM Check exit code
 if errorlevel 1 (
     echo.
-    echo ? build.py の実行に失敗しました
+    echo [ERROR] build.py failed.
     pause
     exit /b 1
 )
 
 echo.
-echo ? build.py の実行が完了しました
+echo [OK] build.py completed.
+
+REM Open generated index.html automatically
+if exist "%~dp0html\index.html" (
+    start "" "%~dp0html\index.html"
+) else (
+    echo [WARN] html\index.html was not found.
+)
+
 pause
