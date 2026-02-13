@@ -180,3 +180,56 @@
 [2026-01-08 12:22:33] クリック: DIV [ユーザ名\n\nユーザ名 をご入力ください。]｜ID:｜Class:form-group field-loginmodel-username required has-error｜XPath:id(\"login-form\")/DIV[1]
 [2026-01-08 12:22:34] クリック: H3 [サインイン]｜ID:｜Class:｜XPath:BODY/DIV[1]/DIV[1]/DIV[1]/DIV[2]/H3[1]
 [2026-01-08 12:22:35] クリック: DIV [(テキストなし)]｜ID:｜Class:clearfix｜XPath:BODY/DIV[1]/DIV[1]/DIV[1]/DIV[2]/DIV[2]
+
+============================================================
+[2026-02-04 14:45:26] セッション開始
+[2026-02-04 14:45:26] 初期URL: https://tcns.shimamura.co.jp/testgcp
+============================================================
+[2026-02-04 14:45:28] クリック: INPUT [(テキストなし)]｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[3]/TD[2]/INPUT[1]
+[2026-02-04 14:45:29] クリック: INPUT [(テキストなし)]｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[3]/TD[2]/INPUT[1]
+[2026-02-04 14:45:33] クリック: TD [(テキストなし)]｜ID:｜Class:dataFieldHankaku｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[4]/TD[2]
+[2026-02-04 14:45:35] クリック: INPUT [(テキストなし)]｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[4]/TD[2]/INPUT[1]
+[2026-02-04 14:45:39] クリック: TD []｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[5]/TD[1]
+
+----------------------------------------
+[2026-02-04 14:45:40] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php
+----------------------------------------
+[2026-02-04 14:45:40] クリック: INPUT [ログイン]｜ID:｜Class:buttonLogin｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[5]/TD[1]/INPUT[1]
+[2026-02-04 14:45:51] クリック: INPUT [vanilla09]｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[4]/TD[2]/INPUT[1]
+[2026-02-04 14:45:51] クリック: TBODY [ユーザ名とパスワードを入力してください.\nエラー:\tユーザ名かパスワードに誤りがあります。ご確認ください。\nユーザ名:\t\nパスワード:\t\n \n\n言語: \nUS English\n日本語\n\n\nテーマ: \n通常\n水色]｜ID:｜Class:｜XPath:id(\"form\")/TABLE[1]/TBODY[1]
+[2026-02-04 14:45:52] クリック: INPUT [ログイン]｜ID:｜Class:buttonLogin｜XPath:id(\"form\")/TABLE[1]/TBODY[1]/TR[5]/TD[1]/INPUT[1]
+
+----------------------------------------
+[2026-02-04 14:45:57] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php?action=index&module=Main
+----------------------------------------
+
+----------------------------------------
+[2026-02-04 14:45:59] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php?module=Course&action=index&&course_list&top_menu=1
+----------------------------------------
+[2026-02-04 14:45:59] クリック: IMG [コース]｜ID:｜Class:｜XPath:BODY/DIV[2]/CENTER[1]/TABLE[2]/TBODY[1]/TR[1]/TD[1]/TABLE[1]/TBODY[1]/TR[1]/TD[3]/TABLE[1]/TBODY[1]/TR[2]/TD[1]/A[1]/IMG[1]
+
+----------------------------------------
+[2026-02-04 14:46:09] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php?module=Keiri&action=index&top_menu=1
+----------------------------------------
+[2026-02-04 14:46:09] クリック: IMG [(テキストなし)]｜ID:｜Class:｜XPath:BODY/TABLE[1]/TBODY[1]/TR[1]/TD[1]/TABLE[1]/TBODY[1]/TR[1]/TD[1]/TABLE[1]/TBODY[1]/TR[1]/TD[9]/TABLE[1]/TBODY[1]/TR[1]/TD[1]/SPAN[1]/A[1]/IMG[1]
+[2026-02-04 14:46:12] クリック: TH [債権買取]｜ID:｜Class:subMenuSep｜XPath:id(\"leftCol\")/TABLE[1]/TBODY[1]/TR[1]/TD[1]/TABLE[2]/TBODY[1]/TR[14]/TD[1]/TABLE[1]/TBODY[1]/TR[1]/TH[2]
+[2026-02-04 14:46:13] クリック: TH [入出金]｜ID:｜Class:subMenuSep｜XPath:id(\"leftCol\")/TABLE[1]/TBODY[1]/TR[1]/TD[1]/TABLE[2]/TBODY[1]/TR[12]/TD[1]/TABLE[1]/TBODY[1]/TR[1]/TH[2]
+
+----------------------------------------
+[2026-02-04 14:46:17] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php?module=Transaction&action=LWRefundList_AN&top_menu=1
+----------------------------------------
+[2026-02-04 14:46:17] クリック: A [返金一覧]｜ID:｜Class:subMenuLink｜XPath:id(\"_sh\")/A[1]
+[2026-02-04 14:46:21] クリック: SELECT [60]｜ID:area_id｜Class:｜XPath:id(\"area_id\")
+[2026-02-04 14:46:22] クリック: SELECT [all]｜ID:area_id｜Class:｜XPath:id(\"area_id\")
+[2026-02-04 14:46:23] クリック: SELECT [2d8f058b-e6e8-7e76-9a6c-63e1d3968328]｜ID:school_id｜Class:｜XPath:id(\"school_id\")
+[2026-02-04 14:46:24] クリック: SELECT [all]｜ID:school_id｜Class:｜XPath:id(\"school_id\")
+[2026-02-04 14:46:24] クリック: DIV [返金申請処理\n \t対象の「預り金」にチェックを入れる]｜ID:div_outer_refund_application_processing_group｜Class:｜XPath:id(\"div_outer_refund_application_processing_group\")
+[2026-02-04 14:46:26] クリック: INPUT [検索]｜ID:｜Class:button｜XPath:id(\"td_search\")/INPUT[1]
+[2026-02-04 14:46:39] クリック: SPAN [⇒]｜ID:｜Class:subpanel_navigation_icon｜XPath:id(\"lw_SearchView\")/DIV[2]/DIV[1]/A[1]/SPAN[1]
+[2026-02-04 14:46:44] クリック: INPUT [780babbe-1e1f-4341-1ddd-6358e0700f2e]｜ID:｜Class:checkbox｜XPath:id(\"lw_SearchView\")/TABLE[1]/TBODY[1]/TR[4]/TD[1]/INPUT[1]
+
+----------------------------------------
+[2026-02-04 14:46:46] ページ移動: https://tcns.shimamura.co.jp/testgcp/index.php?module=Transaction&action=LWRefundList_AN&bank_payment_type=1&deposit_refund=1&area_id=all&school_id=all&claim_month=2026-03-01&mass_AN[]=780babbe-1e1f-4341-1ddd-6358e0700f2e&techno_csrf_token=758a857f-68c4-8460-b758-6982ddb7ae36&gmto=0&PHPSESSID=4tbmsmjtp1p3bo22bb2av7beq6&usertheme=Techno&ck_login_theme_20=Techno&query=true&carry_msg=1&from_refund_request_w_err=1
+----------------------------------------
+[2026-02-04 14:46:46] クリック: INPUT [返金申請]｜ID:refund_request_id｜Class:button｜XPath:id(\"refund_request_id\")
+[2026-02-04 14:46:51] クリック: SPAN [1510000000001 月謝 (11月)は、返金対象の預り金ではありません]｜ID:\\'err_0\\'｜Class:｜XPath:id(\"\\'err_0\\'\")

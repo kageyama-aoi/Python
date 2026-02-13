@@ -3,12 +3,146 @@
 <head>
 <meta charset="utf-8">
 <title>Markdown Index</title>
+<style>
+  :root {
+    --max: 1200px;
+    --gap: 1.25rem;
+  }
+  body { font-family: system-ui, sans-serif; padding: 2rem; line-height: 1.6; }
+  .container { max-width: var(--max); margin: 0 auto; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin-bottom: 0.75rem; }
+  #search { flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }
+  .toolbar .controls { display: flex; gap: 0.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--gap); }
+  details.category { padding: 0.5rem 0.75rem; border: 1px solid #e3e3e3; border-radius: 8px; background: #fafafa; }
+  details.category > summary { cursor: pointer; font-weight: 600; }
+  details.category ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+  .md-item.hidden { display: none; }
+  .count { color: #666; font-size: 0.9rem; }
+  .tagbar { margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag { border: 1px solid #bbb; background: #f7f7f7; padding: 0.25rem 0.6rem; border-radius: 999px; cursor: pointer; }
+  .tag.active { background: #333; color: #fff; border-color: #333; }
+  .clear { border: 1px dashed #999; background: #fff; }
+  .category.hidden { display: none; }
+  @media (max-width: 640px) {
+    body { padding: 1rem; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar .controls { justify-content: flex-start; }
+  }
+</style>
 </head>
 <body>
+<div class="container">
 <h1>Markdown 一覧</h1>
+<div class="toolbar">
+  <input id="search" type="search" placeholder="検索: タイトル / カテゴリ / タグ" />
+  <div class="controls">
+    <button type="button" id="openAll">全て開く</button>
+    <button type="button" id="closeAll">全て閉じる</button>
+  </div>
+</div>
+<div class="tagbar" id="tagbar">
+  <button type="button" class="tag clear" id="clearTags">タグ解除</button>
+  <button type="button" class="tag" data-tag="image">#image</button>
+<button type="button" class="tag" data-tag="sample">#sample</button>
+<button type="button" class="tag" data-tag="知識">#知識</button>
+<button type="button" class="tag" data-tag="議事録">#議事録</button>
+<button type="button" class="tag" data-tag="顧客">#顧客</button>
+</div>
+<div class="grid">
+<details class="category" data-category="仕事" open>
+<summary>仕事 <span class="count" data-total="1">(1)</span></summary>
 <ul>
-<li><a href="ダミー.html">ダミー.md</a></li>
-<li><a href="第二回議事録_確認結果.html">第二回議事録_確認結果.md</a></li>
+<li class="md-item" data-title="ダミー - コピー.md" data-tags="議事録,顧客,知識" data-category="仕事"><a href="ダミー - コピー.html">ダミー - コピー.md</a></li>
 </ul>
+</details>
+<details class="category" data-category="未分類" open>
+<summary>未分類 <span class="count" data-total="1">(1)</span></summary>
+<ul>
+<li class="md-item" data-title="ダミー.md" data-tags="" data-category="未分類"><a href="ダミー.html">ダミー.md</a></li>
+</ul>
+</details>
+<details class="category" data-category="画像テスト" open>
+<summary>画像テスト <span class="count" data-total="1">(1)</span></summary>
+<ul>
+<li class="md-item" data-title="picture_dummy.md" data-tags="image,sample" data-category="画像テスト"><a href="picture_dummy.html">picture_dummy.md</a></li>
+</ul>
+</details>
+</div>
+
+<script>
+  const search = document.getElementById('search');
+  const items = Array.from(document.querySelectorAll('.md-item'));
+  const categories = Array.from(document.querySelectorAll('details.category'));
+  const tagButtons = Array.from(document.querySelectorAll('.tagbar .tag')).filter(b => b.id !== 'clearTags');
+  const clearTags = document.getElementById('clearTags');
+  const selectedTags = new Set();
+  const openAll = document.getElementById('openAll');
+  const closeAll = document.getElementById('closeAll');
+
+  function normalize(v) {
+    return (v || '').toLowerCase();
+  }
+
+  function filter() {
+    const q = normalize(search.value);
+    const hasFilter = q.length > 0 || selectedTags.size > 0;
+    items.forEach((el) => {
+      const title = normalize(el.dataset.title);
+      const tags = normalize(el.dataset.tags);
+      const category = normalize(el.dataset.category);
+      const tagList = (el.dataset.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+      const hasSelectedTags = Array.from(selectedTags).every(t => tagList.includes(t));
+      const hitText = !q || title.includes(q) || tags.includes(q) || category.includes(q);
+      const hit = hitText && (selectedTags.size === 0 || hasSelectedTags);
+      el.classList.toggle('hidden', !hit);
+    });
+
+    categories.forEach((cat) => {
+      const visibleCount = cat.querySelectorAll('.md-item:not(.hidden)').length;
+      const countEl = cat.querySelector('.count');
+      const total = countEl?.dataset.total || '0';
+      if (countEl) {
+        countEl.textContent = hasFilter
+          ? '(' + visibleCount + '/' + total + ')'
+          : '(' + total + ')';
+      }
+      cat.classList.toggle('hidden', visibleCount === 0);
+    });
+  }
+
+  tagButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      if (!tag) return;
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        btn.classList.remove('active');
+      } else {
+        selectedTags.add(tag);
+        btn.classList.add('active');
+      }
+      filter();
+    });
+  });
+
+  clearTags.addEventListener('click', () => {
+    selectedTags.clear();
+    tagButtons.forEach((b) => b.classList.remove('active'));
+    filter();
+  });
+
+  openAll.addEventListener('click', () => {
+    categories.forEach((c) => c.open = true);
+  });
+
+  closeAll.addEventListener('click', () => {
+    categories.forEach((c) => c.open = false);
+  });
+
+  search.addEventListener('input', filter);
+  filter();
+</script>
+</div>
 </body>
 </html>

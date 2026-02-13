@@ -162,6 +162,12 @@
                     "name": "システム構成図",
                     "action": "open_url",
                     "url": "https://app.diagrams.net/?src=about#G1VwTHQSIUAYSFQPvv4unlJzaxvw6K8a3V#%7B%22pageId%22%3A%222CRc6xh8_MA7ZIeElfLf%22%7D"
+                },
+                {
+                    "name": "Mdファイル変換",
+                    "action": "open_url",
+                    "active": true,
+                    "url": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工\\60_抽出資料\\md_saver_min.html"
                 }
             ]
         },
