@@ -1,5 +1,11 @@
 $ErrorActionPreference = "Stop"
 
+# Force UTF-8 to avoid mojibake in prompt/diff piping.
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+try { chcp 65001 > $null } catch {}
+
 $promptFile = Join-Path $PSScriptRoot "commit_prompt.md"
 
 if (-not (Test-Path $promptFile)) {
@@ -12,7 +18,7 @@ if (-not (Get-Command codex -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-$stagedDiff = git diff --staged 2>&1
+$stagedDiff = git -c core.quotepath=false diff --staged --no-color 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to run 'git diff --staged'. Run this inside a Git repository."
     exit 1

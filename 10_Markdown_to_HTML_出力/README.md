@@ -120,3 +120,4 @@ tags: [手順, 申請, 社内]
 ## 参考
 
 - 装飾前提Markdownへ書き換えるためのプロンプト: `PROMPT.md`
+- コミットメッセージ提案時に読み込む指示文: `COMMIT_MESSAGE_INSTRUCTIONS.md`
