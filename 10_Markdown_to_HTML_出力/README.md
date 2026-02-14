@@ -53,6 +53,37 @@ python app.py
 - `support_tool/md_saver_min_v2.html`
 - ブラウザで開いて入力したMarkdownを `YYYYMMDD_名前.md` 形式で保存可能
 
+3. Markdownリンク/画像記法補助（`md_helper.ps1`）
+```powershell
+.\md_helper.ps1 -Mode link -TargetPath ".\picture\sample.png" -FromPath ".\md\guide.md"
+```
+- 相対パスを自動計算して Markdown 記法を生成
+- `-Mode image` で画像記法も生成可能
+- `-Copy` で生成結果をクリップボードへコピー
+
+`md_helper.ps1` の実行例:
+
+```powershell
+# リンク記法を生成
+.\md_helper.ps1 -Mode link -TargetPath ".\README.md"
+
+# 画像記法を生成（md/guide.md から見た相対パスで計算）
+.\md_helper.ps1 -Mode image -TargetPath ".\picture\dummy.png" -FromPath ".\md\guide.md"
+
+# 表示名を指定して生成
+.\md_helper.ps1 -Mode link -TargetPath ".\docs\template.md" -Label "テンプレート"
+
+# 生成結果をクリップボードへコピー
+.\md_helper.ps1 -Mode link -TargetPath ".\README.md" -Copy
+```
+
+主な引数:
+- `-Mode`: `link` または `image`
+- `-TargetPath`: リンク先/画像ファイルのパス
+- `-FromPath`: 相対パス計算の基準（省略時はカレントディレクトリ）
+- `-Label`: リンク表示名/画像alt（省略時はファイル名）
+- `-Copy`: 生成文字列をクリップボードへコピー
+
 ## 依存関係
 
 - Python
@@ -121,3 +152,9 @@ tags: [手順, 申請, 社内]
 
 - 装飾前提Markdownへ書き換えるためのプロンプト: `PROMPT.md`
 - コミットメッセージ提案時に読み込む指示文: `COMMIT_MESSAGE_INSTRUCTIONS.md`
+- Markdown作成テンプレート: `docs/template.md`
+
+`docs/template.md` の使い方:
+- 新規ドキュメント作成時に `docs/template.md` をコピーして開始する
+- `## Quick Links` を実ファイルに差し替える
+- リンク/画像の記法は `md_helper.ps1` で生成した文字列を貼り付ける
