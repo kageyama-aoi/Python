@@ -13,6 +13,8 @@
 - `run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
 - `app.py`: Front Matter（`category` / `tags`）編集用のローカルWebツール
 - `support_tool/`: Markdown作成補助ツール（ブラウザで使う単体HTML）
+- `docs/`: 正式ドキュメント（恒久運用）
+- `notes/`: 途中経過・運用メモ（`issue/`, `operations/`, `archive/`）
 - `PROMPT.md`: 文章を装飾前提Markdownに整えるためのテンプレート
 
 ## 基本の使い方（ビルド）
@@ -156,6 +158,8 @@ tags: [手順, 申請, 社内]
 - 装飾前提Markdownへ書き換えるためのプロンプト: `PROMPT.md`
 - コミットメッセージ提案時に読み込む指示文: `COMMIT_MESSAGE_INSTRUCTIONS.md`
 - Markdown作成テンプレート: `docs/template.md`
+- Issue関連メモ: `notes/issue/`
+- 運用検討・実装メモ: `notes/operations/`
 
 `docs/template.md` の使い方:
 - 新規ドキュメント作成時に `docs/template.md` をコピーして開始する
