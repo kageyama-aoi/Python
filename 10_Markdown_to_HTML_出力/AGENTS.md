@@ -4,9 +4,19 @@
 - `build.py`: Core build script that converts Markdown to HTML and generates `html/index.html`.
 - `md/`: Source Markdown files (`*.md`) to be converted.
 - `html/`: Build output, including per-file HTML, `index.html`, and `style.css`.
+- `docs/`: Stable/official documentation for long-term reference.
+- `notes/`: Working notes and interim documents.
+  - `notes/issue/`: Issue drafts and issue-operation notes.
+  - `notes/operations/`: Operation memos, proposals, and implementation logs.
+  - `notes/archive/`: Archived notes.
 - `run_build.ps1` / `run_build.bat`: Convenience wrappers to run the build from PowerShell or CMD.
 - `PROMPT.md`: Prompt template for rewriting plain Markdown into “styled” Markdown with CSS classes.
 - `README.md`: Usage overview and dependencies.
+
+## Documentation Placement Rules
+- Put long-lived user-facing docs in `docs/`.
+- Put temporary/interim working memos in `notes/`.
+- Do not mix interim notes into `docs/`; move completed-but-nonofficial records to `notes/archive/` when needed.
 
 ## Build, Test, and Development Commands
 - `python build.py`: Runs environment checks and converts all `md/*.md` into `html/`.
