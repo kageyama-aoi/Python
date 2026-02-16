@@ -97,28 +97,46 @@ def index():
 <meta charset="utf-8">
 <title>Markdown Meta Editor</title>
 <style>
-  :root { --max: 1200px; --gap: 0.75rem; }
-  body { font-family: system-ui, sans-serif; padding: 2rem; }
+  :root { --max: 1280px; --gap: 0.75rem; }
+  body { font-family: system-ui, sans-serif; padding: 1.5rem; background: #f3f4f6; }
   .container { max-width: var(--max); margin: 0 auto; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; }
   #search { flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }
-  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-  th, td { border-bottom: 1px solid #e5e5e5; padding: 0.5rem; text-align: left; vertical-align: top; }
-  th { background: #fafafa; position: sticky; top: 0; }
-  input[type="text"] { width: 100%; padding: 0.4rem; }
-  .row { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: var(--gap); align-items: center; }
+  input[type="text"], select, button { font-size: 0.95rem; }
+  input[type="text"], select { width: 100%; padding: 0.42rem 0.5rem; box-sizing: border-box; }
+  button { padding: 0.42rem 0.7rem; }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 0.9fr) minmax(260px, 1.5fr) auto;
+    gap: var(--gap);
+    align-items: start;
+  }
   .list { display: grid; gap: 0.5rem; margin-top: 1rem; }
-  .card { border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.75rem; background: #fff; }
+  .card { border: 1px solid #e5e5e5; border-radius: 10px; padding: 0.85rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .file-col { display: grid; gap: 0.2rem; }
+  .field-group { display: grid; gap: 0.35rem; }
+  .inline-row { display: flex; gap: 0.4rem; align-items: center; }
+  .inline-row > * { flex: 1 1 auto; }
   .muted { color: #666; font-size: 0.9rem; }
-  .actions { display: flex; gap: 0.5rem; }
+  .actions { display: flex; gap: 0.5rem; align-items: center; }
   .ok { color: #0a6; font-size: 0.9rem; }
-  .bulk-panel { border: 1px solid #ddd; border-radius: 8px; padding: 0.75rem; background: #fafafa; margin-top: 0.6rem; }
-  .bulk-grid { display: grid; grid-template-columns: 1.2fr 1.8fr auto; gap: 0.5rem; align-items: end; }
+  .bulk-panel { border: 1px solid #ddd; border-radius: 10px; padding: 0.75rem; background: #fff; margin-top: 0.6rem; }
+  .bulk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; align-items: end; }
   .bulk-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .bulk-actions { display: flex; justify-content: flex-end; }
+  .bulk-field { display: grid; gap: 0.3rem; }
+  .bulk-tag-mode { margin-top: 0.2rem; margin-bottom: 0; }
   .tag-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 1.8rem; align-items: center; }
   .tag-chip { border: 1px solid #bbb; background: #f7f7f7; border-radius: 999px; padding: 0.15rem 0.55rem; cursor: pointer; }
   .tag-chip:hover { background: #eee; }
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: 1fr 1fr; }
+    .actions { grid-column: 1 / -1; }
+    .bulk-grid { grid-template-columns: 1fr; }
+    .bulk-actions { justify-content: flex-start; }
+  }
+  @media (max-width: 760px) {
+    body { padding: 1rem; }
     .row { grid-template-columns: 1fr; }
   }
 </style>
@@ -141,20 +159,20 @@ def index():
       <span class="muted" id="selectedInfo">選択: 0 件</span>
     </div>
     <div class="bulk-grid">
-      <div>
+      <div class="bulk-field">
         <label class="muted">一括カテゴリ</label>
-        <select id="bulkCategorySelect" style="min-width:170px; max-width:100%;"></select>
-        <input type="text" id="bulkCategoryCustom" placeholder="カテゴリを自由入力" style="margin-top:0.3rem;">
+        <select id="bulkCategorySelect"></select>
+        <input type="text" id="bulkCategoryCustom" placeholder="カテゴリを自由入力">
       </div>
-      <div>
+      <div class="bulk-field">
         <label class="muted">一括タグ（カンマ区切り）</label>
         <input type="text" id="bulkTagsInput" list="tagOptions" placeholder="例: 手順,運用,TODO_確認">
-        <div class="bulk-row" style="margin-top:0.3rem; margin-bottom:0;">
+        <div class="bulk-row bulk-tag-mode">
           <label><input type="radio" name="bulkTagMode" value="append" checked> 既存へ追加</label>
           <label><input type="radio" name="bulkTagMode" value="replace"> 置換</label>
         </div>
       </div>
-      <div>
+      <div class="bulk-actions">
         <button type="button" id="bulkApply">一括適用</button>
       </div>
     </div>
@@ -240,28 +258,28 @@ def index():
         card.className = 'card';
         card.innerHTML = `
           <div class="row">
-            <div>
+            <div class="file-col">
               <label class="muted"><input type="checkbox" class="row-select" ${selectedFiles.has(i.file) ? 'checked' : ''}> 選択</label>
               <div><strong>${i.file}</strong></div>
               <div class="muted">${i.path}</div>
             </div>
-            <div>
+            <div class="field-group">
               <label class="muted">カテゴリ</label>
-              <select class="category-select" style="min-width:170px; max-width:100%;">
+              <select class="category-select">
                 ${categoryOptions.map(c => `<option value="${c}" ${c === i.category ? 'selected' : ''}>${c}</option>`).join('')}
               </select>
-              <input type="text" class="category-custom" value="${i.category}" style="margin-top:0.35rem;" placeholder="カテゴリを自由入力">
+              <input type="text" class="category-custom" value="${i.category}" placeholder="カテゴリを自由入力">
             </div>
-            <div>
+            <div class="field-group">
               <label class="muted">タグ（チップをクリックで削除）</label>
               <div class="tag-chips"></div>
-              <div style="display:flex; gap:0.4rem; margin-top:0.3rem;">
+              <div class="inline-row">
                 <input type="text" class="tag-input" list="tagOptions" placeholder="タグを入力して追加">
                 <button type="button" class="add-tag-input">追加</button>
               </div>
-              <div class="muted" style="margin-top:0.35rem;">既存タグから追加（自由入力も可）</div>
-              <div style="display:flex; gap:0.4rem; margin-top:0.2rem;">
-                <select class="tag-select" style="min-width:170px; max-width:100%;">
+              <div class="muted">既存タグから追加（自由入力も可）</div>
+              <div class="inline-row">
+                <select class="tag-select">
                   <option value="">既存タグを選択</option>
                   ${tagOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
                 </select>
