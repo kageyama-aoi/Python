@@ -104,6 +104,8 @@ def index():
     <input id="search" type="search" placeholder="検索: ファイル名 / カテゴリ / タグ" />
     <button type="button" id="reload">再読み込み</button>
   </div>
+  <datalist id="categoryOptions"></datalist>
+  <datalist id="tagOptions"></datalist>
   <div class="list" id="list"></div>
   <p class="muted">保存後に静的HTMLを更新するには `python build.py` を実行してください。</p>
 </div>
@@ -112,9 +114,21 @@ def index():
   const listEl = document.getElementById('list');
   const searchEl = document.getElementById('search');
   const reloadBtn = document.getElementById('reload');
+  const categoryOptionsEl = document.getElementById('categoryOptions');
+  const tagOptionsEl = document.getElementById('tagOptions');
   let items = [];
+  let categoryOptions = [];
+  let tagOptions = [];
 
   function normalize(v) { return (v || '').toLowerCase(); }
+
+  function uniqueSorted(values) {
+    return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ja'));
+  }
+
+  function renderOptionList(el, values) {
+    el.innerHTML = values.map(v => `<option value="${v}"></option>`).join('');
+  }
 
   function render() {
     const q = normalize(searchEl.value);
@@ -137,21 +151,45 @@ def index():
             </div>
             <div>
               <label class="muted">カテゴリ</label>
-              <input type="text" value="${i.category}">
+              <input type="text" class="category-input" list="categoryOptions" value="${i.category}">
             </div>
             <div>
               <label class="muted">タグ（カンマ区切り）</label>
-              <input type="text" value="${i.tags.join(', ')}">
+              <input type="text" class="tags-input" list="tagOptions" value="${i.tags.join(', ')}">
+              <div class="muted" style="margin-top:0.35rem;">既存タグから追加（自由入力も可）</div>
+              <div style="display:flex; gap:0.4rem; margin-top:0.2rem;">
+                <select class="tag-select" style="min-width:170px; max-width:100%;">
+                  <option value="">既存タグを選択</option>
+                  ${tagOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+                <button type="button" class="add-tag">追加</button>
+              </div>
             </div>
             <div class="actions">
-              <button type="button">保存</button>
+              <button type="button" class="save-btn">保存</button>
               <span class="ok" style="display:none;">保存済み</span>
             </div>
           </div>
         `;
         const inputs = card.querySelectorAll('input');
-        const saveBtn = card.querySelector('button');
+        const saveBtn = card.querySelector('.save-btn');
+        const tagSelect = card.querySelector('.tag-select');
+        const addTagBtn = card.querySelector('.add-tag');
         const ok = card.querySelector('.ok');
+
+        addTagBtn.addEventListener('click', () => {
+          const selected = (tagSelect.value || '').trim();
+          if (!selected) return;
+          const current = inputs[1].value
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+          if (!current.includes(selected)) {
+            current.push(selected);
+            inputs[1].value = current.join(', ');
+          }
+        });
+
         saveBtn.addEventListener('click', async () => {
           const category = inputs[0].value.trim() || '未分類';
           const tags = inputs[1].value.split(',').map(s => s.trim()).filter(Boolean);
@@ -178,6 +216,10 @@ def index():
   async function load() {
     const res = await fetch('/api/items');
     items = await res.json();
+    categoryOptions = uniqueSorted(items.map(i => (i.category || '').trim()));
+    tagOptions = uniqueSorted(items.flatMap(i => (i.tags || []).map(t => (t || '').trim())));
+    renderOptionList(categoryOptionsEl, categoryOptions);
+    renderOptionList(tagOptionsEl, tagOptions);
     render();
   }
 

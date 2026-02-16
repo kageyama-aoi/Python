@@ -255,15 +255,22 @@ def main():
         grouped.setdefault(item["category"], []).append(item)
 
     # カテゴリ順の決定（指定があれば先頭に、残りは昇順）
+    # 未分類は常に最後に配置する。
     ordered_categories = []
     seen = set()
     for c in category_order:
+        if c == DEFAULT_CATEGORY_NAME:
+            continue
         if c in grouped and c not in seen:
             ordered_categories.append(c)
             seen.add(c)
     for c in sorted(grouped.keys()):
+        if c == DEFAULT_CATEGORY_NAME:
+            continue
         if c not in seen:
             ordered_categories.append(c)
+    if DEFAULT_CATEGORY_NAME in grouped:
+        ordered_categories.append(DEFAULT_CATEGORY_NAME)
 
     # タグ一覧
     all_tags = sorted({t for item in items for t in item["tags"]})
@@ -307,6 +314,8 @@ def main():
   .toolbar {{ display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin-bottom: 0.75rem; }}
   #search {{ flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }}
   .toolbar .controls {{ display: flex; gap: 0.5rem; }}
+  .pager {{ display: flex; align-items: center; gap: 0.5rem; }}
+  .pager .info {{ color: #666; font-size: 0.9rem; min-width: 6.5rem; text-align: center; }}
   .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--gap); }}
   details.category {{ padding: 0.5rem 0.75rem; border: 1px solid #e3e3e3; border-radius: 8px; background: #fafafa; }}
   details.category > summary {{ cursor: pointer; font-weight: 600; }}
@@ -318,6 +327,7 @@ def main():
   .tag.active {{ background: #333; color: #fff; border-color: #333; }}
   .clear {{ border: 1px dashed #999; background: #fff; }}
   .category.hidden {{ display: none; }}
+  .category.page-hidden {{ display: none; }}
   @media (max-width: 640px) {{
     body {{ padding: 1rem; }}
     .toolbar {{ flex-direction: column; align-items: stretch; }}
@@ -333,6 +343,11 @@ def main():
   <div class="controls">
     <button type="button" id="openAll">全て開く</button>
     <button type="button" id="closeAll">全て閉じる</button>
+  </div>
+  <div class="pager">
+    <button type="button" id="prevPage">前へ</button>
+    <span class="info" id="pageInfo">1/1</span>
+    <button type="button" id="nextPage">次へ</button>
   </div>
 </div>
 <div class="tagbar" id="tagbar">
@@ -352,9 +367,31 @@ def main():
   const selectedTags = new Set();
   const openAll = document.getElementById('openAll');
   const closeAll = document.getElementById('closeAll');
+  const prevPage = document.getElementById('prevPage');
+  const nextPage = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+  const categoriesPerPage = 3;
+  let currentPage = 1;
 
   function normalize(v) {{
     return (v || '').toLowerCase();
+  }}
+
+  function applyPagination() {{
+    const visibleCategories = categories.filter((cat) => !cat.classList.contains('hidden'));
+    const totalPages = Math.max(1, Math.ceil(visibleCategories.length / categoriesPerPage));
+    if (currentPage > totalPages) {{
+      currentPage = totalPages;
+    }}
+
+    categories.forEach((cat) => cat.classList.add('page-hidden'));
+    const start = (currentPage - 1) * categoriesPerPage;
+    const end = start + categoriesPerPage;
+    visibleCategories.slice(start, end).forEach((cat) => cat.classList.remove('page-hidden'));
+
+    pageInfo.textContent = currentPage + '/' + totalPages;
+    prevPage.disabled = currentPage <= 1;
+    nextPage.disabled = currentPage >= totalPages;
   }}
 
   function filter() {{
@@ -382,6 +419,7 @@ def main():
       }}
       cat.classList.toggle('hidden', visibleCount === 0);
     }});
+    applyPagination();
   }}
 
   tagButtons.forEach((btn) => {{
@@ -395,6 +433,7 @@ def main():
         selectedTags.add(tag);
         btn.classList.add('active');
       }}
+      currentPage = 1;
       filter();
     }});
   }});
@@ -402,18 +441,37 @@ def main():
   clearTags.addEventListener('click', () => {{
     selectedTags.clear();
     tagButtons.forEach((b) => b.classList.remove('active'));
+    currentPage = 1;
     filter();
   }});
 
   openAll.addEventListener('click', () => {{
-    categories.forEach((c) => c.open = true);
+    categories
+      .filter((c) => !c.classList.contains('hidden') && !c.classList.contains('page-hidden'))
+      .forEach((c) => c.open = true);
   }});
 
   closeAll.addEventListener('click', () => {{
-    categories.forEach((c) => c.open = false);
+    categories
+      .filter((c) => !c.classList.contains('hidden') && !c.classList.contains('page-hidden'))
+      .forEach((c) => c.open = false);
   }});
 
-  search.addEventListener('input', filter);
+  prevPage.addEventListener('click', () => {{
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    applyPagination();
+  }});
+
+  nextPage.addEventListener('click', () => {{
+    currentPage += 1;
+    applyPagination();
+  }});
+
+  search.addEventListener('input', () => {{
+    currentPage = 1;
+    filter();
+  }});
   filter();
 </script>
 </div>

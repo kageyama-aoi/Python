@@ -11,11 +11,13 @@
 - `md/`: 入力 Markdown（`*.md`）
 - `html/`: 出力先（各HTML、`index.html`、`style.css`）
 - `run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
-- `app.py`: Front Matter（`category` / `tags`）編集用のローカルWebツール
+- `app.py`: Front Matter（`category` / `tags`）編集用のローカルWebツール（候補選択 + 自由入力）
 - `support_tool/`: Markdown作成補助ツール（ブラウザで使う単体HTML）
 - `docs/`: 正式ドキュメント（恒久運用）
 - `notes/`: 途中経過・運用メモ（`issue/`, `operations/`, `archive/`）
 - `PROMPT.md`: 文章を装飾前提Markdownに整えるためのテンプレート
+- `COMMIT_MESSAGE_INSTRUCTIONS.md`: コミットメッセージ提案時の指示文
+- `commit_suggest.ps1`: ステージ差分をもとに `codex` へ提案依頼を渡す補助スクリプト（任意）
 
 ## 基本の使い方（ビルド）
 
@@ -41,6 +43,8 @@ run_build.bat
 - `html/` に各 Markdown の HTML を生成
 - `html/index.html` に一覧を生成
 - 画像タグ（`<img>`）は `width` 未指定時のみ `width="1000"` を自動付与
+- 一覧はカテゴリ単位で表示し、`未分類` は常に最後に配置
+- 一覧はカテゴリ3件ずつページ切り替え（`前へ` / `次へ`）
 
 ## サポートツール
 
@@ -51,6 +55,8 @@ run_build.bat
 python app.py
 ```
 - `http://127.0.0.1:5000/` で `md/*.md` の `category` / `tags` を一括編集
+- `category` は既存値から候補選択でき、自由入力も可能
+- `tags` は既存タグ候補のプルダウンから追加でき、自由入力も可能
 - 保存後は静的HTMLへ反映するため、`python build.py` を再実行
 
 2. Markdown保存補助（`support_tool/`）
@@ -88,6 +94,13 @@ python app.py
 - `-FromPath`: 相対パス計算の基準（省略時はカレントディレクトリ）
 - `-Label`: リンク表示名/画像alt（省略時はファイル名）
 - `-Copy`: 生成文字列をクリップボードへコピー
+
+4. コミットメッセージ提案補助（`commit_suggest.ps1`）
+```powershell
+.\commit_suggest.ps1
+```
+- ステージ済み差分（`git diff --staged`）を取得し、`codex exec -` に渡す補助スクリプト
+- 実行には `codex` コマンドと `commit_prompt.md` が必要
 
 ## 依存関係
 
@@ -138,6 +151,7 @@ tags: [手順, 申請, 社内]
 - `md` / `html` ディレクトリ名は変更しない（`build.py` で固定参照）
 - `html/` は書き込み権限が必要
 - `build.py` は書き込み確認のため一時ファイル `.write_test` を作成
+- `app.py` は `md` 直下の `*.md` を対象（サブディレクトリは対象外）
 
 ## メンテナンス
 
