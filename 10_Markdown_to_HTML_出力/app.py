@@ -121,6 +121,23 @@ def make_unique_md_path(base_stem: str) -> Path:
         idx += 1
 
 
+def collect_meta_options() -> tuple[list[str], list[str]]:
+    categories: set[str] = set()
+    tags: set[str] = set()
+    for md_path in sorted(MD_DIR.glob("*.md")):
+        text = md_path.read_text(encoding="utf-8")
+        fm, _ = parse_front_matter(text)
+        category = str(fm.get("category") or "").strip()
+        if category:
+            categories.add(category)
+        for t in normalize_tags(fm.get("tags") or []):
+            if t:
+                tags.add(t)
+    sorted_categories = sorted(categories, key=lambda x: x.lower())
+    sorted_tags = sorted(tags, key=lambda x: x.lower())
+    return sorted_categories, sorted_tags
+
+
 app = Flask(__name__)
 
 
@@ -553,9 +570,21 @@ def import_text():
     error = ""
     build_msg = ""
 
+    categories, tags = collect_meta_options()
+    if "未分類" not in categories:
+        categories.append("未分類")
+    category_options_html = "".join(
+        f'<option value="{escape(c)}">{escape(c)}</option>' for c in categories
+    )
+    tag_options_html = "".join(
+        f'<option value="{escape(t)}"></option>' for t in tags
+    )
+
     if request.method == "POST":
         title = (request.form.get("title") or "").strip()
-        category = (request.form.get("category") or "").strip()
+        category_text = (request.form.get("category") or "").strip()
+        category_select = (request.form.get("category_select") or "").strip()
+        category = category_text or category_select
         tags_raw = (request.form.get("tags") or "").strip()
         body = (request.form.get("body") or "").strip()
         action = (request.form.get("action") or "save").strip()
@@ -595,7 +624,10 @@ def import_text():
   .container {{ max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; }}
   .nav {{ display: flex; gap: 1rem; margin-bottom: 0.8rem; }}
   .grid {{ display: grid; gap: 0.7rem; }}
+  .inline-row {{ display: flex; gap: 0.5rem; align-items: center; }}
+  .inline-row > * {{ flex: 1 1 auto; }}
   input[type="text"], textarea {{ width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 0.95rem; }}
+  select {{ width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 0.95rem; }}
   textarea {{ min-height: 360px; resize: vertical; }}
   .actions {{ display: flex; gap: 0.6rem; margin-top: 0.6rem; }}
   button {{ padding: 0.5rem 0.8rem; font-size: 0.95rem; }}
@@ -613,8 +645,26 @@ def import_text():
     </div>
     <form method="post" class="grid">
       <label>タイトル（必須）<input type="text" name="title" value="{escape(title)}" required></label>
-      <label>カテゴリ（任意）<input type="text" name="category" value="{escape(category)}" placeholder="未入力時は 未分類"></label>
-      <label>タグ（任意・カンマ区切り）<input type="text" name="tags" value="{escape(tags_raw)}" placeholder="例: 手順,運用"></label>
+      <label>カテゴリ候補
+        <select name="category_select" id="categorySelect">
+          <option value="">候補から選択（任意）</option>
+          {category_options_html}
+        </select>
+      </label>
+      <label>カテゴリ（任意）<input type="text" name="category" id="categoryInput" value="{escape(category)}" placeholder="未入力時は 未分類"></label>
+      <label>タグ（任意・カンマ区切り）
+        <input type="text" name="tags" id="tagsInput" list="tagOptionsImport" value="{escape(tags_raw)}" placeholder="例: 手順,運用">
+        <datalist id="tagOptionsImport">
+          {tag_options_html}
+        </datalist>
+      </label>
+      <div class="inline-row">
+        <select id="tagSelect">
+          <option value="">既存タグを選択</option>
+          {"".join(f'<option value="{escape(t)}">{escape(t)}</option>' for t in tags)}
+        </select>
+        <button type="button" id="addTagBtn">タグ追加</button>
+      </div>
       <label>本文（必須）<textarea name="body" required>{escape(body)}</textarea></label>
       <div class="actions">
         <button type="submit" name="action" value="save">保存</button>
@@ -626,6 +676,38 @@ def import_text():
     <p class="err">{escape(error)}</p>
     <p class="mono">{escape(build_msg)}</p>
   </div>
+  <script>
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryInput = document.getElementById('categoryInput');
+    const tagsInput = document.getElementById('tagsInput');
+    const tagSelect = document.getElementById('tagSelect');
+    const addTagBtn = document.getElementById('addTagBtn');
+
+    if (categorySelect && categoryInput) {{
+      categorySelect.addEventListener('change', () => {{
+        const selected = (categorySelect.value || '').trim();
+        if (selected) categoryInput.value = selected;
+      }});
+    }}
+
+    function addTagToInput(rawTag) {{
+      const tag = (rawTag || '').trim();
+      if (!tag || !tagsInput) return;
+      const current = (tagsInput.value || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (current.includes(tag)) return;
+      current.push(tag);
+      tagsInput.value = current.join(',');
+    }}
+
+    if (addTagBtn && tagSelect) {{
+      addTagBtn.addEventListener('click', () => {{
+        addTagToInput(tagSelect.value);
+      }});
+    }}
+  </script>
 </body>
 </html>
 """
