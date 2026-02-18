@@ -11,6 +11,7 @@
 - `md/`: 入力 Markdown（`*.md`）
 - `html/`: 出力先（各HTML、`index.html`、`style.css`）
 - `run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
+- `run_portal.ps1` / `run_portal.bat`: ローカル運用ポータル起動（`app.py` を起動しブラウザで開く）
 - `app.py`: Front Matter（`category` / `tags`）編集用のローカルWebツール（候補選択 + 自由入力）
 - `support_tool/`: Markdown作成補助ツール（ブラウザで使う単体HTML）
 - `docs/`: 正式ドキュメント（恒久運用）
@@ -55,6 +56,9 @@ run_build.bat
 python app.py
 ```
 - `http://127.0.0.1:5000/` で `md/*.md` の `category` / `tags` を一括編集
+- 同画面上のリンクから以下へ遷移可能
+  - `http://127.0.0.1:5000/kb`（`html/index.html`）
+  - `http://127.0.0.1:5000/import`（プレーンテキスト取込）
 - `category` は既存値から候補選択でき、自由入力も可能
 - `tags` はチップ形式で編集（クリック削除）
 - `tags` は既存タグ候補のプルダウン追加 + 自由入力追加（Enter対応）
@@ -68,12 +72,27 @@ python app.py
   - タグの `既存へ追加` / `置換` を選択して一括適用
 - 保存後は静的HTMLへ反映するため、`python build.py` を再実行
 
-2. Markdown保存補助（`support_tool/`）
+2. プレーンテキスト取込（`/import`）
+- タイトル・カテゴリ・タグ・本文を入力して `md/*.md` を作成
+- `保存` / `保存してビルド` を選択可能
+- ファイル名は `YYYYMMDD_タイトル.md` 形式で自動採番
+
+3. ポータル起動（おすすめ）
+```powershell
+.\run_portal.ps1
+```
+または
+```bat
+run_portal.bat
+```
+- `app.py` を起動し、`http://127.0.0.1:5000/` を自動で開く
+
+4. Markdown保存補助（`support_tool/`）
 - `support_tool/md_saver_min.html`
 - `support_tool/md_saver_min_v2.html`
 - ブラウザで開いて入力したMarkdownを `YYYYMMDD_名前.md` 形式で保存可能
 
-3. Markdownリンク/画像記法補助（`md_helper.ps1`）
+5. Markdownリンク/画像記法補助（`md_helper.ps1`）
 ```powershell
 .\md_helper.ps1 -Mode link -TargetPath ".\picture\sample.png" -FromPath ".\md\guide.md"
 ```
@@ -104,7 +123,7 @@ python app.py
 - `-Label`: リンク表示名/画像alt（省略時はファイル名）
 - `-Copy`: 生成文字列をクリップボードへコピー
 
-4. コミットメッセージ提案補助（`commit_suggest.ps1`）
+6. コミットメッセージ提案補助（`commit_suggest.ps1`）
 ```powershell
 .\commit_suggest.ps1
 ```

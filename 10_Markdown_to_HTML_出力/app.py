@@ -1,9 +1,13 @@
 from pathlib import Path
 import re
+import subprocess
+from datetime import datetime
+from html import escape
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 
 MD_DIR = Path("md")
+HTML_DIR = Path("html")
 FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.S)
 
 
@@ -86,10 +90,42 @@ def resolve_md_path(file_name: str) -> Path | None:
     return md_path
 
 
+def sanitize_file_stem(title: str) -> str:
+    stem = re.sub(r"[\\/:*?\"<>|]", " ", title)
+    stem = re.sub(r"\s+", " ", stem).strip()
+    stem = stem.replace(".", "_")
+    if not stem:
+        return "untitled"
+    return stem[:60]
+
+
+def parse_csv_tags(raw_text: str) -> list[str]:
+    tags: list[str] = []
+    for part in raw_text.split(","):
+        tag = part.strip()
+        if tag and tag not in tags:
+            tags.append(tag)
+    return tags
+
+
+def make_unique_md_path(base_stem: str) -> Path:
+    date_prefix = datetime.now().strftime("%Y%m%d")
+    candidate = MD_DIR / f"{date_prefix}_{base_stem}.md"
+    if not candidate.exists():
+        return candidate
+    idx = 2
+    while True:
+        alt = MD_DIR / f"{date_prefix}_{base_stem}_{idx}.md"
+        if not alt.exists():
+            return alt
+        idx += 1
+
+
 app = Flask(__name__)
 
 
 @app.get("/")
+@app.get("/meta")
 def index():
     return """<!doctype html>
 <html lang="ja">
@@ -144,6 +180,10 @@ def index():
 <body>
 <div class="container">
   <h1>Markdown メタ編集</h1>
+  <div class="toolbar">
+    <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
+    <a href="/import" target="_blank" rel="noopener">テキスト取込を開く</a>
+  </div>
   <div class="toolbar">
     <input id="search" type="search" placeholder="検索: ファイル名 / カテゴリ / タグ" />
     <button type="button" id="reload">再読み込み</button>
@@ -484,6 +524,108 @@ def index():
   reloadBtn.addEventListener('click', load);
   load();
 </script>
+</body>
+</html>
+"""
+
+
+@app.get("/kb")
+def kb():
+    index_path = HTML_DIR / "index.html"
+    if not index_path.exists():
+        return """<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>KB未生成</title></head>
+<body>
+<h1>html/index.html が見つかりません</h1>
+<p>先に <code>python build.py</code> を実行してください。</p>
+<p><a href="/">メタ編集へ戻る</a></p>
+</body></html>""", 404
+    return send_file(index_path.resolve())
+
+
+@app.route("/import", methods=["GET", "POST"])
+def import_text():
+    title = ""
+    category = ""
+    tags_raw = ""
+    body = ""
+    message = ""
+    error = ""
+    build_msg = ""
+
+    if request.method == "POST":
+        title = (request.form.get("title") or "").strip()
+        category = (request.form.get("category") or "").strip()
+        tags_raw = (request.form.get("tags") or "").strip()
+        body = (request.form.get("body") or "").strip()
+        action = (request.form.get("action") or "save").strip()
+
+        if not title:
+            error = "タイトルは必須です。"
+        elif not body:
+            error = "本文は必須です。"
+        else:
+            safe_stem = sanitize_file_stem(title)
+            md_path = make_unique_md_path(safe_stem)
+            tags = parse_csv_tags(tags_raw)
+            fm = build_front_matter(category or "未分類", tags)
+            md_path.write_text(fm + "\n" + body + "\n", encoding="utf-8")
+            message = f"保存しました: {md_path.name}"
+
+            if action == "save_build":
+                result = subprocess.run(
+                    ["python", "build.py"],
+                    capture_output=True,
+                    text=True,
+                    cwd=Path(__file__).resolve().parent,
+                )
+                if result.returncode == 0:
+                    build_msg = "build.py 実行成功（html/index.html を更新）"
+                else:
+                    error = "保存は成功しましたが build.py 実行に失敗しました。"
+                    build_msg = (result.stderr or result.stdout).strip()[:600]
+
+    return f"""<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>テキスト取込</title>
+<style>
+  body {{ font-family: system-ui, sans-serif; padding: 1.4rem; background: #f8fafc; }}
+  .container {{ max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; }}
+  .nav {{ display: flex; gap: 1rem; margin-bottom: 0.8rem; }}
+  .grid {{ display: grid; gap: 0.7rem; }}
+  input[type="text"], textarea {{ width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 0.95rem; }}
+  textarea {{ min-height: 360px; resize: vertical; }}
+  .actions {{ display: flex; gap: 0.6rem; margin-top: 0.6rem; }}
+  button {{ padding: 0.5rem 0.8rem; font-size: 0.95rem; }}
+  .ok {{ color: #047857; }}
+  .err {{ color: #b91c1c; }}
+  .mono {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>プレーンテキスト取込</h1>
+    <div class="nav">
+      <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
+      <a href="/" target="_blank" rel="noopener">メタ編集を開く</a>
+    </div>
+    <form method="post" class="grid">
+      <label>タイトル（必須）<input type="text" name="title" value="{escape(title)}" required></label>
+      <label>カテゴリ（任意）<input type="text" name="category" value="{escape(category)}" placeholder="未入力時は 未分類"></label>
+      <label>タグ（任意・カンマ区切り）<input type="text" name="tags" value="{escape(tags_raw)}" placeholder="例: 手順,運用"></label>
+      <label>本文（必須）<textarea name="body" required>{escape(body)}</textarea></label>
+      <div class="actions">
+        <button type="submit" name="action" value="save">保存</button>
+        <button type="submit" name="action" value="save_build">保存してビルド</button>
+        <button type="reset">入力クリア</button>
+      </div>
+    </form>
+    <p class="ok">{escape(message)}</p>
+    <p class="err">{escape(error)}</p>
+    <p class="mono">{escape(build_msg)}</p>
+  </div>
 </body>
 </html>
 """

@@ -10,6 +10,9 @@
   }
   body { font-family: system-ui, sans-serif; padding: 2rem; line-height: 1.6; }
   .container { max-width: var(--max); margin: 0 auto; }
+  .navlinks { margin: 0.2rem 0 0.9rem; display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .navlinks a { color: #0f4c81; text-decoration: none; border-bottom: 1px solid #0f4c81; }
+  .navlinks a:hover { opacity: 0.85; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin-bottom: 0.75rem; }
   #search { flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }
   .toolbar .controls { display: flex; gap: 0.5rem; }
@@ -37,6 +40,10 @@
 <body>
 <div class="container">
 <h1>Markdown 一覧</h1>
+<div class="navlinks">
+  <a href="http://127.0.0.1:5000/import" target="_blank" rel="noopener">テキスト取込を開く</a>
+  <a href="http://127.0.0.1:5000/" target="_blank" rel="noopener">メタ編集を開く</a>
+</div>
 <div class="toolbar">
   <input id="search" type="search" placeholder="検索: タイトル / カテゴリ / タグ" />
   <div class="controls">
