@@ -5,6 +5,7 @@
 
 入力:
     - 単一SQLファイル、または `*.sql` を含むディレクトリ
+    - 親ディレクトリ指定時は、`*.sql` 直下がなければ最新の子ディレクトリを対象化
     - 出力CSV既定: `join_links.csv`
 
 実行例:
@@ -17,7 +18,6 @@
 
 import argparse
 import csv
-import os
 import re
 from pathlib import Path
 
@@ -49,6 +49,13 @@ WHERE_BLOCK_RE = re.compile(
 )
 
 STMT_TYPE_RE = re.compile(r"^\s*([A-Za-z]+)")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def resolve_path(path_str: str) -> Path:
+    """相対パスをプロジェクトルート基準へ解決する。"""
+    p = Path(path_str)
+    return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 
 def sanitize_sql(sql: str) -> str:
@@ -136,7 +143,14 @@ def load_sql_files(input_path: Path):
     if input_path.is_file():
         files.append(input_path)
     else:
-        for p in sorted(input_path.glob("*.sql")):
+        direct_sql = sorted(input_path.glob("*.sql"))
+        if direct_sql:
+            candidates = direct_sql
+        else:
+            subdirs = sorted([d for d in input_path.iterdir() if d.is_dir()])
+            candidates = subdirs[-1].rglob("*.sql") if subdirs else []
+
+        for p in sorted(candidates):
             if p.name.startswith("_"):
                 continue
             files.append(p)
@@ -147,10 +161,12 @@ def main():
     """結合キー抽出のCLIエントリポイント。"""
     parser = argparse.ArgumentParser(description="SQLファイルから結合キー関係を抽出します。")
     parser.add_argument("input", help="SQLファイル、または分割SQLディレクトリ")
-    parser.add_argument("--out", default="join_links.csv", help="出力CSVパス")
+    parser.add_argument("--out", default="output/join_links.csv", help="出力CSVパス")
     args = parser.parse_args()
 
-    input_path = Path(args.input)
+    input_path = resolve_path(args.input)
+    out_path = resolve_path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     files = load_sql_files(input_path)
     if not files:
         raise SystemExit("SQLファイルが見つかりません。")
@@ -173,14 +189,14 @@ def main():
         "condition",
     ]
 
-    with open(args.out, "w", encoding="utf-8-sig", newline="") as f:
+    with open(out_path, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         w.writerows(all_rows)
 
     print(f"読み込んだSQLファイル数: {len(files)}")
     print(f"抽出した結合リンク数: {len(all_rows)}")
-    print(f"出力先: {args.out}")
+    print(f"出力先: {out_path}")
 
 
 if __name__ == "__main__":

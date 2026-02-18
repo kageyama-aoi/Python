@@ -17,9 +17,9 @@
 """
 
 import argparse
-import os
 import re
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -45,6 +45,14 @@ TOP_LEVEL_KEYWORDS = {
     "EXEC",
     "TRANSFORM",
 }
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def resolve_path(path_str: str) -> Path:
+    """相対パスをプロジェクトルート基準へ解決する。"""
+    p = Path(path_str)
+    return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 
 def split_sql_statements(text: str):
@@ -219,14 +227,14 @@ def align_statement_count(statements, target_count):
 def main():
     """SQL分割とコメント付与のCLIエントリポイント。"""
     parser = argparse.ArgumentParser(description="1つのSQLファイルを1文1ファイルへ分割します。")
-    parser.add_argument("input", help="入力SQLファイル（例: 04_sql_restored_from_safe.sql）")
-    parser.add_argument("--out-dir", default="split_sql", help="出力先ベースディレクトリ")
+    parser.add_argument("input", help="入力SQLファイル（例: output/04_sql_restored_from_safe.sql）")
+    parser.add_argument("--out-dir", default="output/split_sql", help="出力先ベースディレクトリ")
     parser.add_argument("--prefix", default="", help="任意のファイル名プレフィックス（例: プロジェクト名）")
 
     parser.add_argument(
         "--meta-csv",
-        default="01_sanitized_with_notes.csv",
-        help="SQLごとのコメント参照CSV（既定: 01_sanitized_with_notes.csv）",
+        default="output/01_sanitized_with_notes.csv",
+        help="SQLごとのコメント参照CSV（既定: output/01_sanitized_with_notes.csv）",
     )
     parser.add_argument("--comment-col-1", default="0", help="1つ目のコメント列名（既定: 0）")
     parser.add_argument("--comment-col-2", default="1", help="2つ目のコメント列名（既定: 1）")
@@ -240,27 +248,31 @@ def main():
 
     args = parser.parse_args()
 
-    with open(args.input, "r", encoding="utf-8-sig") as f:
+    input_path = resolve_path(args.input)
+    out_base_dir = resolve_path(args.out_dir)
+    meta_csv_path = resolve_path(args.meta_csv)
+
+    with open(input_path, "r", encoding="utf-8-sig") as f:
         text = f.read()
 
     statements = split_sql_statements(text)
     if not statements:
         raise SystemExit("SQL文が見つかりません。")
 
-    comment_rows = load_comment_rows(args.meta_csv, args.comment_col_1, args.comment_col_2, args.comment_col_3)
+    comment_rows = load_comment_rows(str(meta_csv_path), args.comment_col_1, args.comment_col_2, args.comment_col_3)
 
     original_count = len(statements)
     target_count = len(comment_rows)
     if args.sync_count_with_comments and original_count > target_count:
         statements = align_statement_count(statements, target_count)
 
-    run_dir = os.path.join(args.out_dir, datetime.now().strftime("%Y%m%d_%H%M%S"))
-    os.makedirs(run_dir, exist_ok=True)
+    run_dir = out_base_dir / datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest_path = os.path.join(run_dir, "_manifest.txt")
+    manifest_path = run_dir / "_manifest.txt"
     with open(manifest_path, "w", encoding="utf-8") as mf:
-        mf.write(f"input={args.input}\n")
-        mf.write(f"meta_csv={args.meta_csv}\n")
+        mf.write(f"input={input_path}\n")
+        mf.write(f"meta_csv={meta_csv_path}\n")
         mf.write(f"count_statements_before_sync={original_count}\n")
         mf.write(f"count_statements_after_sync={len(statements)}\n")
         mf.write(f"count_comments={len(comment_rows)}\n")
@@ -279,7 +291,7 @@ def main():
             base = f"{idx:03d}_{stype}.sql"
             if args.prefix:
                 base = f"{idx:03d}_{args.prefix}_{stype}.sql"
-            out_path = os.path.join(run_dir, base)
+            out_path = run_dir / base
 
             c1 = c2 = c3 = ""
             if idx - 1 < len(comment_rows):
@@ -299,8 +311,8 @@ def main():
             mf.write(f"{idx:03d}\t{stype}\t{base}\t{c1}\t{c2}\t{c3}\n")
 
     print(f"分割完了: {len(statements)} 文")
-    print(f"出力ディレクトリ: {run_dir}")
-    print(f"マニフェスト: {manifest_path}")
+    print(f"出力ディレクトリ: {str(run_dir)}")
+    print(f"マニフェスト: {str(manifest_path)}")
 
 
 if __name__ == "__main__":
