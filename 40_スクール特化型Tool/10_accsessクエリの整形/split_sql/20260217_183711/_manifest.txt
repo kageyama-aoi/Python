@@ -1,0 +1,337 @@
+input=04_sql_restored_from_safe.sql
+meta_csv=01_sanitized_with_notes.csv
+count_statements_before_sync=336
+count_statements_after_sync=331
+count_comments=331
+status=count matched
+001	INSERT	001_INSERT.sql	Query	152_QT講座申込書をT利用者へ複写	生成先(TO):T利用者, 参照元(FROM):T利用者, 参照元(FROM):T講座申込書
+002	DELETE	002_DELETE.sql	Query	303_T講座実施DB削除	参照元(FROM):T講座実施DB
+003	SELECT	003_SELECT.sql	Query	504Q空宿泊室	参照元(FROM):TM宿泊室,   参照元(FROM):T予約済宿泊室
+004	SELECT	004_SELECT.sql	Query	504Q予約済宿泊室	参照元(FROM):Q利用者,   参照元(FROM):QM宿泊室
+005	SELECT	005_SELECT.sql	Query	505Q受講生登録用空室9999除く	参照元(FROM):QM宿泊室, 参照元(FROM):504Q予約済宿泊室
+006	SELECT	006_SELECT.sql	Query	505Q宿泊室選択用空室	参照元(FROM):505Q受講生登録用空室9999除く,   参照元(FROM):TM宿泊室9999のみ
+007	SELECT	007_SELECT.sql	Query	601QM宿泊室予約表作成日付設定	参照元(FROM):Tカレンダー
+008	TRANSFORM	008_TRANSFORM.sql	Query	601Q宿泊室予約済_講座コード	参照元(FROM):TM宿泊室, 参照元(FROM):601Q宿泊室予約日毎レコード
+009	TRANSFORM	009_TRANSFORM.sql	Query	601Q宿泊室予約済_講座略称	参照元(FROM):TM宿泊室, 参照元(FROM):601Q宿泊室予約日毎レコード
+010	TRANSFORM	010_TRANSFORM.sql	Query	601Q宿泊室予約済_氏名	参照元(FROM):TM宿泊室, 参照元(FROM):601Q宿泊室予約日毎レコード
+011	SELECT	011_SELECT.sql	Query	601Q宿泊室予約日毎レコード	参照元(FROM):601QM宿泊室予約表作成日付設定,   参照元(FROM):T宿泊室予約日毎レコード
+012	SELECT	012_SELECT.sql	Query	601Q宿泊室予約表全室	参照元(FROM):TM宿泊室,   参照元(FROM):T宿泊室予約日毎レコード
+013	SELECT	013_SELECT.sql	Query	601Q部屋予約表作成データ	参照元(FROM):Q利用者,   参照元(FROM):QM宿泊室
+014	SELECT	014_SELECT.sql	Query	Q_SEIKYU_SAP	参照元(FROM):T_SEIKYU_SAP
+015	SELECT	015_SELECT.sql	Query	Q_SEIKYU_SAP_FB	参照元(FROM):T_SEIKYU_SAP_FB
+016	SELECT	016_SELECT.sql	Query	Q_SEIKYU_SAP_非表示選択作成	生成先(TO):T_SEIKYU_SAP_非表示選択,   参照元(FROM):T_SEIKYU_SAP
+017	SELECT	017_SELECT.sql	Query	Q_SEIKYU_SAP_非表示選択作成_FB	生成先(TO):T_SEIKYU_SAP_FB_非表示選択, 参照元(FROM):T_SEIKYU_SAP_FB
+018	SELECT	018_SELECT.sql	Query	Q_SEIKYU_SAP_不請求選択作成G会社	生成先(TO):T_SEIKYU_SAP_不請求選択G会社, 参照元(FROM):T_SEIKYU_SAP
+019	UPDATE	019_UPDATE.sql	Query	Q_宿泊変更0604	参照元(FROM):T利用者,     参照元(FROM):T講座申込書
+020	UPDATE	020_UPDATE.sql	Query	Q20220921共通従業員番号修正	参照元(FROM):T利用者, 参照元(FROM):T20220921共通従業員番号修正用
+021	UPDATE	021_UPDATE.sql	Query	QDX講座修了認定	参照元(FROM):T利用者,   参照元(FROM):TDX講座終了状況
+022	SELECT	022_SELECT.sql	Query	QG会社別受講申込リスト	参照元(FROM):Q利用者
+023	SELECT	023_SELECT.sql	Query	QG会社別受講申込リスト_合計	参照元(FROM):Q利用者
+024	SELECT	024_SELECT.sql	Query	QG会社別受講申込リスト_合計確認	参照元(FROM):Q利用者,   参照元(FROM):QG会社別受講申込リスト
+025	SELECT	025_SELECT.sql	Query	QG会社別受講申込リストを作成する	生成先(TO):T_EXCELG会社別受講申込リスト, 参照元(FROM):Q利用者
+026	SELECT	026_SELECT.sql	Query	Qinfo	参照元(FROM):MSYSOBJECTS,   参照元(FROM):MSYSQUERIES
+027	SELECT	027_SELECT.sql	Query	Qinfo1	参照元(FROM):MSYSOBJECTS,   参照元(FROM):MSYSQUERIES
+028	SELECT	028_SELECT.sql	Query	QMHI従業員番号確認	参照元(FROM):Q利用者
+029	SELECT	029_SELECT.sql	Query	QMHI従業員番号未登録者	参照元(FROM):T利用者,   参照元(FROM):TMSF共通ID
+030	UPDATE	030_UPDATE.sql	Query	QMHI従業員番号未登録者_MHI従業員番号登録	参照元(FROM):T利用者,   参照元(FROM):TMSF共通ID
+031	SELECT	031_SELECT.sql	Query	QModule_Form_検索	参照元(FROM):ZZ_MODULE_FORM
+032	SELECT	032_SELECT.sql	Query	QModule_List	参照元(FROM):QMODULE_UNION
+033	SELECT	033_SELECT.sql	Query	QModule_Object	参照元(FROM):TMODULE_OBJECT
+034	SELECT	034_SELECT.sql	Query	QModule_Std_検索	参照元(FROM):ZZ_MODULE_STD
+035	SELECT	035_SELECT.sql	Query	QModule_Union	参照元(FROM):TMODULE_クラス,   参照元(FROM):TMODULE_標準,   参照元(FROM):TSQL
+036	SELECT	036_SELECT.sql	Query	QModule_クラス	参照元(FROM):TMODULE_クラス
+037	SELECT	037_SELECT.sql	Query	QModule_クラス_検索	参照元(FROM):TMODULE_クラス
+038	SELECT	038_SELECT.sql	Query	QModule_標準	参照元(FROM):TMODULE_標準
+039	SELECT	039_SELECT.sql	Query	QModule名_クラス	参照元(FROM):TMODULE_クラス
+040	SELECT	040_SELECT.sql	Query	QModule名_標準	参照元(FROM):TMODULE_標準
+041	SELECT	041_SELECT.sql	Query	QM会社	参照元(FROM):TM会社
+042	SELECT	042_SELECT.sql	Query	QM宿泊室	参照元(FROM):TM宿泊室
+043	SELECT	043_SELECT.sql	Query	QM宿泊室_利用者	参照元(FROM):TM宿泊室,   参照元(FROM):T利用者
+044	SELECT	044_SELECT.sql	Query	Qobject_notref	参照元(FROM):TOBJECTXRLIST
+045	SELECT	045_SELECT.sql	Query	QPublicFunctionList	参照元(FROM):TMODULE
+046	SELECT	046_SELECT.sql	Query	QQueryUseFunction	参照元(FROM):TQUERYUSEFUNCTION,   参照元(FROM):TOBJECTQUERY2,   参照元(FROM):TMODULE
+047	UPDATE	047_UPDATE.sql	Query	QSF_会社管理区分他作成	参照元(FROM):TM会社,   参照元(FROM):T利用者
+048	UPDATE	048_UPDATE.sql	Query	QSF_休職派遣者受講制限評価用作成	参照元(FROM):T利用者
+049	UPDATE	049_UPDATE.sql	Query	QSF_講座秘匿性レベル作成	参照元(FROM):T利用者,   参照元(FROM):T講座実施DB
+050	UPDATE	050_UPDATE.sql	Query	QSF_受講可否作成	参照元(FROM):T利用者,   参照元(FROM):TM受講制限区分
+051	UPDATE	051_UPDATE.sql	Query	QSF_受講者限定作成	参照元(FROM):T利用者,   参照元(FROM):T講座実施DB
+052	INSERT	052_INSERT.sql	Query	QsysT制御入出力追加	生成先(TO):T制御入出力,   参照元(FROM):T制御入出力,   参照元(FROM):T制御入出力1
+053	SELECT	053_SELECT.sql	Query	QT_EXCELG会社別受講申込リスト_合計確認	参照元(FROM):Q利用者,   参照元(FROM):T_EXCELG会社別受講申込リスト_合計
+054	DELETE	054_DELETE.sql	Query	QT_EXCELG会社別受講申込リスト_合計削除	参照元(FROM):T_EXCELG会社別受講申込リスト_合計
+055	INSERT	055_INSERT.sql	Query	QT_EXCELG会社別受講申込リスト_合計追加	生成先(TO):QG会社別受講申込リスト_合計, 参照元(FROM):QG会社別受講申込リスト_合計, 参照元(FROM):QG会社別受講申込リスト, 参照元(FROM):T講座実施DB
+056	SELECT	056_SELECT.sql	Query	QT_EXCELG会社別受講申込リストを作成する	生成先(TO):T_EXCELG会社別受講申込リスト, 参照元(FROM):Q利用者
+057	SELECT	057_SELECT.sql	Query	QTemp_T利用者回振替	生成先(TO):TEMP_T利用者回振替, 参照元(FROM):T利用者
+058	SELECT	058_SELECT.sql	Query	QTF階層出力作成	生成先(TO):TF階層出力,   参照元(FROM):QF階層9, 参照元(FROM):TF階層
+059	SELECT	059_SELECT.sql	Query	QTQ利用者作成	生成先(TO):TQ利用者, 参照元(FROM):T利用者, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TカードID, 参照元(FROM):TM料金, 参照元(FROM):TM受講制限区分, 参照元(FROM):TM受講可否, 参照元(FROM):TM必修対象者, 参照元(FROM):TM会社, 参照元(FROM):TM勤務地
+060	SELECT	060_SELECT.sql	Query	QTリスト_クエリ作成	生成先(TO):Tリスト_クエリ, 参照元(FROM):MSYSQUERIES, 参照元(FROM):MSYSOBJECTS
+061	SELECT	061_SELECT.sql	Query	QT階層作成	生成先(TO):T階層, 参照元(FROM):T階層更新
+062	INSERT	062_INSERT.sql	Query	QT講座実施DB←T各回講座情報レコード追加	生成先(TO):T講座実施DB, 参照元(FROM):T講座実施DB, 参照元(FROM):T講座実施DB_TEMP
+063	DELETE	063_DELETE.sql	Query	QT講座実施DB削除	参照元(FROM):T講座実施DB
+064	SELECT	064_SELECT.sql	Query	QT講座申込書_受付番号_作成	生成先(TO):T講座申込書_受付番号, 参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+065	UPDATE	065_UPDATE.sql	Query	QT講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件1	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+066	UPDATE	066_UPDATE.sql	Query	QT講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件2	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+067	UPDATE	067_UPDATE.sql	Query	QT講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件3	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+068	UPDATE	068_UPDATE.sql	Query	QT講座申込書_受付番号の出張開催他社主催講座の宿泊フラグをNoに設定する	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+069	INSERT	069_INSERT.sql	Query	QT講座申込書_受付番号をT利用者へ複写	生成先(TO):T利用者, 参照元(FROM):T利用者, 参照元(FROM):T講座申込書_受付番号
+070	INSERT	070_INSERT.sql	Query	QT講座申込書_履歴作成	生成先(TO):T講座申込書_履歴, 参照元(FROM):T講座申込書_履歴, 参照元(FROM):T講座申込書
+071	SELECT	071_SELECT.sql	Query	QT講座申込書に受付番号を生成する	生成先(TO):T講座申込書_受付番号, 参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+072	UPDATE	072_UPDATE.sql	Query	QT講座申込書に申込ファイル移動済Yesをセットする	参照元(FROM):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書
+073	UPDATE	073_UPDATE.sql	Query	QT講座申込書のG会社受講制限評価用_G会社管理区分_費用区分作成_受講可否MHI用を生成する	参照元(FROM):T講座申込書
+074	UPDATE	074_UPDATE.sql	Query	QT講座申込書のG会社受講制限評価用_G会社管理区分_費用区分作成を生成する	参照元(FROM):TM会社, 参照元(FROM):T講座申込書
+075	UPDATE	075_UPDATE.sql	Query	QT講座申込書のMHI従業員番号をチェックする	参照元(FROM):T講座申込書
+076	UPDATE	076_UPDATE.sql	Query	QT講座申込書のオーダ_アイテムチェックをチェックする	参照元(FROM):T講座申込書
+077	UPDATE	077_UPDATE.sql	Query	QT講座申込書のチェックフラグをリセットする	参照元(FROM):T講座申込書
+078	UPDATE	078_UPDATE.sql	Query	QT講座申込書の会社コードを生成する	参照元(FROM):T講座申込書, 参照元(FROM):TM会社
+079	UPDATE	079_UPDATE.sql	Query	QT講座申込書の会社名をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):TM会社
+080	UPDATE	080_UPDATE.sql	Query	QT講座申込書の開催講座コードをチェックする	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+081	UPDATE	081_UPDATE.sql	Query	QT講座申込書の開催講座名称をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+082	UPDATE	082_UPDATE.sql	Query	QT講座申込書の各社従業員番号をチェックする	参照元(FROM):T講座申込書
+083	UPDATE	083_UPDATE.sql	Query	QT講座申込書の既申込をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):Q利用者
+084	UPDATE	084_UPDATE.sql	Query	QT講座申込書の休職派遣者受講制限評価用を生成する	参照元(FROM):T講座申込書
+085	UPDATE	085_UPDATE.sql	Query	QT講座申込書の勤務地_フリーを生成する	参照元(FROM):T講座申込書
+086	UPDATE	086_UPDATE.sql	Query	QT講座申込書の勤務地_選択を生成する	参照元(FROM):T講座申込書
+087	UPDATE	087_UPDATE.sql	Query	QT講座申込書の講座秘匿性レベルを生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+088	UPDATE	088_UPDATE.sql	Query	QT講座申込書の氏名をチェックする	参照元(FROM):T講座申込書
+089	UPDATE	089_UPDATE.sql	Query	QT講座申込書の氏名を編集する	参照元(FROM):T講座申込書
+090	UPDATE	090_UPDATE.sql	Query	QT講座申込書の受講可否を生成する	参照元(FROM):T講座申込書, 参照元(FROM):TM受講制限区分
+091	UPDATE	091_UPDATE.sql	Query	QT講座申込書の受講者限定を生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+092	UPDATE	092_UPDATE.sql	Query	QT講座申込書の重複データをチェックする	参照元(FROM):T講座申込書
+093	UPDATE	093_UPDATE.sql	Query	QT講座申込書の宿泊_宿泊手配_勘定コードを生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+094	UPDATE	094_UPDATE.sql	Query	QT講座申込書の所属_所属名称を生成する	参照元(FROM):T講座申込書
+095	UPDATE	095_UPDATE.sql	Query	QT講座申込書の職種_専攻分野_メールアドレス_電話番号_研修セ宿泊手配要否_受講目的をチェックする	参照元(FROM):T講座申込書
+096	UPDATE	096_UPDATE.sql	Query	QT講座申込書の性別をチェックする	参照元(FROM):T講座申込書
+097	UPDATE	097_UPDATE.sql	Query	QT講座申込書の入社年をチェックする	参照元(FROM):T講座申込書
+098	INSERT	098_INSERT.sql	Query	QT講座申込書移動ファイルリストを作成する	生成先(TO):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書
+099	INSERT	099_INSERT.sql	Query	QT講座申込書履歴作成	生成先(TO):T講座申込書_履歴, 参照元(FROM):T講座申込書_履歴, 参照元(FROM):T講座申込書
+100	DELETE	100_DELETE.sql	Query	QT利用者から当月のデータを削除する	参照元(FROM):T利用者, 参照元(FROM):T講座実施DB
+101	UPDATE	101_UPDATE.sql	Query	QT利用者削除復元作業用にて指定のT利用者削除データに復元者名および日時を入力する	参照元(FROM):T利用者削除, 参照元(FROM):T利用者削除復元作業用
+102	INSERT	102_INSERT.sql	Query	QT利用者削除復元作業用にて指定のデータをT利用者削除からT利用者へ複写する	生成先(TO):T利用者, 参照元(FROM):T利用者, 参照元(FROM):T利用者削除復元作業用, 参照元(FROM):T利用者削除
+103	INSERT	103_INSERT.sql	Query	QT利用者削除復元用にて指定のデータをT利用者からT利用者削除へ複写する	生成先(TO):T利用者削除, 参照元(FROM):T利用者削除, 参照元(FROM):T利用者, 参照元(FROM):T利用者削除復元作業用
+104	DELETE	104_DELETE.sql	Query	QT利用者削除復元用にて指定のデータをT利用者から削除する	参照元(FROM):T利用者, 参照元(FROM):T利用者削除復元作業用
+105	INSERT	105_INSERT.sql	Query	QT利用者情報作成	生成先(TO):T利用者情報, 参照元(FROM):T利用者情報, 参照元(FROM):Q利用者情報T作成用
+106	INSERT	106_INSERT.sql	Query	QZ_ED30-008_戻し	生成先(TO):T利用者, 参照元(FROM):T利用者, 参照元(FROM):T利用者2021_09
+107	SELECT	107_SELECT.sql	Query	QZ_EXCEL版事業所別研修費明細	生成先(TO):T研修費明細EXCEL事業所, 参照元(FROM):Q利用者
+108	INSERT	108_INSERT.sql	Query	QZ001標準親追加	生成先(TO):T標準親子, 参照元(FROM):T標準親子, 参照元(FROM):QMODULE名_標準
+109	UPDATE	109_UPDATE.sql	Query	QZ002	参照元(FROM):TMODULE_標準
+110	UPDATE	110_UPDATE.sql	Query	QZ003	参照元(FROM):TMODULE_クラス
+111	DELETE	111_DELETE.sql	Query	QZT利用者削除	参照元(FROM):T利用者, 参照元(FROM):T利用者削除復元作業用
+112	INSERT	112_INSERT.sql	Query	QZT利用者削除データ復元	生成先(TO):T利用者, 参照元(FROM):T利用者, 参照元(FROM):T利用者削除復元作業用, 参照元(FROM):T利用者削除
+113	UPDATE	113_UPDATE.sql	Query	QZオーダー変更	参照元(FROM):T利用者, 参照元(FROM):Tオーダー変更
+114	SELECT	114_SELECT.sql	Query	QZ会社コード未登録	参照元(FROM):T利用者, 参照元(FROM):TM会社
+115	UPDATE	115_UPDATE.sql	Query	QZ共通従業員番号修正	参照元(FROM):T利用者
+116	UPDATE	116_UPDATE.sql	Query	QZ削除者入力	参照元(FROM):T利用者削除
+117	UPDATE	117_UPDATE.sql	Query	QZ削除復元者入力	参照元(FROM):T利用者削除
+118	UPDATE	118_UPDATE.sql	Query	Qオーダー変更	参照元(FROM):T利用者, 参照元(FROM):Tオーダー変更
+119	SELECT	119_SELECT.sql	Query	Qオーダー変更確認	参照元(FROM):Tオーダー変更, 参照元(FROM):T利用者
+120	UPDATE	120_UPDATE.sql	Query	Qオブジェクト更新_更新オブジェクト更新日時	参照元(FROM):Tオブジェクト更新_作成日時, 参照元(FROM):Tオブジェクト更新_リストオブジェクト
+121	INSERT	121_INSERT.sql	Query	Qオブジェクト更新_新規オブジェクト追加	生成先(TO):Tオブジェクト更新_リストオブジェクト, 参照元(FROM):Tオブジェクト更新_リストオブジェクト, 参照元(FROM):Tオブジェクト更新_作成日時
+122	DELETE	122_DELETE.sql	Query	Qオブジェクト更新_不明オブジェクト削除	参照元(FROM):Tオブジェクト更新_リストオブジェクト, 参照元(FROM):Tオブジェクト更新_作成日時
+123	SELECT	123_SELECT.sql	Query	Qクラスモジュール親子	参照元(FROM):Qクラス親子, 参照元(FROM):Qクラス親, 参照元(FROM):Qクラス標準親子, 参照元(FROM):Qクラス標準親子Ⅱ, 参照元(FROM):Qクラス標準親子Ⅲ, 参照元(FROM):Qクラス標準親子Ⅳ
+124	SELECT	124_SELECT.sql	Query	Qクラス親	参照元(FROM):QMODULE名_クラス, 参照元(FROM):Qクラス親子
+125	SELECT	125_SELECT.sql	Query	Qクラス親子	参照元(FROM):Tクラス親子
+126	SELECT	126_SELECT.sql	Query	Qクラス標準親子	参照元(FROM):Qクラス親子, 参照元(FROM):Q標準親子
+127	SELECT	127_SELECT.sql	Query	Qクラス標準親子Ⅱ	参照元(FROM):Qクラス標準親子, 参照元(FROM):Q標準親子
+128	SELECT	128_SELECT.sql	Query	Qクラス標準親子Ⅲ	参照元(FROM):Qクラス標準親子Ⅱ, 参照元(FROM):Q標準親子
+129	SELECT	129_SELECT.sql	Query	Qクラス標準親子Ⅳ	参照元(FROM):Qクラス標準親子Ⅲ, 参照元(FROM):Q標準親子
+130	UPDATE	130_UPDATE.sql	Query	Qファイル更新フラグ設定	参照元(FROM):T制御ファイル
+131	SELECT	131_SELECT.sql	Query	Qフィールド名	参照元(FROM):TM講座別処理リストフィールド仕様
+132	TRANSFORM	132_TRANSFORM.sql	Query	Qリスト	参照元(FROM):T設計書
+133	SELECT	133_SELECT.sql	Query	Qリスト_オブジェクト	参照元(FROM):MSYSOBJECTS
+134	SELECT	134_SELECT.sql	Query	Qリスト_クエリ	参照元(FROM):MSYSQUERIES, 参照元(FROM):MSYSOBJECTS
+135	SELECT	135_SELECT.sql	Query	Qリスト利用者フィールド並び	参照元(FROM):Tリスト利用者フィールド並び, 参照元(FROM):Tリスト利用者フィールド仕様
+136	SELECT	136_SELECT.sql	Query	Q一般研修_コンボ開催講座コード	参照元(FROM):Q講座実施DB
+137	SELECT	137_SELECT.sql	Query	Q一般研修_コンボ開催講座名称	参照元(FROM):Q講座実施DB
+138	SELECT	138_SELECT.sql	Query	Q一般研修_コンボ庶務	参照元(FROM):Q講座実施DB
+139	SELECT	139_SELECT.sql	Query	Q一般研修_テキスト宿泊室番号セット	参照元(FROM):505Q宿泊室選択用空室
+140	SELECT	140_SELECT.sql	Query	Q一般研修_テキスト宿泊室番号リセット	参照元(FROM):TM宿泊室9999のみ
+141	SELECT	141_SELECT.sql	Query	Q一般研修_リスト受講者フィールド並び	参照元(FROM):Qリスト利用者フィールド並び
+142	SELECT	142_SELECT.sql	Query	Q一般研修_リスト選択行	参照元(FROM):Tリスト選択行
+143	SELECT	143_SELECT.sql	Query	Q一般研修_リスト利用者	参照元(FROM):Q利用者
+144	SELECT	144_SELECT.sql	Query	Q一般研修_リスト利用者フィールドセット	参照元(FROM):Qリスト利用者フィールド並び
+145	SELECT	145_SELECT.sql	Query	Q一般研修_処理	参照元(FROM):Q利用者
+146	SELECT	146_SELECT.sql	Query	Q一般研修_処理_リスト利用者フィールド並び	参照元(FROM):Qリスト利用者フィールド並び
+147	SELECT	147_SELECT.sql	Query	Q一般研修_選択データ処理	参照元(FROM):Q利用者
+148	SELECT	148_SELECT.sql	Query	Q一般研修_登録	
+149	TRANSFORM	149_TRANSFORM.sql	Query	Q改訂履歴	参照元(FROM):T設計書
+150	SELECT	150_SELECT.sql	Query	Q各社従業員番号確認	参照元(FROM):Q利用者, 参照元(FROM):TMSF共通ID
+151	UPDATE	151_UPDATE.sql	Query	Q各社従業員番号入力	参照元(FROM):Q利用者, 参照元(FROM):TMSF共通ID
+152	UPDATE	152_UPDATE.sql	Query	Q勘定コード更新	参照元(FROM):T利用者
+153	SELECT	153_SELECT.sql	Query	Q既存データ削除用	参照元(FROM):Q利用者, 参照元(FROM):T講座申込書
+154	SELECT	154_SELECT.sql	Query	Q技術講座受講申込受付_G会社別受講申込リスト	参照元(FROM):Q利用者
+155	SELECT	155_SELECT.sql	Query	Q技術講座受講申込受付_T講座申込書_受付番号	
+156	UPDATE	156_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件1	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+157	UPDATE	157_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件2	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+158	UPDATE	158_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書_受付番号に宿泊_宿泊室番号_雑費計を入力する_条件3	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+159	UPDATE	159_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書_受付番号の出張開催他社主催講座の宿泊フラグをNoに設定する	参照元(FROM):T講座申込書_受付番号, 参照元(FROM):T講座実施DB
+160	SELECT	160_SELECT.sql	Query	Q技術講座受講申込受付_T講座申込書に受付番号を生成する	生成先(TO):T講座申込書_受付番号, 参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+161	UPDATE	161_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書に申込ファイル移動済Yesをセットする	参照元(FROM):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書
+162	UPDATE	162_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書に追加申込フラグをセットする	参照元(FROM):T講座申込書
+163	UPDATE	163_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書のG会社受講制限評価用_G会社管理区分_費用区分作成_受講可否MHI用を生成する	参照元(FROM):T講座申込書
+164	UPDATE	164_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書のG会社受講制限評価用_G会社管理区分_費用区分作成を生成する	参照元(FROM):TM会社, 参照元(FROM):T講座申込書
+165	UPDATE	165_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書のMHI従業員番号をチェックする	参照元(FROM):T講座申込書
+166	UPDATE	166_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書のオーダ_アイテムチェックをチェックする	参照元(FROM):T講座申込書
+167	UPDATE	167_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書のチェックフラグをリセットする	参照元(FROM):T講座申込書
+168	UPDATE	168_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の会社コードを生成する	参照元(FROM):T講座申込書, 参照元(FROM):TM会社
+169	UPDATE	169_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の会社名をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):TM会社
+170	UPDATE	170_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の開催講座コードをチェックする	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+171	UPDATE	171_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の開催講座名称をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+172	UPDATE	172_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の各社従業員番号をチェックする	参照元(FROM):T講座申込書
+173	UPDATE	173_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の既申込をチェックする	参照元(FROM):T講座申込書, 参照元(FROM):Q利用者
+174	UPDATE	174_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の休職派遣者受講制限評価用を生成する	参照元(FROM):T講座申込書
+175	UPDATE	175_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の勤務地_フリーを生成する	参照元(FROM):T講座申込書
+176	UPDATE	176_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の勤務地_選択を生成する	参照元(FROM):T講座申込書
+177	UPDATE	177_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の講座秘匿性レベルを生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+178	UPDATE	178_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の氏名をチェックする	参照元(FROM):T講座申込書
+179	UPDATE	179_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の氏名を編集する	参照元(FROM):T講座申込書
+180	UPDATE	180_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の受講可否を生成する	参照元(FROM):T講座申込書, 参照元(FROM):TM受講制限区分
+181	UPDATE	181_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の受講者限定を生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+182	UPDATE	182_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の重複データをチェックする	参照元(FROM):T講座申込書
+183	UPDATE	183_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の宿泊_宿泊手配_勘定コードを生成する	参照元(FROM):T講座申込書, 参照元(FROM):T講座実施DB
+184	UPDATE	184_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の所属_所属名称を生成する	参照元(FROM):T講座申込書
+185	UPDATE	185_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の職種_専攻分野_メールアドレス_電話番号_研修セ宿泊手配要否_受講目的をチェックする	参照元(FROM):T講座申込書
+186	UPDATE	186_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の性別をチェックする	参照元(FROM):T講座申込書
+187	UPDATE	187_UPDATE.sql	Query	Q技術講座受講申込受付_T講座申込書の入社年をチェックする	参照元(FROM):T講座申込書
+188	DELETE	188_DELETE.sql	Query	Q技術講座受講申込受付_T講座申込書移動ファイルリストデータ削除	参照元(FROM):T講座申込書移動ファイルリスト
+189	INSERT	189_INSERT.sql	Query	Q技術講座受講申込受付_T講座申込書移動ファイルリストを作成する	生成先(TO):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書移動ファイルリスト, 参照元(FROM):T講座申込書
+190	DELETE	190_DELETE.sql	Query	Q技術講座受講申込受付_T講座申込書全データ削除	参照元(FROM):T講座申込書
+191	INSERT	191_INSERT.sql	Query	Q技術講座受講申込受付_T講座申込書履歴作成	生成先(TO):T講座申込書_履歴, 参照元(FROM):T講座申込書_履歴, 参照元(FROM):T講座申込書
+192	SELECT	192_SELECT.sql	Query	Q技術講座受講申込受付_T保管コントロール入力_エラー件数	参照元(FROM):T保管コントロール入力
+193	SELECT	193_SELECT.sql	Query	Q技術講座受講申込受付_コントロール入力値読込	参照元(FROM):T保管コントロール入力
+194	SELECT	194_SELECT.sql	Query	Q技術講座受講申込受付_コントロール入力値保存	参照元(FROM):T保管コントロール入力
+195	SELECT	195_SELECT.sql	Query	Q技術講座受講申込受付_入力クリア_Qリスト利用者フィールド並び	参照元(FROM):Qリスト利用者フィールド並び
+196	SELECT	196_SELECT.sql	Query	Q技術講座処理_ボタンプレビュー_当該研修費による研修費計算	参照元(FROM):Q利用者
+197	SELECT	197_SELECT.sql	Query	Q技術講座処理_ボタンプレビュー_当該研修費作成	参照元(FROM):Q当該研修費作成用
+198	SELECT	198_SELECT.sql	Query	Q技術講座処理_リスト受講者_Click_Qリスト利用者フィールド並び	参照元(FROM):Qリスト利用者フィールド並び
+199	SELECT	199_SELECT.sql	Query	Q技術講座処理_リスト利用者を設定する_Qリスト利用者フィールド並び	参照元(FROM):Qリスト利用者フィールド並び
+200	SELECT	200_SELECT.sql	Query	Q技術講座処理_講座抽出_コンボ開催講座コード	参照元(FROM):Q利用者
+201	SELECT	201_SELECT.sql	Query	Q技術講座処理_講座抽出_コンボ開催講座名称	参照元(FROM):Q利用者
+202	SELECT	202_SELECT.sql	Query	Q技術講座処理_講座抽出_コンボ庶務	参照元(FROM):Q利用者
+203	SELECT	203_SELECT.sql	Query	Q技術講座処理_講座抽出_リスト受講者	参照元(FROM):Q利用者
+204	SELECT	204_SELECT.sql	Query	Q技術講座処理_処理_リスト選択行	参照元(FROM):Tリスト選択行
+205	SELECT	205_SELECT.sql	Query	Q技術講座処理_処理_リスト利用者	参照元(FROM):Q利用者
+206	UPDATE	206_UPDATE.sql	Query	Q勤務地丸ノ内を丸の内に修正する	参照元(FROM):T利用者
+207	DELETE	207_DELETE.sql	Query	Q月受講生削除	参照元(FROM):T利用者, 参照元(FROM):Q利用者
+208	SELECT	208_SELECT.sql	Query	Q研修費区分確認リスト	参照元(FROM):Q利用者
+209	SELECT	209_SELECT.sql	Query	Q研修費明細EXCEL事業所	生成先(TO):T研修費明細EXCEL事業所, 参照元(FROM):Q利用者
+210	INSERT	210_INSERT.sql	Query	Q更新_Q利用者	生成先(TO):Q利用者, 参照元(FROM):Q利用者, 参照元(FROM):TEMP_Q利用者
+211	INSERT	211_INSERT.sql	Query	Q更新_TMSF共通ID	生成先(TO):TMSF共通ID, 参照元(FROM):TMSF共通ID, 参照元(FROM):TEMP_TMSF共通ID
+212	INSERT	212_INSERT.sql	Query	Q更新_TMセンター員	生成先(TO):TMセンター員, 参照元(FROM):TMセンター員, 参照元(FROM):TEMP_TMセンター員
+213	INSERT	213_INSERT.sql	Query	Q更新_TM会社	生成先(TO):TM会社, 参照元(FROM):TM会社, 参照元(FROM):TEMP_TM会社
+214	INSERT	214_INSERT.sql	Query	Q更新_TM再募集締切日	生成先(TO):TM再募集締切日, 参照元(FROM):TM再募集締切日, 参照元(FROM):TEMP_TM再募集締切日
+215	INSERT	215_INSERT.sql	Query	Q更新_TM宿泊室	生成先(TO):TM宿泊室, 参照元(FROM):TM宿泊室, 参照元(FROM):TEMP_TM宿泊室
+216	INSERT	216_INSERT.sql	Query	Q更新_TM必修対象者	生成先(TO):TM必修対象者, 参照元(FROM):TM必修対象者, 参照元(FROM):TEMP_TM必修対象者
+217	INSERT	217_INSERT.sql	Query	Q更新_TM募集期日	生成先(TO):TM募集期日, 参照元(FROM):TM募集期日, 参照元(FROM):TEMP_TM募集期日
+218	INSERT	218_INSERT.sql	Query	Q更新_Tカレンダー	生成先(TO):Tカレンダー, 参照元(FROM):Tカレンダー, 参照元(FROM):TEMP_Tカレンダー
+219	INSERT	219_INSERT.sql	Query	Q更新_T各回講座開催情報	生成先(TO):T各回講座開催情報, 参照元(FROM):T各回講座開催情報, 参照元(FROM):TEMP_T各回講座開催情報
+220	INSERT	220_INSERT.sql	Query	Q更新_T教室DB	生成先(TO):T教室DB, 参照元(FROM):T教室DB, 参照元(FROM):TEMP_T教室DB
+221	INSERT	221_INSERT.sql	Query	Q更新_T講座実施DB	生成先(TO):T講座実施DB, 参照元(FROM):T講座実施DB, 参照元(FROM):TEMP_T講座実施DB
+222	INSERT	222_INSERT.sql	Query	Q更新_T講座実施DB_0329	生成先(TO):T講座実施DB, 参照元(FROM):T講座実施DB, 参照元(FROM):TEMP_T講座実施DB
+223	INSERT	223_INSERT.sql	Query	Q更新_T講座申込書	生成先(TO):T講座申込書, 参照元(FROM):T講座申込書, 参照元(FROM):TEMP_T講座申込書
+224	INSERT	224_INSERT.sql	Query	Q更新_T講師情報	生成先(TO):T講師情報, 参照元(FROM):T講師情報, 参照元(FROM):TEMP_T講師情報
+225	INSERT	225_INSERT.sql	Query	Q更新_T終了後利用者情報	生成先(TO):T終了後利用者情報, 参照元(FROM):T終了後利用者情報, 参照元(FROM):TEMP_T終了後利用者情報
+226	INSERT	226_INSERT.sql	Query	Q更新_T申込締切時利用者情報	生成先(TO):T申込締切時利用者情報, 参照元(FROM):T申込締切時利用者情報, 参照元(FROM):TEMP_T申込締切時利用者情報
+227	INSERT	227_INSERT.sql	Query	Q更新_T制御入出力_マスタ	生成先(TO):T制御入出力_マスタ, 参照元(FROM):T制御入出力_マスタ, 参照元(FROM):TEMP_T制御入出力_マスタ
+228	SELECT	228_SELECT.sql	Query	Q講座実施DB	参照元(FROM):T講座実施DB
+229	DELETE	229_DELETE.sql	Query	Q講座申込重複者をT利用者から削除する	参照元(FROM):T利用者, 参照元(FROM):T講座申込書
+230	SELECT	230_SELECT.sql	Query	Q講座申込書	参照元(FROM):T講座申込書
+231	SELECT	231_SELECT.sql	Query	Q講座申込書_履歴	参照元(FROM):T講座申込書_履歴
+232	SELECT	232_SELECT.sql	Query	Q講座申込書エラーリスト会社名	参照元(FROM):T講座申込書
+233	SELECT	233_SELECT.sql	Query	Q講座申込書エラーリスト開催講座コード	参照元(FROM):T講座申込書
+234	SELECT	234_SELECT.sql	Query	Q講座申込書エラーリスト開催講座名称	参照元(FROM):T講座申込書
+235	SELECT	235_SELECT.sql	Query	Q講座申込書エラーリスト申込済	参照元(FROM):T講座申込書
+236	SELECT	236_SELECT.sql	Query	Q講座申込書エラーリスト申込済_申込書未登録者削除用	参照元(FROM):T講座申込書
+237	SELECT	237_SELECT.sql	Query	Q講座申込書エラーリスト申込書重複	参照元(FROM):T講座申込書
+238	SELECT	238_SELECT.sql	Query	Q講座申込書エラーリスト未入力	参照元(FROM):T講座申込書
+239	SELECT	239_SELECT.sql	Query	Q講座申込書エラーリスト未入力MHI	参照元(FROM):T講座申込書
+240	SELECT	240_SELECT.sql	Query	Q講座申込書氏名不一致者	参照元(FROM):T講座申込書, 参照元(FROM):T利用者
+241	UPDATE	241_UPDATE.sql	Query	Q講座名称更新	参照元(FROM):T講座実施DB, 参照元(FROM):T各回講座開催情報
+242	SELECT	242_SELECT.sql	Query	Q事業所別研修費明細	参照元(FROM):Q利用者
+243	SELECT	243_SELECT.sql	Query	Q受講者データ変更用_01T講座申込書をコピーする	生成先(TO):T受講者データ変更用_講座申込書, 参照元(FROM):T講座申込書
+244	SELECT	244_SELECT.sql	Query	Q受講者データ変更用_02T受講者データ変更用一時保管へコピーする	生成先(TO):T受講者データ変更用_受講者データ一時保管, 参照元(FROM):T受講者データ変更用_講座申込書, 参照元(FROM):T利用者
+245	INSERT	245_INSERT.sql	Query	Q受講者データ変更用_02T利用者削除へコピーする	生成先(TO):T利用者削除, 参照元(FROM):T利用者削除, 参照元(FROM):T受講者データ変更用_受講者データ一時保管, 参照元(FROM):T利用者
+246	DELETE	246_DELETE.sql	Query	Q受講者データ変更用_03T利用者から削除する	参照元(FROM):T利用者, 参照元(FROM):Q受講者データ変更用_受講者データ一時保管
+247	UPDATE	247_UPDATE.sql	Query	Q受講者データ変更用_04T受講者データ一時保管からデータを復元する	参照元(FROM):T利用者, 参照元(FROM):T受講者データ変更用_受講者データ一時保管
+248	UPDATE	248_UPDATE.sql	Query	Q受講者データ変更用_05T受講者雑費計再計算	参照元(FROM):T利用者, 参照元(FROM):T受講者データ変更用_受講者データ一時保管
+249	SELECT	249_SELECT.sql	Query	Q受講者データ変更用_受講者データ一時保管	参照元(FROM):T受講者データ変更用_受講者データ一時保管
+250	SELECT	250_SELECT.sql	Query	Q受講申込者リスト_G会社	生成先(TO):T_EXCELG会社別受講申込リスト, 参照元(FROM):Q利用者
+251	SELECT	251_SELECT.sql	Query	Q受講申込書その他	参照元(FROM):TM会社
+252	SELECT	252_SELECT.sql	Query	Q受講申込書会社名	参照元(FROM):TM会社
+253	SELECT	253_SELECT.sql	Query	Q受講申込書会社名含むその他	参照元(FROM):Q受講申込書会社名含むその他集計, 参照元(FROM):TM会社
+254	SELECT	254_SELECT.sql	Query	Q受講申込書会社名含むその他集計	参照元(FROM):Q受講申込書会社名, 参照元(FROM):Q受講申込書その他, 参照元(FROM):Q受講申込書申込書シートに戻る
+255	SELECT	255_SELECT.sql	Query	Q受講申込書会社名含むその他集計1	参照元(FROM):Q受講申込書会社名, 参照元(FROM):Q受講申込書その他, 参照元(FROM):Q受講申込書申込書シートに戻る
+256	SELECT	256_SELECT.sql	Query	Q受講申込書申込書シートに戻る	参照元(FROM):TM会社
+257	UPDATE	257_UPDATE.sql	Query	Q従業員番号置換	参照元(FROM):T利用者, 参照元(FROM):T各社従業員番号置換
+258	SELECT	258_SELECT.sql	Query	Q宿泊室重複	参照元(FROM):T宿泊室予約日毎レコード
+259	UPDATE	259_UPDATE.sql	Query	Q宿泊室番号削除_除く9999	参照元(FROM):T利用者N
+260	SELECT	260_SELECT.sql	Query	Q宿泊室予約_リスト開催講座_一般研修	参照元(FROM):Q利用者
+261	SELECT	261_SELECT.sql	Query	Q宿泊室予約_リスト開催講座_技術研修	参照元(FROM):Q利用者
+262	SELECT	262_SELECT.sql	Query	Q出入管理用	参照元(FROM):T出入管理用
+263	SELECT	263_SELECT.sql	Query	Q条件_T利用者更新	参照元(FROM):Q利用者, 参照元(FROM):T利用者2
+264	SELECT	264_SELECT.sql	Query	Q条件０	参照元(FROM):Q利用者, 参照元(FROM):T講座実施DB
+265	SELECT	265_SELECT.sql	Query	Q条件１	参照元(FROM):Q利用者, 参照元(FROM):T講座実施DB
+266	UPDATE	266_UPDATE.sql	Query	Q条件１_更新	参照元(FROM):Q利用者N, 参照元(FROM):T講座実施DB
+267	SELECT	267_SELECT.sql	Query	Q条件２	参照元(FROM):Q利用者, 参照元(FROM):T講座実施DB
+268	UPDATE	268_UPDATE.sql	Query	Q条件２_更新	参照元(FROM):Q利用者N, 参照元(FROM):T講座実施DB
+269	SELECT	269_SELECT.sql	Query	Q条件３	参照元(FROM):Q利用者, 参照元(FROM):T講座実施DB
+270	UPDATE	270_UPDATE.sql	Query	Q条件３_更新	参照元(FROM):Q利用者N, 参照元(FROM):T講座実施DB
+271	SELECT	271_SELECT.sql	Query	Q条件結合	参照元(FROM):Q条件１, 参照元(FROM):Q条件２, 参照元(FROM):Q条件３
+272	SELECT	272_SELECT.sql	Query	Q申込書不一致	参照元(FROM):T講座申込書, 参照元(FROM):T利用者
+273	SELECT	273_SELECT.sql	Query	Q制御入出力_マスタ_更新リスト	参照元(FROM):T制御入出力_マスタ, 参照元(FROM):T制御入出力
+274	UPDATE	274_UPDATE.sql	Query	Q制御入出力_更新日時更新	参照元(FROM):T制御入出力, 参照元(FROM):T制御入出力_マスタ
+275	UPDATE	275_UPDATE.sql	Query	Q制御入出力_処理日時更新	参照元(FROM):T制御入出力, 参照元(FROM):T制御入出力_マスタ
+276	DELETE	276_DELETE.sql	Query	Q請求集計SAP1削除	参照元(FROM):T_SEIKYU_SAP
+277	DELETE	277_DELETE.sql	Query	Q請求集計SAP1削除_FB	参照元(FROM):T_SEIKYU_SAP_FB
+278	DELETE	278_DELETE.sql	Query	Q請求集計SAP1削除_FB_230610	参照元(FROM):T_SEIKYU_SAP_FB
+279	INSERT	279_INSERT.sql	Query	Q請求集計SAP2社内出力	生成先(TO):T_SEIKYU_SAP, 参照元(FROM):T_SEIKYU_SAP, 参照元(FROM):Q利用者, 参照元(FROM):TM会社
+280	INSERT	280_INSERT.sql	Query	Q請求集計SAP2社内出力_FB	生成先(TO):T_SEIKYU_SAP_FB, 参照元(FROM):T_SEIKYU_SAP_FB, 参照元(FROM):Q利用者
+281	INSERT	281_INSERT.sql	Query	Q請求集計SAP3社外出力	生成先(TO):T_SEIKYU_SAP, 参照元(FROM):T_SEIKYU_SAP, 参照元(FROM):Q利用者, 参照元(FROM):TM会社
+282	INSERT	282_INSERT.sql	Query	Q請求集計SAP3社外出力_FB	生成先(TO):T_SEIKYU_SAP_FB, 参照元(FROM):T_SEIKYU_SAP_FB, 参照元(FROM):Q利用者
+283	INSERT	283_INSERT.sql	Query	Q請求集計SAP5社外個別出力	生成先(TO):T_SEIKYU_SAP, 参照元(FROM):T_SEIKYU_SAP, 参照元(FROM):Q利用者, 参照元(FROM):TM会社
+284	SELECT	284_SELECT.sql	Query	Q請求集計SAP印刷	参照元(FROM):T_SEIKYU_SAP, 参照元(FROM):T_SEIKYU_SAP_不請求選択G会社
+285	SELECT	285_SELECT.sql	Query	Q請求集計SAP印刷FB	参照元(FROM):T_SEIKYU_SAP_FB, 参照元(FROM):T_SEIKYU_SAP_FB_非表示選択
+286	UPDATE	286_UPDATE.sql	Query	Q設定_MHI従業員番号_必修講座受講者	参照元(FROM):T利用者, 参照元(FROM):TM必修対象者
+287	UPDATE	287_UPDATE.sql	Query	Q設定_MHI従業員番号_必修講座受講者_MHI従業員番号削除_テスト用	参照元(FROM):Q利用者, 参照元(FROM):T利用者
+288	SELECT	288_SELECT.sql	Query	Q定員超過講座	参照元(FROM):T利用者, 参照元(FROM):T講座実施DB
+289	SELECT	289_SELECT.sql	Query	Q定員超過処理	参照元(FROM):T利用者, 参照元(FROM):T講座実施DB, 参照元(FROM):TM必修対象者
+290	SELECT	290_SELECT.sql	Query	Q当該研修費作成用	参照元(FROM):T利用者, 参照元(FROM):TM会社, 参照元(FROM):TM受講制限区分, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TM料金
+291	SELECT	291_SELECT.sql	Query	Q当該研修費作成用FB	参照元(FROM):T利用者, 参照元(FROM):TM会社, 参照元(FROM):TM受講制限区分, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TM料金
+292	SELECT	292_SELECT.sql	Query	Q当月のT利用者yyyy_mmを生成する	生成先(TO):T利用者2025_08, 参照元(FROM):T利用者, 参照元(FROM):T講座実施DB
+293	TRANSFORM	293_TRANSFORM.sql	Query	Q入社年数当該講座名簿用	参照元(FROM):Q利用者
+294	SELECT	294_SELECT.sql	Query	Q秘密保持未締結リスト	参照元(FROM):TM会社, 参照元(FROM):T講座申込書
+295	SELECT	295_SELECT.sql	Query	Q必修講座受講者とTM必修対象者比較	参照元(FROM):T利用者, 参照元(FROM):TM必修対象者, 参照元(FROM):T講座実施DB
+296	SELECT	296_SELECT.sql	Query	Q必修講座受講者とTM必修対象者比較_非対象者	参照元(FROM):T利用者, 参照元(FROM):TM必修対象者, 参照元(FROM):T講座実施DB
+297	SELECT	297_SELECT.sql	Query	Q必修対象者確認	参照元(FROM):Q利用者, 参照元(FROM):TM必修対象者
+298	SELECT	298_SELECT.sql	Query	Q標準親	参照元(FROM):QMODULE_標準, 参照元(FROM):Q標準親子
+299	SELECT	299_SELECT.sql	Query	Q標準親子	参照元(FROM):T標準親子
+300	SELECT	300_SELECT.sql	Query	Q標準親子 のコピー	参照元(FROM):T標準親子
+301	SELECT	301_SELECT.sql	Query	Q分割開催回0講座	参照元(FROM):T利用者
+302	SELECT	302_SELECT.sql	Query	Q分割開催回n講座	参照元(FROM):T利用者
+303	UPDATE	303_UPDATE.sql	Query	Q分割開催回n講座_教育形態	参照元(FROM):T利用者, 参照元(FROM):T各回講座開催情報
+304	UPDATE	304_UPDATE.sql	Query	Q分割開催回n講座キャンセル理由0にセット	参照元(FROM):Q分割開催回N講座, 参照元(FROM):Q分割開催回0講座
+305	UPDATE	305_UPDATE.sql	Query	Q分割開催回n講座キャンセル理由更新	参照元(FROM):Q分割開催回N講座, 参照元(FROM):Q分割開催回0講座
+306	UPDATE	306_UPDATE.sql	Query	Q抹消日付入力	参照元(FROM):T利用者N
+307	TRANSFORM	307_TRANSFORM.sql	Query	Q目次	参照元(FROM):T設計書
+308	SELECT	308_SELECT.sql	Query	Q利用者	参照元(FROM):T利用者, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TカードID, 参照元(FROM):TM料金, 参照元(FROM):TM受講制限区分, 参照元(FROM):TM受講可否, 参照元(FROM):TM必修対象者, 参照元(FROM):TM会社, 参照元(FROM):TM勤務地
+309	UPDATE	309_UPDATE.sql	Query	Q利用者データ作成	参照元(FROM):T利用者N
+310	SELECT	310_SELECT.sql	Query	Q利用者確認	参照元(FROM):Q利用者
+311	SELECT	311_SELECT.sql	Query	Q利用者削除	参照元(FROM):T利用者削除, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TカードID, 参照元(FROM):TM料金, 参照元(FROM):TM受講制限区分, 参照元(FROM):TM受講可否, 参照元(FROM):TM必修対象者, 参照元(FROM):TM会社, 参照元(FROM):TM勤務地
+312	SELECT	312_SELECT.sql	Query	Q利用者削除復元重複確認	参照元(FROM):Q利用者, 参照元(FROM):T利用者削除復元作業用
+313	SELECT	313_SELECT.sql	Query	Q利用者情報T開始月指定	参照元(FROM):Q利用者情報T作成用
+314	INSERT	314_INSERT.sql	Query	Q利用者情報T作成	生成先(TO):T利用者情報, 参照元(FROM):T利用者情報, 参照元(FROM):Q利用者情報T作成用
+315	INSERT	315_INSERT.sql	Query	Q利用者情報T作成開始月	生成先(TO):T利用者情報, 参照元(FROM):T利用者情報, 参照元(FROM):Q利用者情報T開始月指定
+316	INSERT	316_INSERT.sql	Query	Q利用者情報T作成終了月	生成先(TO):T利用者情報, 参照元(FROM):T利用者情報, 参照元(FROM):Q利用者情報T終了月指定
+317	SELECT	317_SELECT.sql	Query	Q利用者情報T作成用	参照元(FROM):T利用者, 参照元(FROM):T講座実施DB, 参照元(FROM):TMキャンセル, 参照元(FROM):TカードID, 参照元(FROM):TM料金, 参照元(FROM):TM受講制限区分, 参照元(FROM):TM受講可否, 参照元(FROM):TM必修対象者, 参照元(FROM):TM会社
+318	DELETE	318_DELETE.sql	Query	Q利用者情報T削除	参照元(FROM):T利用者情報
+319	INSERT	319_INSERT.sql	Query	Q利用者情報T終了月指定	生成先(TO):T利用者情報, 参照元(FROM):T利用者情報, 参照元(FROM):Q利用者情報T作成用
+320	SELECT	320_SELECT.sql	Query	zz_QModule_Length_Over255	参照元(FROM):TMODULE
+321	SELECT	321_SELECT.sql	Query	zz_QwkXrList	参照元(FROM):ZZ_WKXRLIST
+322	SELECT	322_SELECT.sql	Query	zz_Qリスト_クエリ	参照元(FROM):MSYSQUERIES, 参照元(FROM):MSYSOBJECTS
+323	INSERT	323_INSERT.sql	Query	zzQFromオブジェクト追加	生成先(TO):ZZ_WKQUERY1, 参照元(FROM):ZZ_WKQUERY1, 参照元(FROM):ZZ_WKTABLE
+324	INSERT	324_INSERT.sql	Query	クエリ1	生成先(TO):T_SEIKYU_SAP, 参照元(FROM):T_SEIKYU_SAP, 参照元(FROM):Q利用者, 参照元(FROM):TM会社
+325	SELECT	325_SELECT.sql	Query	クエリ2	参照元(FROM):T講座実施DB
+326	INSERT	326_INSERT.sql	Query	クエリ3	生成先(TO):Tオブジェクト更新_リストオブジェクトグループ, 参照元(FROM):Tオブジェクト更新_リストオブジェクトグループ, 参照元(FROM):Tオブジェクト更新_リストオブジェクト
+327	SELECT	327_SELECT.sql	Query	クエリ4	参照元(FROM):Q_SEIKYU_SAP
+328	SELECT	328_SELECT.sql	Query	クエリ5	生成先(TO):T利用者, 参照元(FROM):SELECT, 参照元(FROM):T利用者_20250714, 参照元(FROM):T利用者2025_05_復元
+329	SELECT	329_SELECT.sql	Query	クエリ5 のコピー	参照元(FROM):T利用者, 参照元(FROM):T利用者2025_05_復元
+330	SELECT	330_SELECT.sql	Query	受講者名簿_受講者用	参照元(FROM):Q利用者
+331	SELECT	331_SELECT.sql	Query	受講者名簿_責任者用	参照元(FROM):Q利用者, 参照元(FROM):Q入社年数当該講座名簿用

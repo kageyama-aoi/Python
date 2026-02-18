@@ -1,0 +1,2400 @@
+Unable to format SQL:
+Error: Parse error: Unexpected "～3年, Q入社年数" at line 665 column 483.
+This likely happens because you're using the default "sql" dialect.
+If possible, please select a more specific dialect (like sqlite, postgresql, etc).
+
+Unable to format SQL:
+Error: Parse error at token: ; at line 241 column 538
+Unexpected DELIMITER token: {"type":"DELIMITER","raw":";","text":";","start":61585}. Instead, I was expecting to see one of the following:
+
+A PROPERTY_ACCESS_OPERATOR token based on:
+    property_access → atomic_expression _ ● %PROPERTY_ACCESS_OPERATOR _ property_access$subexpression$1
+    atomic_expression$subexpression$1 →  ● property_access
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A LINE_COMMENT token based on:
+    comment →  ● %LINE_COMMENT
+    _$ebnf$1 → _$ebnf$1 ● comment
+    _ →  ● _$ebnf$1
+    property_access → atomic_expression ● _ %PROPERTY_ACCESS_OPERATOR _ property_access$subexpression$1
+    atomic_expression$subexpression$1 →  ● property_access
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A BLOCK_COMMENT token based on:
+    comment →  ● %BLOCK_COMMENT
+    _$ebnf$1 → _$ebnf$1 ● comment
+    _ →  ● _$ebnf$1
+    property_access → atomic_expression ● _ %PROPERTY_ACCESS_OPERATOR _ property_access$subexpression$1
+    atomic_expression$subexpression$1 →  ● property_access
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A DISABLE_COMMENT token based on:
+    comment →  ● %DISABLE_COMMENT
+    _$ebnf$1 → _$ebnf$1 ● comment
+    _ →  ● _$ebnf$1
+    property_access → atomic_expression ● _ %PROPERTY_ACCESS_OPERATOR _ property_access$subexpression$1
+    atomic_expression$subexpression$1 →  ● property_access
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A ASTERISK token based on:
+    asterisk$subexpression$1 →  ● %ASTERISK
+    asterisk →  ● asterisk$subexpression$1
+    free_form_sql$subexpression$1 →  ● asterisk
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A ")" based on:
+    parenthesis → "(" expressions_or_clauses ● ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A AND token based on:
+    logic_operator$subexpression$1 →  ● %AND
+    logic_operator →  ● logic_operator$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● logic_operator
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A OR token based on:
+    logic_operator$subexpression$1 →  ● %OR
+    logic_operator →  ● logic_operator$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● logic_operator
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A XOR token based on:
+    logic_operator$subexpression$1 →  ● %XOR
+    logic_operator →  ● logic_operator$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● logic_operator
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A COMMA token based on:
+    comma$subexpression$1 →  ● %COMMA
+    comma →  ● comma$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● comma
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A WHEN token based on:
+    other_keyword$subexpression$1 →  ● %WHEN
+    other_keyword →  ● other_keyword$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● other_keyword
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A THEN token based on:
+    other_keyword$subexpression$1 →  ● %THEN
+    other_keyword →  ● other_keyword$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● other_keyword
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A ELSE token based on:
+    other_keyword$subexpression$1 →  ● %ELSE
+    other_keyword →  ● other_keyword$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● other_keyword
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A END token based on:
+    other_keyword$subexpression$1 →  ● %END
+    other_keyword →  ● other_keyword$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● other_keyword
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A BETWEEN token based on:
+    between_predicate →  ● %BETWEEN _ andless_expression_chain _ %AND _ andless_expression
+    asteriskless_andless_expression$subexpression$1 →  ● between_predicate
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A CASE token based on:
+    case_expression →  ● %CASE _ case_expression$ebnf$1 case_expression$ebnf$2 %END
+    asteriskless_andless_expression$subexpression$1 →  ● case_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A LIMIT token based on:
+    limit_clause →  ● %LIMIT _ expression_chain_ limit_clause$ebnf$1
+    clause$subexpression$1 →  ● limit_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_SELECT token based on:
+    select_clause →  ● %RESERVED_SELECT select_clause$subexpression$1
+    clause$subexpression$1 →  ● select_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_SELECT token based on:
+    select_clause →  ● %RESERVED_SELECT
+    clause$subexpression$1 →  ● select_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_CLAUSE token based on:
+    other_clause →  ● %RESERVED_CLAUSE other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_SET_OPERATION token based on:
+    set_operation →  ● %RESERVED_SET_OPERATION set_operation$ebnf$1
+    clause$subexpression$1 →  ● set_operation
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A ARRAY_IDENTIFIER token based on:
+    array_subscript →  ● %ARRAY_IDENTIFIER _ square_brackets
+    atomic_expression$subexpression$1 →  ● array_subscript
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A ARRAY_KEYWORD token based on:
+    array_subscript →  ● %ARRAY_KEYWORD _ square_brackets
+    atomic_expression$subexpression$1 →  ● array_subscript
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_FUNCTION_NAME token based on:
+    function_call →  ● %RESERVED_FUNCTION_NAME _ parenthesis
+    atomic_expression$subexpression$1 →  ● function_call
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A "(" based on:
+    parenthesis →  ● "(" expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A "{" based on:
+    curly_braces →  ● "{" curly_braces$ebnf$1 "}"
+    atomic_expression$subexpression$1 →  ● curly_braces
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A "[" based on:
+    square_brackets →  ● "[" square_brackets$ebnf$1 "]"
+    atomic_expression$subexpression$1 →  ● square_brackets
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_PARAMETERIZED_DATA_TYPE token based on:
+    data_type →  ● %RESERVED_PARAMETERIZED_DATA_TYPE _ parenthesis
+    atomic_expression$subexpression$1 →  ● data_type
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A OPERATOR token based on:
+    operator$subexpression$1 →  ● %OPERATOR
+    operator →  ● operator$subexpression$1
+    atomic_expression$subexpression$1 →  ● operator
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A IDENTIFIER token based on:
+    identifier$subexpression$1 →  ● %IDENTIFIER
+    identifier →  ● identifier$subexpression$1
+    atomic_expression$subexpression$1 →  ● identifier
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A QUOTED_IDENTIFIER token based on:
+    identifier$subexpression$1 →  ● %QUOTED_IDENTIFIER
+    identifier →  ● identifier$subexpression$1
+    atomic_expression$subexpression$1 →  ● identifier
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A VARIABLE token based on:
+    identifier$subexpression$1 →  ● %VARIABLE
+    identifier →  ● identifier$subexpression$1
+    atomic_expression$subexpression$1 →  ● identifier
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A NAMED_PARAMETER token based on:
+    parameter$subexpression$1 →  ● %NAMED_PARAMETER
+    parameter →  ● parameter$subexpression$1
+    atomic_expression$subexpression$1 →  ● parameter
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A QUOTED_PARAMETER token based on:
+    parameter$subexpression$1 →  ● %QUOTED_PARAMETER
+    parameter →  ● parameter$subexpression$1
+    atomic_expression$subexpression$1 →  ● parameter
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A NUMBERED_PARAMETER token based on:
+    parameter$subexpression$1 →  ● %NUMBERED_PARAMETER
+    parameter →  ● parameter$subexpression$1
+    atomic_expression$subexpression$1 →  ● parameter
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A POSITIONAL_PARAMETER token based on:
+    parameter$subexpression$1 →  ● %POSITIONAL_PARAMETER
+    parameter →  ● parameter$subexpression$1
+    atomic_expression$subexpression$1 →  ● parameter
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A CUSTOM_PARAMETER token based on:
+    parameter$subexpression$1 →  ● %CUSTOM_PARAMETER
+    parameter →  ● parameter$subexpression$1
+    atomic_expression$subexpression$1 →  ● parameter
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A NUMBER token based on:
+    literal$subexpression$1 →  ● %NUMBER
+    literal →  ● literal$subexpression$1
+    atomic_expression$subexpression$1 →  ● literal
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A STRING token based on:
+    literal$subexpression$1 →  ● %STRING
+    literal →  ● literal$subexpression$1
+    atomic_expression$subexpression$1 →  ● literal
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_DATA_TYPE token based on:
+    data_type$subexpression$1 →  ● %RESERVED_DATA_TYPE
+    data_type →  ● data_type$subexpression$1
+    atomic_expression$subexpression$1 →  ● data_type
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_DATA_TYPE_PHRASE token based on:
+    data_type$subexpression$1 →  ● %RESERVED_DATA_TYPE_PHRASE
+    data_type →  ● data_type$subexpression$1
+    atomic_expression$subexpression$1 →  ● data_type
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_KEYWORD token based on:
+    keyword$subexpression$1 →  ● %RESERVED_KEYWORD
+    keyword →  ● keyword$subexpression$1
+    atomic_expression$subexpression$1 →  ● keyword
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_KEYWORD_PHRASE token based on:
+    keyword$subexpression$1 →  ● %RESERVED_KEYWORD_PHRASE
+    keyword →  ● keyword$subexpression$1
+    atomic_expression$subexpression$1 →  ● keyword
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
+A RESERVED_JOIN token based on:
+    keyword$subexpression$1 →  ● %RESERVED_JOIN
+    keyword →  ● keyword$subexpression$1
+    atomic_expression$subexpression$1 →  ● keyword
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    expressions_or_clauses$ebnf$1 → expressions_or_clauses$ebnf$1 ● free_form_sql
+    expressions_or_clauses →  ● expressions_or_clauses$ebnf$1 expressions_or_clauses$ebnf$2
+    parenthesis → "(" ● expressions_or_clauses ")"
+    atomic_expression$subexpression$1 →  ● parenthesis
+    atomic_expression →  ● atomic_expression$subexpression$1
+    asteriskless_andless_expression$subexpression$1 →  ● atomic_expression
+    asteriskless_andless_expression →  ● asteriskless_andless_expression$subexpression$1
+    asteriskless_free_form_sql$subexpression$1 →  ● asteriskless_andless_expression
+    asteriskless_free_form_sql →  ● asteriskless_free_form_sql$subexpression$1
+    free_form_sql$subexpression$1 →  ● asteriskless_free_form_sql
+    free_form_sql →  ● free_form_sql$subexpression$1
+    other_clause$ebnf$1 → other_clause$ebnf$1 ● free_form_sql
+    other_clause → %RESERVED_CLAUSE ● other_clause$ebnf$1
+    clause$subexpression$1 →  ● other_clause
+    clause →  ● clause$subexpression$1
+    expressions_or_clauses$ebnf$2 → expressions_or_clauses$ebnf$2 ● clause
+    expressions_or_clauses → expressions_or_clauses$ebnf$1 ● expressions_or_clauses$ebnf$2
+    statement →  ● expressions_or_clauses statement$subexpression$1
+    main$ebnf$1 → main$ebnf$1 ● statement
+    main →  ● main$ebnf$1
