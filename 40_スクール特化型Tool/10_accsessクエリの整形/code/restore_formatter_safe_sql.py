@@ -17,6 +17,7 @@
 
 import argparse
 import re
+from pathlib import Path
 
 REVERSE_TOKENS = {
     "__FW_SLASH__": "／",
@@ -27,7 +28,14 @@ REVERSE_TOKENS = {
     "__FW_WAVE__": "～",
     "__WAVE__": "〜",
 }
-DEFAULT_OUTPUT = "04_sql_restored_from_safe.sql"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_OUTPUT = "output/04_sql_restored_from_safe.sql"
+
+
+def resolve_path(path_str: str) -> Path:
+    """相対パスをプロジェクトルート基準へ解決する。"""
+    p = Path(path_str)
+    return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 
 def restore_sql(text: str) -> str:
@@ -47,15 +55,19 @@ def main() -> None:
     parser.add_argument("output", nargs="?", default=DEFAULT_OUTPUT, help=f"復元後SQLの出力先（既定: {DEFAULT_OUTPUT}）")
     args = parser.parse_args()
 
-    with open(args.input, "r", encoding="utf-8-sig") as f:
+    input_path = resolve_path(args.input)
+    output_path = resolve_path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(input_path, "r", encoding="utf-8-sig") as f:
         src = f.read()
 
     restored = restore_sql(src)
 
-    with open(args.output, "w", encoding="utf-8-sig", newline="\n") as f:
+    with open(output_path, "w", encoding="utf-8-sig", newline="\n") as f:
         f.write(restored)
 
-    print(f"復元SQLを保存しました: {args.output}")
+    print(f"復元SQLを保存しました: {output_path}")
 
 
 if __name__ == "__main__":

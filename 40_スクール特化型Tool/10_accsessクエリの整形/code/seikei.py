@@ -19,10 +19,10 @@
 """
 
 import argparse
-import os
 import re
 import shutil
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -38,18 +38,26 @@ REPLACEMENT_TOKENS = {
 }
 INTERNAL_SEMI_TOKEN = "/*__SC__*/"
 
-DEFAULT_INPUT = "kennsyuu.csv"
-DEFAULT_OUTPUT_CSV = "01_sanitized_with_notes.csv"
-DEFAULT_OUTPUT_SQL_RAW = "02_sql_after_conversion.sql"
-DEFAULT_OUTPUT_SQL_SAFE = "03_sql_for_formatter.safe.sql"
-DEFAULT_ARCHIVE_DIR = "archive"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+DEFAULT_INPUT = "input/kennsyuu.csv"
+DEFAULT_OUTPUT_CSV = "output/01_sanitized_with_notes.csv"
+DEFAULT_OUTPUT_SQL_RAW = "output/02_sql_after_conversion.sql"
+DEFAULT_OUTPUT_SQL_SAFE = "output/03_sql_for_formatter.safe.sql"
+DEFAULT_ARCHIVE_DIR = "output/archive"
 
 LEGACY_OUTPUTS = [
-    "kennsyuu_sanitized.csv",
-    "kennsyuu_sanitized_only.sql",
-    "kennsyuu_sanitized_formatter_safe.sql",
-    "kennsyuu_restored_from_formatter.sql",
+    "output/kennsyuu_sanitized.csv",
+    "output/kennsyuu_sanitized_only.sql",
+    "output/kennsyuu_sanitized_formatter_safe.sql",
+    "output/kennsyuu_restored_from_formatter.sql",
 ]
+
+
+def resolve_path(path_str):
+    """相対パスをプロジェクトルート基準へ解決する。"""
+    p = Path(path_str)
+    return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 
 def clean_access_sql(sql):
@@ -152,21 +160,31 @@ def _detect_sql_column(df):
 
 def _archive_files(files, archive_dir):
     """既存出力をタイムスタンプ付きでアーカイブへ退避する。"""
-    os.makedirs(archive_dir, exist_ok=True)
+    archive_path = resolve_path(archive_dir)
+    archive_path.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     archived = []
     for path in files:
-        if not os.path.exists(path):
+        src = resolve_path(path)
+        if not src.exists():
             continue
-        base = os.path.basename(path)
-        dst = os.path.join(archive_dir, f"{timestamp}_{base}")
-        shutil.move(path, dst)
-        archived.append(dst)
+        dst = archive_path / f"{timestamp}_{src.name}"
+        shutil.move(str(src), str(dst))
+        archived.append(str(dst))
     return archived
 
 
 def process_queries(input_file, output_csv, output_sql_raw, output_sql_safe, archive_dir):
     """Step-1の全処理を実行して3つの成果物を作成する。"""
+    input_path = resolve_path(input_file)
+    output_csv_path = resolve_path(output_csv)
+    output_sql_raw_path = resolve_path(output_sql_raw)
+    output_sql_safe_path = resolve_path(output_sql_safe)
+
+    output_csv_path.parent.mkdir(parents=True, exist_ok=True)
+    output_sql_raw_path.parent.mkdir(parents=True, exist_ok=True)
+    output_sql_safe_path.parent.mkdir(parents=True, exist_ok=True)
+
     archive_targets = LEGACY_OUTPUTS + [output_csv, output_sql_raw, output_sql_safe]
     archived = _archive_files(archive_targets, archive_dir)
     if archived:
@@ -175,9 +193,9 @@ def process_queries(input_file, output_csv, output_sql_raw, output_sql_safe, arc
             print(f"  - {p}")
 
     try:
-        df = pd.read_csv(input_file, encoding="utf-8-sig", sep="\t", header=None)
+        df = pd.read_csv(input_path, encoding="utf-8-sig", sep="\t", header=None)
     except Exception as e:
-        print(f"入力ファイル読み込みエラー {input_file}: {e}")
+        print(f"入力ファイル読み込みエラー {input_path}: {e}")
         return False
 
     sql_col_name = _detect_sql_column(df)
@@ -188,24 +206,24 @@ def process_queries(input_file, output_csv, output_sql_raw, output_sql_safe, arc
     df["Formatted_Candidate_SQL"] = [r[0] for r in results]
     df["Processing_Notes"] = [r[1] for r in results]
 
-    df.to_csv(output_csv, index=False, encoding="utf-8-sig")
+    df.to_csv(output_csv_path, index=False, encoding="utf-8-sig")
 
     sql_only_lines = [r[0].strip() for r in results if str(r[0]).strip()]
-    with open(output_sql_raw, "w", encoding="utf-8-sig", newline="\n") as f:
+    with open(output_sql_raw_path, "w", encoding="utf-8-sig", newline="\n") as f:
         f.write("\n\n".join(sql_only_lines))
 
     formatter_safe_lines = [to_formatter_safe_sql(s) for s in sql_only_lines]
-    with open(output_sql_safe, "w", encoding="utf-8-sig", newline="\n") as f:
+    with open(output_sql_safe_path, "w", encoding="utf-8-sig", newline="\n") as f:
         f.write("\n\n".join(formatter_safe_lines))
 
     print("生成ファイル:")
-    print(f"  1) {output_csv}")
-    print(f"  2) {output_sql_raw}")
-    print(f"  3) {output_sql_safe}")
+    print(f"  1) {output_csv_path}")
+    print(f"  2) {output_sql_raw_path}")
+    print(f"  3) {output_sql_safe_path}")
     print("次の手順:")
-    print(f"  - {output_sql_safe} を VS Code で開いてSQL整形を実行してください。")
+    print(f"  - {output_sql_safe_path} を VS Code で開いてSQL整形を実行してください。")
     print("  - その後、次のコマンドでプレースホルダを復元してください:")
-    print(f"    python restore_formatter_safe_sql.py {output_sql_safe} 04_sql_restored_from_safe.sql")
+    print("    python code/restore_formatter_safe_sql.py output/03_sql_for_formatter.safe.sql output/04_sql_restored_from_safe.sql")
     return True
 
 

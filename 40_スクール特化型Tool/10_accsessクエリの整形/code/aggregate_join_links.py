@@ -17,9 +17,17 @@
 
 import argparse
 import csv
+from pathlib import Path
 
-INPUT_DEFAULT = "join_links.csv"
-OUTPUT_DEFAULT = "join_links_table_pairs.csv"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+INPUT_DEFAULT = "output/join_links.csv"
+OUTPUT_DEFAULT = "output/join_links_table_pairs.csv"
+
+
+def resolve_path(path_str: str) -> Path:
+    """相対パスをプロジェクトルート基準へ解決する。"""
+    p = Path(path_str)
+    return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 
 def norm_pair(a, b):
@@ -128,14 +136,18 @@ def main():
     )
     args = parser.parse_args()
 
-    rows = build_rows(args.input)
-    sort_rows(rows, args.sort)
-    write_rows(rows, args.output)
+    input_path = resolve_path(args.input)
+    output_path = resolve_path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"入力行数: {count_input_rows(args.input)}")
+    rows = build_rows(input_path)
+    sort_rows(rows, args.sort)
+    write_rows(rows, output_path)
+
+    print(f"入力行数: {count_input_rows(input_path)}")
     print(f"集約後テーブルペア数: {len(rows)}")
     print(f"並び順: {args.sort}")
-    print(f"出力先: {args.output}")
+    print(f"出力先: {output_path}")
 
 
 if __name__ == "__main__":
