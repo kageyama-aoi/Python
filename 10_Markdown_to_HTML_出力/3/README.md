@@ -121,7 +121,6 @@ python app.py
 run_portal.bat
 ```
 - `app.py` を起動し、`http://127.0.0.1:5000/` を自動で開く
-- `5000` が使用中の場合は `5001` 以降の空きポートを自動選択して開く
 
 4. Markdown保存補助（`support_tool/`）
 - `support_tool/md_saver_min.html`

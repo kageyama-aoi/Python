@@ -1,0 +1,10 @@
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+
+# Local runtime/state files
+.portal_pid
+.pytest_cache/
+
+# Build permission check temp file
+html/.write_test
