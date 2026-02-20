@@ -346,8 +346,8 @@ def main():
 <div class="container">
 <h1>Markdown 一覧</h1>
 <div class="navlinks">
-  <a href="/import" target="_blank" rel="noopener">テキスト取込を開く</a>
-  <a href="/" target="_blank" rel="noopener">メタ編集を開く</a>
+  <a href="http://127.0.0.1:5000/import" target="_blank" rel="noopener">テキスト取込を開く</a>
+  <a href="http://127.0.0.1:5000/" target="_blank" rel="noopener">メタ編集を開く</a>
 </div>
 <div class="toolbar">
   <input id="search" type="search" placeholder="検索: タイトル / カテゴリ / タグ" />

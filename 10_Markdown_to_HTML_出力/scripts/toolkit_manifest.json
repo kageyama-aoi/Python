@@ -1,0 +1,31 @@
+{
+  "files": [
+    ".gitignore",
+    "app.py",
+    "build.py",
+    "README.md",
+    "PROMPT.md",
+    "run_build.bat",
+    "run_portal.bat",
+    "start_here.bat",
+    "scripts/run_build.ps1",
+    "scripts/run_portal.ps1",
+    "scripts/start_here.ps1",
+    "scripts/md_helper.ps1",
+    "scripts/deploy_toolkit.ps1"
+  ],
+  "docs_files": [
+    "docs/template.md",
+    "docs/COMMIT_MESSAGE_INSTRUCTIONS.md"
+  ],
+  "support_files": [
+    "support_tool/md_saver_min.html",
+    "support_tool/md_saver_min_v2.html"
+  ],
+  "create_dirs": [
+    "md",
+    "html",
+    "picture",
+    "scripts"
+  ]
+}

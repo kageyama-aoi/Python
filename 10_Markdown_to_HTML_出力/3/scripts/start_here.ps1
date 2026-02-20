@@ -2,12 +2,6 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptDir
 Set-Location $ProjectRoot
 
-function Normalize-Choice([string]$Text) {
-    if ($null -eq $Text) { return "" }
-    $s = $Text.Normalize([Text.NormalizationForm]::FormKC).Trim()
-    return $s
-}
-
 while ($true) {
     Clear-Host
     Write-Host "====================================="
@@ -18,7 +12,7 @@ while ($true) {
     Write-Host "3) Deploy toolkit to another directory"
     Write-Host "9) Exit"
     Write-Host ""
-    $choice = Normalize-Choice (Read-Host "Enter number")
+    $choice = Read-Host "Enter number"
 
     switch ($choice) {
         "1" {
@@ -36,11 +30,7 @@ while ($true) {
             if ([string]::IsNullOrWhiteSpace($target)) {
                 Write-Host "Target directory is required." -ForegroundColor Yellow
             } else {
-                try {
-                    & powershell -ExecutionPolicy Bypass -File "$ProjectRoot\scripts\deploy_toolkit.ps1" -TargetDir $target
-                } catch {
-                    Write-Host "[ERROR] Deploy failed: $($_.Exception.Message)" -ForegroundColor Red
-                }
+                & powershell -ExecutionPolicy Bypass -File "$ProjectRoot\scripts\deploy_toolkit.ps1" -TargetDir $target
             }
             Write-Host ""
             Read-Host "Press Enter to return to menu"
@@ -49,7 +39,7 @@ while ($true) {
             break
         }
         default {
-            Write-Host "Invalid input: '$choice' (use 1, 2, 3, or 9)." -ForegroundColor Yellow
+            Write-Host "Invalid input. Use 1, 2, 3, or 9." -ForegroundColor Yellow
             Start-Sleep -Seconds 1
         }
     }
