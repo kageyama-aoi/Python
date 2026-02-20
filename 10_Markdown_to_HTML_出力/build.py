@@ -306,16 +306,20 @@ def main():
 <title>Markdown Index</title>
 <style>
   :root {{
-    --max: 1200px;
+    --max: 1120px;
     --gap: 1.25rem;
+    --space-1: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
   }}
-  body {{ font-family: system-ui, sans-serif; padding: 2rem; line-height: 1.6; }}
+  body {{ font-family: system-ui, sans-serif; padding: var(--space-4); line-height: 1.6; background: #f5f7fa; margin: 0; }}
   .container {{ max-width: var(--max); margin: 0 auto; }}
   .navlinks {{ margin: 0.2rem 0 0.9rem; display: flex; flex-wrap: wrap; gap: 0.8rem; }}
   .navlinks a {{ color: #0f4c81; text-decoration: none; border-bottom: 1px solid #0f4c81; }}
   .navlinks a:hover {{ opacity: 0.85; }}
   .toolbar {{ display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin-bottom: 0.75rem; }}
-  #search {{ flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }}
+  #search {{ flex: 1 1 320px; min-width: 220px; padding: var(--space-1); font-size: 1rem; min-height: 2.2rem; }}
+  button {{ min-height: 2.2rem; }}
   .toolbar .controls {{ display: flex; gap: 0.5rem; }}
   .pager {{ display: flex; align-items: center; gap: 0.5rem; }}
   .pager .info {{ color: #666; font-size: 0.9rem; min-width: 6.5rem; text-align: center; }}
@@ -332,7 +336,7 @@ def main():
   .category.hidden {{ display: none; }}
   .category.page-hidden {{ display: none; }}
   @media (max-width: 640px) {{
-    body {{ padding: 1rem; }}
+    body {{ padding: var(--space-3); }}
     .toolbar {{ flex-direction: column; align-items: stretch; }}
     .toolbar .controls {{ justify-content: flex-start; }}
   }}
