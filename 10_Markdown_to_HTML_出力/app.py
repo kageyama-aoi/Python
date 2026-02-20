@@ -99,6 +99,23 @@ def sanitize_file_stem(title: str) -> str:
     return stem[:60]
 
 
+def normalize_md_filename(raw_name: str) -> str | None:
+    name = (raw_name or "").strip()
+    if not name:
+        return None
+    name = re.sub(r"[\\/:*?\"<>|]", " ", name)
+    name = Path(name).name.strip()
+    if not name:
+        return None
+    if not name.lower().endswith(".md"):
+        name = f"{name}.md"
+    stem = Path(name).stem.strip()
+    stem = re.sub(r"\s+", " ", stem)
+    if not stem:
+        return None
+    return f"{stem}.md"
+
+
 def parse_csv_tags(raw_text: str) -> list[str]:
     tags: list[str] = []
     for part in raw_text.split(","):
@@ -150,36 +167,53 @@ def index():
 <meta charset="utf-8">
 <title>Markdown Meta Editor</title>
 <style>
-  :root { --max: 1280px; --gap: 0.75rem; }
-  body { font-family: system-ui, sans-serif; padding: 1.5rem; background: #f3f4f6; }
+  :root {
+    --max: 1120px;
+    --gap: 0.75rem;
+    --space-1: 0.5rem;
+    --space-2: 0.75rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --radius-1: 10px;
+  }
+  body { font-family: system-ui, sans-serif; padding: var(--space-4); background: #f5f7fa; margin: 0; line-height: 1.6; }
   .container { max-width: var(--max); margin: 0 auto; }
+  .topnav { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0.2rem 0 0.9rem; }
+  .topnav a { color: #0f4c81; text-decoration: none; border-bottom: 1px solid #0f4c81; }
+  .topnav a:hover { opacity: 0.85; }
   .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; }
-  #search { flex: 1 1 320px; min-width: 220px; padding: 0.5rem; font-size: 1rem; }
+  #search { flex: 1 1 320px; min-width: 220px; padding: var(--space-1); font-size: 1rem; }
   input[type="text"], select, button { font-size: 0.95rem; }
-  input[type="text"], select { width: 100%; padding: 0.42rem 0.5rem; box-sizing: border-box; }
-  button { padding: 0.42rem 0.7rem; }
+  input[type="text"], select { width: 100%; padding: 0.42rem var(--space-1); box-sizing: border-box; min-height: 2.2rem; }
+  button { padding: 0.42rem 0.7rem; min-height: 2.2rem; }
   .row {
     display: grid;
     grid-template-columns: minmax(220px, 1.2fr) minmax(180px, 0.9fr) minmax(260px, 1.5fr) auto;
     gap: var(--gap);
-    align-items: start;
+    align-items: center;
   }
   .list { display: grid; gap: 0.5rem; margin-top: 1rem; }
-  .card { border: 1px solid #e5e5e5; border-radius: 10px; padding: 0.85rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-  .file-col { display: grid; gap: 0.2rem; }
-  .field-group { display: grid; gap: 0.35rem; }
+  .card { border: 1px solid #e5e5e5; border-radius: var(--radius-1); padding: 0.6rem 0.7rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .file-col { display: grid; gap: 0.3rem; }
+  .select-line { white-space: nowrap; }
+  .filename-input { font-weight: 600; }
+  .file-path { font-size: 0.82rem; }
+  .field-group { display: grid; gap: 0.2rem; }
   .inline-row { display: flex; gap: 0.4rem; align-items: center; }
   .inline-row > * { flex: 1 1 auto; }
   .muted { color: #666; font-size: 0.9rem; }
   .actions { display: flex; gap: 0.5rem; align-items: center; }
   .ok { color: #0a6; font-size: 0.9rem; }
-  .bulk-panel { border: 1px solid #ddd; border-radius: 10px; padding: 0.75rem; background: #fff; margin-top: 0.6rem; }
+  .bulk-panel { border: 1px solid #ddd; border-radius: var(--radius-1); padding: 0.75rem; background: #fff; margin-top: 0.6rem; }
   .bulk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; align-items: end; }
   .bulk-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
   .bulk-actions { display: flex; justify-content: flex-end; }
   .bulk-field { display: grid; gap: 0.3rem; }
   .bulk-tag-mode { margin-top: 0.2rem; margin-bottom: 0; }
-  .tag-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 1.8rem; align-items: center; }
+  .tag-editor { border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.35rem 0.45rem; background: #fbfdff; }
+  .tag-editor summary { cursor: pointer; user-select: none; }
+  .tag-editor[open] summary { margin-bottom: 0.35rem; }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 1.5rem; align-items: center; }
   .tag-chip { border: 1px solid #bbb; background: #f7f7f7; border-radius: 999px; padding: 0.15rem 0.55rem; cursor: pointer; }
   .tag-chip:hover { background: #eee; }
   @media (max-width: 1100px) {
@@ -189,7 +223,7 @@ def index():
     .bulk-actions { justify-content: flex-start; }
   }
   @media (max-width: 760px) {
-    body { padding: 1rem; }
+    body { padding: var(--space-3); }
     .row { grid-template-columns: 1fr; }
   }
 </style>
@@ -197,7 +231,7 @@ def index():
 <body>
 <div class="container">
   <h1>Markdown メタ編集</h1>
-  <div class="toolbar">
+  <div class="topnav">
     <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
     <a href="/import" target="_blank" rel="noopener">テキスト取込を開く</a>
   </div>
@@ -316,32 +350,35 @@ def index():
         card.innerHTML = `
           <div class="row">
             <div class="file-col">
-              <label class="muted"><input type="checkbox" class="row-select" ${selectedFiles.has(i.file) ? 'checked' : ''}> 選択</label>
-              <div><strong>${i.file}</strong></div>
-              <div class="muted">${i.path}</div>
+              <label class="muted select-line"><input type="checkbox" class="row-select" ${selectedFiles.has(i.file) ? 'checked' : ''}> 選択</label>
+              <input type="text" class="filename-input" value="${i.file}" aria-label="ファイル名">
+              <div class="muted file-path">${i.path}</div>
             </div>
             <div class="field-group">
               <label class="muted">カテゴリ</label>
-              <select class="category-select">
-                ${categoryOptions.map(c => `<option value="${c}" ${c === i.category ? 'selected' : ''}>${c}</option>`).join('')}
-              </select>
-              <input type="text" class="category-custom" value="${i.category}" placeholder="カテゴリを自由入力">
+              <div class="inline-row">
+                <select class="category-select">
+                  ${categoryOptions.map(c => `<option value="${c}" ${c === i.category ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+                <input type="text" class="category-custom" value="${i.category}" placeholder="カテゴリを自由入力">
+              </div>
             </div>
             <div class="field-group">
-              <label class="muted">タグ（チップをクリックで削除）</label>
-              <div class="tag-chips"></div>
-              <div class="inline-row">
-                <input type="text" class="tag-input" list="tagOptions" placeholder="タグを入力して追加">
-                <button type="button" class="add-tag-input">追加</button>
-              </div>
-              <div class="muted">既存タグから追加（自由入力も可）</div>
-              <div class="inline-row">
-                <select class="tag-select">
-                  <option value="">既存タグを選択</option>
-                  ${tagOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-                <button type="button" class="add-tag-select">追加</button>
-              </div>
+              <details class="tag-editor">
+                <summary class="muted">タグ編集（<span class="tag-count">${(i.tags || []).length}</span>）</summary>
+                <div class="tag-chips"></div>
+                <div class="inline-row">
+                  <input type="text" class="tag-input" list="tagOptions" placeholder="タグを入力して追加">
+                  <button type="button" class="add-tag-input">追加</button>
+                </div>
+                <div class="inline-row">
+                  <select class="tag-select">
+                    <option value="">既存タグを選択</option>
+                    ${tagOptions.map(t => `<option value="${t}">${t}</option>`).join('')}
+                  </select>
+                  <button type="button" class="add-tag-select">追加</button>
+                </div>
+              </details>
             </div>
             <div class="actions">
               <button type="button" class="save-btn">保存</button>
@@ -352,8 +389,11 @@ def index():
         const categorySelect = card.querySelector('.category-select');
         const categoryCustom = card.querySelector('.category-custom');
         const rowSelect = card.querySelector('.row-select');
+        const filenameInput = card.querySelector('.filename-input');
+        const filePathEl = card.querySelector('.file-path');
         const saveBtn = card.querySelector('.save-btn');
         const chipsEl = card.querySelector('.tag-chips');
+        const tagCountEl = card.querySelector('.tag-count');
         const tagInput = card.querySelector('.tag-input');
         const addTagInputBtn = card.querySelector('.add-tag-input');
         const tagSelect = card.querySelector('.tag-select');
@@ -384,8 +424,10 @@ def index():
             empty.className = 'muted';
             empty.textContent = 'タグなし';
             chipsEl.appendChild(empty);
+            if (tagCountEl) tagCountEl.textContent = '0';
             return;
           }
+          if (tagCountEl) tagCountEl.textContent = String(tagsState.length);
           tagsState.forEach((tag) => {
             const chip = document.createElement('button');
             chip.type = 'button';
@@ -433,24 +475,42 @@ def index():
         renderTagChips();
 
         saveBtn.addEventListener('click', async () => {
+          const oldFile = i.file;
+          const newFile = (filenameInput?.value || '').trim() || oldFile;
           const category = categoryCustom.value.trim() || categorySelect.value.trim() || '未分類';
           const tags = [...tagsState];
           saveBtn.disabled = true;
           const res = await fetch('/api/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ file: i.file, category, tags })
+            body: JSON.stringify({ file: oldFile, new_file: newFile, category, tags })
           });
           saveBtn.disabled = false;
           if (res.ok) {
+            const result = await res.json();
             ok.style.display = 'inline';
             setTimeout(() => ok.style.display = 'none', 1200);
+            if (result.file && result.file !== oldFile) {
+              if (selectedFiles.has(oldFile)) {
+                selectedFiles.delete(oldFile);
+                selectedFiles.add(result.file);
+              }
+              i.file = result.file;
+              i.path = result.path || `md\\${result.file}`;
+              if (filenameInput) filenameInput.value = result.file;
+              if (filePathEl) filePathEl.textContent = i.path;
+            }
             i.category = category;
             i.tags = tags;
             i.category_missing = category.trim() === '' || category === '未分類';
             i.tags_missing = tags.length === 0;
           } else {
-            alert('保存に失敗しました');
+            let err = '保存に失敗しました';
+            try {
+              const payload = await res.json();
+              if (payload && payload.error) err = `保存に失敗しました: ${payload.error}`;
+            } catch (_) {}
+            alert(err);
           }
         });
         listEl.appendChild(card);
@@ -620,26 +680,45 @@ def import_text():
 <meta charset="utf-8">
 <title>テキスト取込</title>
 <style>
-  body {{ font-family: system-ui, sans-serif; padding: 1.4rem; background: #f8fafc; }}
-  .container {{ max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; }}
-  .nav {{ display: flex; gap: 1rem; margin-bottom: 0.8rem; }}
-  .grid {{ display: grid; gap: 0.7rem; }}
+  :root {{
+    --max: 1120px;
+    --space-1: 0.5rem;
+    --space-2: 0.75rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --radius-1: 10px;
+  }}
+  body {{ font-family: system-ui, sans-serif; padding: var(--space-4); background: #ffffff; margin: 0; line-height: 1.6; color: #0f172a; }}
+  .container {{ max-width: var(--max); margin: 0 auto; background: transparent; border: 0; border-radius: 0; padding: 0; }}
+  h1 {{ margin: 0 0 0.6rem; }}
+  .topnav {{ display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 0.8rem; }}
+  .topnav a {{ color: #0f4c81; text-decoration: none; border-bottom: 1px solid #0f4c81; }}
+  .topnav a:hover {{ opacity: 0.85; }}
+  .grid {{ display: grid; gap: 0.7rem; padding: var(--space-3); border: 1px solid #e2e8f0; border-radius: var(--radius-1); background: #fbfdff; }}
+  label {{ display: grid; gap: 0.3rem; }}
   .inline-row {{ display: flex; gap: 0.5rem; align-items: center; }}
   .inline-row > * {{ flex: 1 1 auto; }}
-  input[type="text"], textarea {{ width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 0.95rem; }}
-  select {{ width: 100%; padding: 0.5rem; box-sizing: border-box; font-size: 0.95rem; }}
-  textarea {{ min-height: 360px; resize: vertical; }}
+  input[type="text"], textarea {{ width: 100%; padding: var(--space-1); box-sizing: border-box; font-size: 0.95rem; border: 1px solid #d9e2ec; border-radius: 8px; background: #f8fafc; }}
+  select {{ width: 100%; padding: var(--space-1); box-sizing: border-box; font-size: 0.95rem; min-height: 2.2rem; border: 1px solid #d9e2ec; border-radius: 8px; background: #f8fafc; }}
+  textarea {{ min-height: 360px; resize: vertical; background: #f4f7fb; }}
+  input[type="text"]:focus, select:focus, textarea:focus {{ outline: 2px solid #93c5fd; outline-offset: 0; border-color: #93c5fd; background: #ffffff; }}
   .actions {{ display: flex; gap: 0.6rem; margin-top: 0.6rem; }}
-  button {{ padding: 0.5rem 0.8rem; font-size: 0.95rem; }}
+  button {{ padding: 0.5rem 0.8rem; font-size: 0.95rem; min-height: 2.2rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; }}
   .ok {{ color: #047857; }}
   .err {{ color: #b91c1c; }}
-  .mono {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }}
+  .status {{ min-height: 5.2rem; margin-top: 0.7rem; padding: 0.6rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }}
+  .status p {{ margin: 0.2rem 0; }}
+  .mono {{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; min-height: 2.2rem; }}
+  @media (max-width: 760px) {{
+    body {{ padding: var(--space-3); }}
+    .actions {{ flex-wrap: wrap; }}
+  }}
 </style>
 </head>
 <body>
   <div class="container">
     <h1>プレーンテキスト取込</h1>
-    <div class="nav">
+    <div class="topnav">
       <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
       <a href="/" target="_blank" rel="noopener">メタ編集を開く</a>
     </div>
@@ -672,9 +751,11 @@ def import_text():
         <button type="reset">入力クリア</button>
       </div>
     </form>
-    <p class="ok">{escape(message)}</p>
-    <p class="err">{escape(error)}</p>
-    <p class="mono">{escape(build_msg)}</p>
+    <div class="status">
+      <p class="ok">{escape(message)}</p>
+      <p class="err">{escape(error)}</p>
+      <p class="mono">{escape(build_msg)}</p>
+    </div>
   </div>
   <script>
     const categorySelect = document.getElementById('categorySelect');
@@ -736,6 +817,7 @@ def items():
 def update():
     data = request.get_json(force=True)
     file_name = data.get("file", "")
+    new_file_name = data.get("new_file", "")
     category = data.get("category", "未分類")
     tags = normalize_tags(data.get("tags", []))
 
@@ -743,8 +825,20 @@ def update():
     if md_path is None:
         return jsonify({"error": "invalid file"}), 400
 
+    normalized_new = normalize_md_filename(str(new_file_name)) if str(new_file_name).strip() else md_path.name
+    if not normalized_new:
+        return jsonify({"error": "invalid new file name"}), 400
+    target_path = (MD_DIR / normalized_new).resolve()
+    if target_path.parent != MD_DIR.resolve() or target_path.suffix.lower() != ".md":
+        return jsonify({"error": "invalid new file path"}), 400
+    if target_path != md_path and target_path.exists():
+        return jsonify({"error": "file already exists"}), 409
+    if target_path != md_path:
+        md_path.rename(target_path)
+        md_path = target_path
+
     update_md_file(md_path, category, [str(t) for t in tags])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "file": md_path.name, "path": str(md_path)})
 
 
 @app.post("/api/bulk_update")

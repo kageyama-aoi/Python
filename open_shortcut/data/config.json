@@ -132,6 +132,12 @@
                     "type": "separator"
                 },
                 {
+                    "name": "0219_会議メモ",
+                    "action": "open_directory",
+                    "active": true,
+                    "path": "G:\\マイドライブ\\作業フォルダ\\04_三菱重工\\04_受取資料\\0218"
+                },
+                {
                     "name": "Box_Login",
                     "action": "open_url",
                     "url": "https://app.box.com/folder/343899856092",
