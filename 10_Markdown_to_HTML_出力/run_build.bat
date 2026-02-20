@@ -7,7 +7,7 @@ echo Working directory: %cd%
 echo.
 
 REM Run PowerShell wrapper
-powershell -ExecutionPolicy Bypass -File "%~dp0run_build.ps1"
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\run_build.ps1"
 
 REM Check exit code
 if errorlevel 1 (

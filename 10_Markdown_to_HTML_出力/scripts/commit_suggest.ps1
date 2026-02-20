@@ -6,10 +6,16 @@ $ErrorActionPreference = "Stop"
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 try { chcp 65001 > $null } catch {}
 
-$promptFile = Join-Path $PSScriptRoot "commit_prompt.md"
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$promptCandidates = @(
+    (Join-Path $PSScriptRoot "commit_prompt.md"),
+    (Join-Path $repoRoot "commit_prompt.md"),
+    (Join-Path $repoRoot "docs\\COMMIT_MESSAGE_INSTRUCTIONS.md")
+)
+$promptFile = $promptCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 
-if (-not (Test-Path $promptFile)) {
-    Write-Error "commit_prompt.md not found: $promptFile"
+if (-not $promptFile) {
+    Write-Error "Prompt file not found. Expected one of: scripts\\commit_prompt.md, commit_prompt.md, docs\\COMMIT_MESSAGE_INSTRUCTIONS.md"
     exit 1
 }
 

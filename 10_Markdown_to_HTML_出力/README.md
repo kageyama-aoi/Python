@@ -5,20 +5,30 @@
 
 `md/` 配下の Markdown を `html/` に変換し、一覧ページ `html/index.html` を生成するツールです。
 
+## 最初にこれ（迷ったら）
+
+`start_here.bat` を実行してください。番号で選べます。
+
+1. ビルドする（`build.py`）
+2. ポータルを起動する（`app.py`）
+9. 終了
+
 ## 構成
 
 - `build.py`: Markdown -> HTML 変換本体
+- `start_here.bat` / `scripts/start_here.ps1`: 番号メニュー付きの実行入口
 - `md/`: 入力 Markdown（`*.md`）
 - `html/`: 出力先（各HTML、`index.html`、`style.css`）
-- `run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
-- `run_portal.ps1` / `run_portal.bat`: ローカル運用ポータル起動（`app.py` を起動しブラウザで開く）
+- `scripts/`: 実行ラッパー・補助スクリプト群（`*.ps1`）
+- `scripts/run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
+- `scripts/run_portal.ps1` / `run_portal.bat`: ローカル運用ポータル起動（`app.py` を起動しブラウザで開く）
 - `app.py`: Front Matter（`category` / `tags`）編集用のローカルWebツール（候補選択 + 自由入力）
 - `support_tool/`: Markdown作成補助ツール（ブラウザで使う単体HTML）
 - `docs/`: 正式ドキュメント（恒久運用）
 - `notes/`: 途中経過・運用メモ（`issue/`, `operations/`, `archive/`）
 - `PROMPT.md`: 文章を装飾前提Markdownに整えるためのテンプレート
-- `COMMIT_MESSAGE_INSTRUCTIONS.md`: コミットメッセージ提案時の指示文
-- `commit_suggest.ps1`: ステージ差分をもとに `codex` へ提案依頼を渡す補助スクリプト（任意）
+- `docs/COMMIT_MESSAGE_INSTRUCTIONS.md`: コミットメッセージ提案時の指示文
+- `scripts/commit_suggest.ps1`: ステージ差分をもとに `codex` へ提案依頼を渡す補助スクリプト（任意）
 
 ## 基本の使い方（ビルド）
 
@@ -30,7 +40,7 @@ python build.py
 ```
 
 ```powershell
-.\run_build.ps1
+.\scripts\run_build.ps1
 ```
 
 ```bat
@@ -79,7 +89,7 @@ python app.py
 
 3. ポータル起動（おすすめ）
 ```powershell
-.\run_portal.ps1
+.\scripts\run_portal.ps1
 ```
 または
 ```bat
@@ -92,28 +102,28 @@ run_portal.bat
 - `support_tool/md_saver_min_v2.html`
 - ブラウザで開いて入力したMarkdownを `YYYYMMDD_名前.md` 形式で保存可能
 
-5. Markdownリンク/画像記法補助（`md_helper.ps1`）
+5. Markdownリンク/画像記法補助（`scripts/md_helper.ps1`）
 ```powershell
-.\md_helper.ps1 -Mode link -TargetPath ".\picture\sample.png" -FromPath ".\md\guide.md"
+.\scripts\md_helper.ps1 -Mode link -TargetPath ".\picture\sample.png" -FromPath ".\md\guide.md"
 ```
 - 相対パスを自動計算して Markdown 記法を生成
 - `-Mode image` で画像記法も生成可能
 - `-Copy` で生成結果をクリップボードへコピー
 
-`md_helper.ps1` の実行例:
+`scripts/md_helper.ps1` の実行例:
 
 ```powershell
 # リンク記法を生成
-.\md_helper.ps1 -Mode link -TargetPath ".\README.md"
+.\scripts\md_helper.ps1 -Mode link -TargetPath ".\README.md"
 
 # 画像記法を生成（md/guide.md から見た相対パスで計算）
-.\md_helper.ps1 -Mode image -TargetPath ".\picture\dummy.png" -FromPath ".\md\guide.md"
+.\scripts\md_helper.ps1 -Mode image -TargetPath ".\picture\dummy.png" -FromPath ".\md\guide.md"
 
 # 表示名を指定して生成
-.\md_helper.ps1 -Mode link -TargetPath ".\docs\template.md" -Label "テンプレート"
+.\scripts\md_helper.ps1 -Mode link -TargetPath ".\docs\template.md" -Label "テンプレート"
 
 # 生成結果をクリップボードへコピー
-.\md_helper.ps1 -Mode link -TargetPath ".\README.md" -Copy
+.\scripts\md_helper.ps1 -Mode link -TargetPath ".\README.md" -Copy
 ```
 
 主な引数:
@@ -123,12 +133,13 @@ run_portal.bat
 - `-Label`: リンク表示名/画像alt（省略時はファイル名）
 - `-Copy`: 生成文字列をクリップボードへコピー
 
-6. コミットメッセージ提案補助（`commit_suggest.ps1`）
+6. コミットメッセージ提案補助（`scripts/commit_suggest.ps1`）
 ```powershell
-.\commit_suggest.ps1
+.\scripts\commit_suggest.ps1
 ```
 - ステージ済み差分（`git diff --staged`）を取得し、`codex exec -` に渡す補助スクリプト
-- 実行には `codex` コマンドと `commit_prompt.md` が必要
+- 実行には `codex` コマンドが必要
+- プロンプトは `scripts/commit_prompt.md` -> `commit_prompt.md` -> `docs/COMMIT_MESSAGE_INSTRUCTIONS.md` の順で自動検出
 
 ## 依存関係
 
@@ -198,7 +209,7 @@ tags: [手順, 申請, 社内]
 ## 参考
 
 - 装飾前提Markdownへ書き換えるためのプロンプト: `PROMPT.md`
-- コミットメッセージ提案時に読み込む指示文: `COMMIT_MESSAGE_INSTRUCTIONS.md`
+- コミットメッセージ提案時に読み込む指示文: `docs/COMMIT_MESSAGE_INSTRUCTIONS.md`
 - Markdown作成テンプレート: `docs/template.md`
 - Issue関連メモ: `notes/issue/`
 - 運用検討・実装メモ: `notes/operations/`
@@ -206,4 +217,4 @@ tags: [手順, 申請, 社内]
 `docs/template.md` の使い方:
 - 新規ドキュメント作成時に `docs/template.md` をコピーして開始する
 - `## Quick Links` を実ファイルに差し替える
-- リンク/画像の記法は `md_helper.ps1` で生成した文字列を貼り付ける
+- リンク/画像の記法は `scripts/md_helper.ps1` で生成した文字列を貼り付ける
