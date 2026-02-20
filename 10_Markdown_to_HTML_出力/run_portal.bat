@@ -6,4 +6,4 @@ echo Working directory: %cd%
 echo URL: http://127.0.0.1:5000/
 echo.
 
-powershell -ExecutionPolicy Bypass -File "%~dp0run_portal.ps1"
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\run_portal.ps1"

@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime
 from html import escape
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, redirect, request, send_file, send_from_directory
 
 MD_DIR = Path("md")
 HTML_DIR = Path("html")
@@ -232,7 +232,7 @@ def index():
 <div class="container">
   <h1>Markdown メタ編集</h1>
   <div class="topnav">
-    <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
+    <a href="/kb/" target="_blank" rel="noopener">Markdown一覧を開く</a>
     <a href="/import" target="_blank" rel="noopener">テキスト取込を開く</a>
   </div>
   <div class="toolbar">
@@ -607,6 +607,11 @@ def index():
 
 
 @app.get("/kb")
+def kb_redirect():
+    return redirect("/kb/", code=302)
+
+
+@app.get("/kb/")
 def kb():
     index_path = HTML_DIR / "index.html"
     if not index_path.exists():
@@ -618,6 +623,25 @@ def kb():
 <p><a href="/">メタ編集へ戻る</a></p>
 </body></html>""", 404
     return send_file(index_path.resolve())
+
+
+@app.get("/kb/<path:filename>")
+def kb_asset(filename: str):
+    safe_root = HTML_DIR.resolve()
+    target = (safe_root / filename).resolve()
+    allowed_suffixes = {".html", ".css"}
+    if target.parent != safe_root or not target.exists() or target.suffix.lower() not in allowed_suffixes:
+        return "Not Found", 404
+    return send_from_directory(safe_root, filename)
+
+
+@app.get("/picture/<path:filename>")
+def picture_asset(filename: str):
+    safe_root = Path("picture").resolve()
+    target = (safe_root / filename).resolve()
+    if target.parent != safe_root or not target.exists():
+        return "Not Found", 404
+    return send_from_directory(safe_root, filename)
 
 
 @app.route("/import", methods=["GET", "POST"])
@@ -719,7 +743,7 @@ def import_text():
   <div class="container">
     <h1>プレーンテキスト取込</h1>
     <div class="topnav">
-      <a href="/kb" target="_blank" rel="noopener">Markdown一覧を開く</a>
+      <a href="/kb/" target="_blank" rel="noopener">Markdown一覧を開く</a>
       <a href="/" target="_blank" rel="noopener">メタ編集を開く</a>
     </div>
     <form method="post" class="grid">

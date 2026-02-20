@@ -27,5 +27,5 @@
 ## READMEに書くときの短い文例
 
 ```text
-コミットメッセージを提案させるときは、`COMMIT_MESSAGE_INSTRUCTIONS.md` を読み込んでから実行してください。
+コミットメッセージを提案させるときは、`docs/COMMIT_MESSAGE_INSTRUCTIONS.md` を読み込んでから実行してください。
 ```
