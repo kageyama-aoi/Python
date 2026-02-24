@@ -1,5 +1,22 @@
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+function Resolve-ScriptPath {
+    if ($PSCommandPath) { return $PSCommandPath }
+    if ($MyInvocation -and $MyInvocation.MyCommand -and $MyInvocation.MyCommand.Path) {
+        return $MyInvocation.MyCommand.Path
+    }
+    throw "Cannot resolve script path."
+}
+
+$scriptPath = Resolve-ScriptPath
+if (-not [System.IO.Path]::IsPathRooted($scriptPath)) {
+    $scriptPath = (Resolve-Path $scriptPath).Path
+}
+
+$ScriptDir = Split-Path -Parent $scriptPath
+if (-not $ScriptDir) { throw "Cannot resolve script directory." }
+
 $ProjectRoot = Split-Path -Parent $ScriptDir
+if (-not $ProjectRoot) { throw "Cannot resolve project root." }
+
 Set-Location $ProjectRoot
 
 function Normalize-Choice([string]$Text) {

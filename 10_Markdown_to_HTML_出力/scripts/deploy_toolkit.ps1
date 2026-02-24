@@ -9,6 +9,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Throw-PathError([string]$Action, [string]$PathText, [System.Exception]$ErrorObj) {
+    $reason = if ($ErrorObj) { $ErrorObj.Message } else { "unknown error" }
+    throw "[ERROR] $Action failed.`nPath: $PathText`nReason: $reason`nNext: Check path format, access permission, and drive availability."
+}
+
 function Resolve-ScriptPath {
     if ($PSCommandPath) { return $PSCommandPath }
     if ($MyInvocation -and $MyInvocation.MyCommand -and $MyInvocation.MyCommand.Path) {
@@ -18,8 +23,12 @@ function Resolve-ScriptPath {
 }
 
 function Ensure-Dir([string]$PathText) {
-    if (-not (Test-Path -LiteralPath $PathText)) {
-        New-Item -ItemType Directory -Path $PathText -Force | Out-Null
+    try {
+        if (-not (Test-Path -LiteralPath $PathText)) {
+            New-Item -ItemType Directory -Path $PathText -Force | Out-Null
+        }
+    } catch {
+        Throw-PathError -Action "Ensure directory" -PathText $PathText -ErrorObj $_.Exception
     }
 }
 
@@ -28,7 +37,13 @@ function Copy-IfNeeded([string]$SourcePath, [string]$DestPath, [switch]$ForceOve
     Ensure-Dir $destParent
 
     if ($DryRunMode) {
-        if (Test-Path -LiteralPath $DestPath) {
+        $exists = $false
+        try {
+            $exists = Test-Path -LiteralPath $DestPath
+        } catch {
+            Throw-PathError -Action "Check destination in dry-run" -PathText $DestPath -ErrorObj $_.Exception
+        }
+        if ($exists) {
             Write-Host "[DRYRUN] update $DestPath"
         } else {
             Write-Host "[DRYRUN] create $DestPath"
@@ -36,12 +51,23 @@ function Copy-IfNeeded([string]$SourcePath, [string]$DestPath, [switch]$ForceOve
         return
     }
 
-    if ((Test-Path -LiteralPath $DestPath) -and (-not $ForceOverwrite)) {
+    $destExists = $false
+    try {
+        $destExists = Test-Path -LiteralPath $DestPath
+    } catch {
+        Throw-PathError -Action "Check destination" -PathText $DestPath -ErrorObj $_.Exception
+    }
+
+    if ($destExists -and (-not $ForceOverwrite)) {
         Write-Host "[SKIP] $DestPath already exists (use -Force to overwrite)" -ForegroundColor Yellow
         return
     }
 
-    Copy-Item -LiteralPath $SourcePath -Destination $DestPath -Force:$ForceOverwrite
+    try {
+        Copy-Item -LiteralPath $SourcePath -Destination $DestPath -Force:$ForceOverwrite
+    } catch {
+        Throw-PathError -Action "Copy file" -PathText $DestPath -ErrorObj $_.Exception
+    }
     Write-Host "[OK]   copied $DestPath"
 }
 
@@ -60,10 +86,14 @@ $targetInput = $targetInput.Trim().Trim('"')
 if ([string]::IsNullOrWhiteSpace($targetInput)) {
     throw "TargetDir is empty."
 }
-if ([System.IO.Path]::IsPathRooted($targetInput)) {
-    $targetRoot = [System.IO.Path]::GetFullPath($targetInput)
-} else {
-    $targetRoot = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $targetInput))
+try {
+    if ([System.IO.Path]::IsPathRooted($targetInput)) {
+        $targetRoot = [System.IO.Path]::GetFullPath($targetInput)
+    } else {
+        $targetRoot = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $targetInput))
+    }
+} catch {
+    Throw-PathError -Action "Resolve target path" -PathText $targetInput -ErrorObj $_.Exception
 }
 
 Write-Host "=== Deploy Toolkit ==="
