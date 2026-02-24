@@ -35,9 +35,15 @@
 - If tests are added, document the framework, naming convention (e.g., `test_*.py`), and execution command here.
 
 ## Commit & Pull Request Guidelines
-- This folder is not under Git control (no `.git` present), so there is no commit history to follow.
-- If you initialize Git later, use concise, imperative commit messages (e.g., “Add task list support”).
+- Use concise, imperative commit messages (e.g., “Add task list support”).
 - For PRs, include: summary of changes, verification steps (e.g., “ran `python build.py`”), and screenshots if HTML output changed.
+
+## Issue-First Workflow (Required)
+- Before starting implementation, always create a GitHub Issue first.
+- Use the templates under `.github/ISSUE_TEMPLATE/` and select the closest type (`bug_report`, `feature_request`, `question`, `task_memo`).
+- Define scope and completion criteria in the Issue, then start development.
+- Link related commits/PRs to the Issue (include issue number in commit message or PR description).
+- If work starts as an ad-hoc task, create the Issue before the first code commit.
 
 ## Security & Configuration Tips
 - The build writes to `html/` and creates a temporary `.write_test` file during permission checks.
