@@ -5,6 +5,7 @@
     "build.py",
     "README.md",
     "PROMPT.md",
+    "html/style.css",
     "run_build.bat",
     "run_portal.bat",
     "start_here.bat",
@@ -12,7 +13,8 @@
     "scripts/run_portal.ps1",
     "scripts/start_here.ps1",
     "scripts/md_helper.ps1",
-    "scripts/deploy_toolkit.ps1"
+    "scripts/deploy_toolkit.ps1",
+    "scripts/toolkit_manifest.json"
   ],
   "docs_files": [
     "docs/template.md",
