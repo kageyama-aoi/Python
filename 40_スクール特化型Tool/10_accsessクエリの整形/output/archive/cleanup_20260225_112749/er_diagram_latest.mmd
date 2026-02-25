@@ -1,0 +1,3608 @@
+```mermaid
+erDiagram
+    FIX_504Q予約済宿泊室 {
+        string 宿泊室番号 FK
+    }
+    FIX_505Q受講生登録用空室9999除く {
+        string UNKNOWN_COL
+    }
+    FIX_505Q宿泊室選択用空室 {
+        string UNKNOWN_COL
+    }
+    FIX_601QM宿泊室予約表作成日付設定 {
+        string 日付 FK
+    }
+    FIX_601Q宿泊室予約日毎レコード {
+        string 宿泊室番号2 FK
+        string 選択
+        string 開催講座コード2
+        string 開催講座略称2
+    }
+    FIX_Q受講者データ変更用_受講者データ一時保管 {
+        string UNKNOWN_COL
+    }
+    MSYSOBJECTS {
+        string Connect
+        string Database
+        string DateCreate
+        string DateUpdate
+        string Flags
+        string ForeignName
+        string Id PK,FK
+        string Lv
+        string LvExtra
+        string LvModule
+        string LvProp
+        string Name
+        string Owner
+        string ParentId FK
+        string RmtInfoLong
+        string RmtInfoShort
+        string Type
+    }
+    MSYSQUERIES {
+        string Attribute
+        string Expression
+        string Flag
+        string LvExtra
+        string Name1
+        string Name2
+        string ObjectId PK,FK
+        string Order
+    }
+    QF階層9 {
+        string FIX_オブジェクト名
+        string 階層1
+        string 階層2
+        string 階層3
+        string 階層4
+        string 階層5
+        string 階層6
+        string 階層7
+        string 階層8
+        string 階層9 FK
+    }
+    QG会社別受講申込リスト {
+        string 会社名
+        string 受講可否結果
+        string 氏名_漢字 FK
+        string 申込日時
+        string 開催講座コード PK,FK
+        string 開催講座名称
+    }
+    QG会社別受講申込リスト_合計 {
+        string UNKNOWN_COL
+    }
+    QMODULE_UNION {
+        string FIX_コメント位置
+        string SEQ
+        string Source
+        string name
+        string name2
+        string 区分
+    }
+    QModule_標準 {
+        string name FK
+        string name2 FK
+    }
+    QModule名_クラス {
+        string FIX_ModuleName FK
+        string FIX_ProcName FK
+        string ModuleName
+        string ProcName
+    }
+    QModule名_標準 {
+        string ModuleName FK
+        string Proceduer FK
+    }
+    QM宿泊室 {
+        string 不泊
+        string 優先利用
+        string 利用可
+        string 宿泊室番号 PK,FK
+        string 階
+    }
+    Q_SEIKYU_SAP {
+        string UNKNOWN_COL
+    }
+    Qクラス標準親子 {
+        string FIX_オブジェクト名
+        string 子 FK
+        string 標準オブジェクト名
+    }
+    Qクラス標準親子Ⅱ {
+        string FIX_オブジェクト名
+        string 子1 FK
+        string 標準オブジェクト名
+    }
+    Qクラス標準親子Ⅲ {
+        string FIX_オブジェクト名
+        string 子1 FK
+        string 標準オブジェクト名
+    }
+    Qクラス標準親子Ⅳ {
+        string UNKNOWN_COL
+    }
+    Qクラス親 {
+        string UNKNOWN_COL
+    }
+    Qクラス親子 {
+        string FIX_オブジェクト名 FK
+        string 子 FK
+        string 親 FK
+    }
+    Qリスト利用者フィールド並び {
+        string UNKNOWN_COL
+    }
+    Q入社年数当該講座名簿用 {
+        string FIX_10年～
+        string FIX_4年～9年
+        string FIX_～3年
+        string 総計
+        string 開催講座コード FK
+    }
+    Q分割開催回0講座 {
+        string FIX_キャンセル理由
+        string MHI従業員番号 FK
+        string 共通従業員番号 FK
+        string 各社従業員番号 FK
+        string 氏名_漢字 FK
+        string 氏名_英字 FK
+        string 開催講座コード FK
+    }
+    Q分割開催回n講座 {
+        string FIX_キャンセル理由 FK
+        string MHI従業員番号 FK
+        string 共通従業員番号 FK
+        string 各社従業員番号 FK
+        string 氏名_漢字 FK
+        string 氏名_英字 FK
+        string 開催講座コード FK
+    }
+    Q利用者 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード番号
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル理由
+        string FIX_チェックアウト予定
+        string FIX_チェックイン予定
+        string FIX_メールアドレス
+        string FIX_開始日
+        string G会社
+        string MHI
+        string MHI従業員番号 FK
+        string TA
+        string チェックアウト予定
+        string チェックイン予定
+        string 一般研修
+        string 並び順
+        string 中止
+        string 会社コード FK
+        string 会社名 FK
+        string 会社略称
+        string 入社年月日
+        string 共通従業員番号 FK
+        string 分割開催回 PK,FK
+        string 勘定コード
+        string 勤務地
+        string 勤務地並び順
+        string 受付番号 PK,FK
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者
+        string 各社従業員番号 FK
+        string 名簿用宿泊室番号
+        string 宿泊
+        string 宿泊室番号 FK
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 期間
+        string 氏名_漢字 PK,FK
+        string 氏名_英字
+        string 申込形態
+        string 申込日時
+        string 登録日付
+        string 研修費
+        string 研修費区分
+        string 研修費区分2
+        string 研修費総計
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 費用区分
+        string 超過宿泊数
+        string 週
+        string 開催講座コード PK,FK
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費計
+    }
+    Q利用者N {
+        string 分割開催回 FK
+        string 受講生
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 開催講座コード FK
+        string 雑費計
+    }
+    Q利用者情報T作成用 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Q利用者情報T終了月指定 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Q利用者情報T開始月指定 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Q受講申込書その他 {
+        string UNKNOWN_COL
+    }
+    Q受講申込書会社名 {
+        string UNKNOWN_COL
+    }
+    Q受講申込書会社名含むその他集計 {
+        string 会社名
+        string 会社略称 FK
+    }
+    Q受講申込書申込書シートに戻る {
+        string UNKNOWN_COL
+    }
+    Q当該研修費作成用 {
+        string UNKNOWN_COL
+    }
+    Q条件１ {
+        string G会社
+        string MHI
+        string 会社名
+        string 分割開催回
+        string 受付番号
+        string 受講生
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 期間
+        string 条件
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座名称
+        string 雑費計
+    }
+    Q条件２ {
+        string G会社
+        string MHI
+        string 会社名
+        string 分割開催回
+        string 受付番号
+        string 受講生
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 期間
+        string 条件
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座名称
+        string 雑費計
+    }
+    Q条件３ {
+        string G会社
+        string MHI
+        string 会社名
+        string 分割開催回
+        string 受付番号
+        string 受講生
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 期間
+        string 条件
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座名称
+        string 雑費計
+    }
+    Q標準親子 {
+        string FIX_オブジェクト名 FK
+        string 子1
+        string 親1 PK,FK
+    }
+    Q講座実施DB {
+        string UNKNOWN_COL
+    }
+    T20220921共通従業員番号修正用 {
+        string ID_アイテム PK,FK
+        string 氏名_漢字 FK
+    }
+    TDX講座終了状況 {
+        string FIX_ユーザーID FK
+    }
+    TF階層 {
+        string 階層1 FK
+        string 階層2
+    }
+    TMODULE {
+        string Length
+        string ModuleName
+        string ModuleType
+        string ProceduerName FK
+        string ProceduerType
+    }
+    TMODULE_OBJECT {
+        string ModuleName
+        string ModuleType
+        string ObjectName
+        string ObjectType
+        string ProceduerName
+        string ProceduerType
+    }
+    TMSF共通ID {
+        string 共通ID PK,FK
+        string 各社従番
+    }
+    TModule_クラス {
+        string FIX_コメント位置
+        string ModuleName
+        string ProcName
+        string SEQ
+        string Source
+        string name
+        string name2
+    }
+    TModule_標準 {
+        string CommentPosition
+        string FIX_コメント位置
+        string ModuleName
+        string Proceduer
+        string SEQ
+        string Source
+        string name
+        string name2
+    }
+    TMキャンセル {
+        string FIX_キャンセルコード PK,FK
+        string FIX_キャンセル区分
+    }
+    TMセンター員 {
+        string UNKNOWN_COL
+    }
+    TM会社 {
+        string FIX_オーダー
+        string 並び順
+        string 会社コード PK,FK
+        string 会社名 FK
+        string 会社名ひらがな
+        string 会社略称 FK
+        string 会社管理区分
+        string 個別請求
+        string 区分
+        string 受講制限評価用
+        string 履歴
+        string 得意先コード
+        string 抽出条件
+        string 推薦書
+        string 推薦部門
+        string 有効
+        string 誓約書
+        string 費用区分
+    }
+    TM再募集締切日 {
+        string UNKNOWN_COL
+    }
+    TM募集期日 {
+        string UNKNOWN_COL
+    }
+    TM勤務地 {
+        string 勤務地 PK,FK
+    }
+    TM受講制限区分 {
+        string 包括推薦
+        string 受講制限評価指標
+        string 受講制限評価用 PK,FK
+        string 受講制限評価用指標
+        string 受講可否初期値
+        string 秘密許可
+        string 講座秘匿性レベル PK,FK
+    }
+    TM受講可否 {
+        string 受講可否コード PK,FK
+        string 受講可否区分
+    }
+    TM宿泊室 {
+        string FIX_コントロール名
+        string 優先利用
+        string 利用可
+        string 宿泊室番号 PK,FK
+        string 選択
+    }
+    TM宿泊室9999のみ {
+        string UNKNOWN_COL
+    }
+    TM必修対象者 {
+        string 共通従業員番号 FK
+        string 従業員番号 PK,FK
+        string 氏名 FK
+        string 開催講座コード PK,FK
+    }
+    TM料金 {
+        string 宿泊棟利用料
+        string 施設利用料単価
+        string 費用区分 PK,FK
+        string 雑費単価
+        string 食費
+    }
+    TM講座別処理リストフィールド仕様 {
+        string FIX_コントロールタイプ
+        string FIX_コントロール有
+        string FIX_データ型
+        string FIX_フィールド名
+        string FIX_フィールド幅Twip
+        string FIX_フィールド幅cm
+        string ID PK,FK
+        string 変更可
+        string 複数処理可
+    }
+    TOBJECTQUERY2 {
+        string ID PK,FK
+        string ObjectName FK
+        string ObjectType
+        string QueryType
+    }
+    TOBJECTXRLIST {
+        string Attr
+        string ChildModuleName
+        string ChildModuleType
+        string ChildProceduerName
+        string ChildProceduerType
+        string ID PK,FK
+        string LastUpDated
+        string Link_Pass
+        string MyOrder
+        string ObjectName
+        string ObjectType
+        string ProceduerName
+        string ProceduerType
+        string RefObjectName
+        string RefObjectType
+        string RefProceduerName
+        string RefProceduerType
+        string RefToFrom
+        string Seq
+        string SortSEQ
+    }
+    TSQL {
+        string UNKNOWN_COL
+    }
+    T_EXCELG会社別受講申込リスト_合計 {
+        string 氏名_漢字 FK
+        string 開催講座コード FK
+    }
+    T_SEIKYU_SAP {
+        string FIX_フィールド1
+        string FIX_フィールド10
+        string FIX_フィールド100
+        string FIX_フィールド101
+        string FIX_フィールド102
+        string FIX_フィールド103
+        string FIX_フィールド104
+        string FIX_フィールド105
+        string FIX_フィールド106
+        string FIX_フィールド107
+        string FIX_フィールド108
+        string FIX_フィールド109
+        string FIX_フィールド11
+        string FIX_フィールド110
+        string FIX_フィールド111
+        string FIX_フィールド112
+        string FIX_フィールド113
+        string FIX_フィールド114
+        string FIX_フィールド115
+        string FIX_フィールド116
+        string FIX_フィールド117
+        string FIX_フィールド118
+        string FIX_フィールド119
+        string FIX_フィールド12
+        string FIX_フィールド120
+        string FIX_フィールド121
+        string FIX_フィールド122
+        string FIX_フィールド123
+        string FIX_フィールド124
+        string FIX_フィールド125
+        string FIX_フィールド126
+        string FIX_フィールド127
+        string FIX_フィールド128
+        string FIX_フィールド129
+        string FIX_フィールド13
+        string FIX_フィールド130
+        string FIX_フィールド131
+        string FIX_フィールド132
+        string FIX_フィールド133
+        string FIX_フィールド134
+        string FIX_フィールド135
+        string FIX_フィールド136
+        string FIX_フィールド137
+        string FIX_フィールド138
+        string FIX_フィールド139
+        string FIX_フィールド14
+        string FIX_フィールド140
+        string FIX_フィールド141
+        string FIX_フィールド142
+        string FIX_フィールド143
+        string FIX_フィールド144
+        string FIX_フィールド145
+        string FIX_フィールド146
+        string FIX_フィールド147
+        string FIX_フィールド148
+        string FIX_フィールド149
+        string FIX_フィールド15
+        string FIX_フィールド150
+        string FIX_フィールド151
+        string FIX_フィールド152
+        string FIX_フィールド153
+        string FIX_フィールド154
+        string FIX_フィールド155
+        string FIX_フィールド156
+        string FIX_フィールド157
+        string FIX_フィールド158
+        string FIX_フィールド159
+        string FIX_フィールド16
+        string FIX_フィールド160
+        string FIX_フィールド161
+        string FIX_フィールド162
+        string FIX_フィールド163
+        string FIX_フィールド164
+        string FIX_フィールド165
+        string FIX_フィールド166
+        string FIX_フィールド167
+        string FIX_フィールド168
+        string FIX_フィールド169
+        string FIX_フィールド17
+        string FIX_フィールド170
+        string FIX_フィールド171
+        string FIX_フィールド172
+        string FIX_フィールド173
+        string FIX_フィールド174
+        string FIX_フィールド175
+        string FIX_フィールド176
+        string FIX_フィールド177
+        string FIX_フィールド178
+        string FIX_フィールド179
+        string FIX_フィールド18
+        string FIX_フィールド180
+        string FIX_フィールド181
+        string FIX_フィールド182
+        string FIX_フィールド183
+        string FIX_フィールド184
+        string FIX_フィールド185
+        string FIX_フィールド186
+        string FIX_フィールド187
+        string FIX_フィールド188
+        string FIX_フィールド19
+        string FIX_フィールド2
+        string FIX_フィールド20
+        string FIX_フィールド21
+        string FIX_フィールド22
+        string FIX_フィールド23
+        string FIX_フィールド24
+        string FIX_フィールド25
+        string FIX_フィールド26
+        string FIX_フィールド27
+        string FIX_フィールド28
+        string FIX_フィールド29
+        string FIX_フィールド3
+        string FIX_フィールド30
+        string FIX_フィールド31
+        string FIX_フィールド32
+        string FIX_フィールド33
+        string FIX_フィールド34
+        string FIX_フィールド35
+        string FIX_フィールド36
+        string FIX_フィールド37
+        string FIX_フィールド38
+        string FIX_フィールド39
+        string FIX_フィールド4
+        string FIX_フィールド40
+        string FIX_フィールド41
+        string FIX_フィールド42
+        string FIX_フィールド43
+        string FIX_フィールド44
+        string FIX_フィールド45
+        string FIX_フィールド46
+        string FIX_フィールド47
+        string FIX_フィールド48
+        string FIX_フィールド49
+        string FIX_フィールド5
+        string FIX_フィールド50
+        string FIX_フィールド51
+        string FIX_フィールド52
+        string FIX_フィールド53
+        string FIX_フィールド54
+        string FIX_フィールド55
+        string FIX_フィールド56
+        string FIX_フィールド57
+        string FIX_フィールド58
+        string FIX_フィールド59
+        string FIX_フィールド6
+        string FIX_フィールド60
+        string FIX_フィールド61
+        string FIX_フィールド62
+        string FIX_フィールド63
+        string FIX_フィールド64
+        string FIX_フィールド65
+        string FIX_フィールド66
+        string FIX_フィールド67
+        string FIX_フィールド68
+        string FIX_フィールド69
+        string FIX_フィールド7
+        string FIX_フィールド70
+        string FIX_フィールド71
+        string FIX_フィールド72
+        string FIX_フィールド73
+        string FIX_フィールド74
+        string FIX_フィールド75
+        string FIX_フィールド76
+        string FIX_フィールド77
+        string FIX_フィールド78
+        string FIX_フィールド79
+        string FIX_フィールド8
+        string FIX_フィールド80
+        string FIX_フィールド81
+        string FIX_フィールド82
+        string FIX_フィールド83
+        string FIX_フィールド84
+        string FIX_フィールド85
+        string FIX_フィールド86
+        string FIX_フィールド87
+        string FIX_フィールド88
+        string FIX_フィールド89
+        string FIX_フィールド9
+        string FIX_フィールド90
+        string FIX_フィールド91
+        string FIX_フィールド92
+        string FIX_フィールド93
+        string FIX_フィールド94
+        string FIX_フィールド95
+        string FIX_フィールド96
+        string FIX_フィールド97
+        string FIX_フィールド98
+        string FIX_フィールド99
+        string 並び順
+    }
+    T_SEIKYU_SAP_FB {
+        string FIX_フィールド1
+        string FIX_フィールド10
+        string FIX_フィールド100
+        string FIX_フィールド101
+        string FIX_フィールド102
+        string FIX_フィールド103
+        string FIX_フィールド104
+        string FIX_フィールド105
+        string FIX_フィールド106
+        string FIX_フィールド107
+        string FIX_フィールド108
+        string FIX_フィールド109
+        string FIX_フィールド11
+        string FIX_フィールド110
+        string FIX_フィールド111
+        string FIX_フィールド112
+        string FIX_フィールド113
+        string FIX_フィールド114
+        string FIX_フィールド115
+        string FIX_フィールド116
+        string FIX_フィールド117
+        string FIX_フィールド118
+        string FIX_フィールド119
+        string FIX_フィールド12
+        string FIX_フィールド120
+        string FIX_フィールド121
+        string FIX_フィールド122
+        string FIX_フィールド123
+        string FIX_フィールド124
+        string FIX_フィールド125
+        string FIX_フィールド126
+        string FIX_フィールド127
+        string FIX_フィールド128
+        string FIX_フィールド129
+        string FIX_フィールド13
+        string FIX_フィールド130
+        string FIX_フィールド131
+        string FIX_フィールド132
+        string FIX_フィールド133
+        string FIX_フィールド134
+        string FIX_フィールド135
+        string FIX_フィールド136
+        string FIX_フィールド137
+        string FIX_フィールド138
+        string FIX_フィールド139
+        string FIX_フィールド14
+        string FIX_フィールド140
+        string FIX_フィールド141
+        string FIX_フィールド142
+        string FIX_フィールド143
+        string FIX_フィールド144
+        string FIX_フィールド145
+        string FIX_フィールド146
+        string FIX_フィールド147
+        string FIX_フィールド148
+        string FIX_フィールド149
+        string FIX_フィールド15
+        string FIX_フィールド150
+        string FIX_フィールド151
+        string FIX_フィールド152
+        string FIX_フィールド153
+        string FIX_フィールド154
+        string FIX_フィールド155
+        string FIX_フィールド156
+        string FIX_フィールド157
+        string FIX_フィールド158
+        string FIX_フィールド159
+        string FIX_フィールド16
+        string FIX_フィールド160
+        string FIX_フィールド161
+        string FIX_フィールド162
+        string FIX_フィールド163
+        string FIX_フィールド164
+        string FIX_フィールド165
+        string FIX_フィールド166
+        string FIX_フィールド167
+        string FIX_フィールド168
+        string FIX_フィールド169
+        string FIX_フィールド17
+        string FIX_フィールド170
+        string FIX_フィールド171
+        string FIX_フィールド172
+        string FIX_フィールド173
+        string FIX_フィールド174
+        string FIX_フィールド175
+        string FIX_フィールド176
+        string FIX_フィールド177
+        string FIX_フィールド178
+        string FIX_フィールド179
+        string FIX_フィールド18
+        string FIX_フィールド180
+        string FIX_フィールド181
+        string FIX_フィールド182
+        string FIX_フィールド183
+        string FIX_フィールド184
+        string FIX_フィールド185
+        string FIX_フィールド186
+        string FIX_フィールド187
+        string FIX_フィールド188
+        string FIX_フィールド19
+        string FIX_フィールド2
+        string FIX_フィールド20
+        string FIX_フィールド21
+        string FIX_フィールド22
+        string FIX_フィールド23
+        string FIX_フィールド24
+        string FIX_フィールド25
+        string FIX_フィールド26
+        string FIX_フィールド27
+        string FIX_フィールド28
+        string FIX_フィールド29
+        string FIX_フィールド3
+        string FIX_フィールド30
+        string FIX_フィールド31
+        string FIX_フィールド32
+        string FIX_フィールド33
+        string FIX_フィールド34
+        string FIX_フィールド35
+        string FIX_フィールド36
+        string FIX_フィールド37
+        string FIX_フィールド38
+        string FIX_フィールド39
+        string FIX_フィールド4
+        string FIX_フィールド40
+        string FIX_フィールド41
+        string FIX_フィールド42
+        string FIX_フィールド43
+        string FIX_フィールド44
+        string FIX_フィールド45
+        string FIX_フィールド46
+        string FIX_フィールド47
+        string FIX_フィールド48
+        string FIX_フィールド49
+        string FIX_フィールド5
+        string FIX_フィールド50
+        string FIX_フィールド51
+        string FIX_フィールド52
+        string FIX_フィールド53
+        string FIX_フィールド54
+        string FIX_フィールド55
+        string FIX_フィールド56
+        string FIX_フィールド57
+        string FIX_フィールド58
+        string FIX_フィールド59
+        string FIX_フィールド6
+        string FIX_フィールド60
+        string FIX_フィールド61
+        string FIX_フィールド62
+        string FIX_フィールド63
+        string FIX_フィールド64
+        string FIX_フィールド65
+        string FIX_フィールド66
+        string FIX_フィールド67
+        string FIX_フィールド68
+        string FIX_フィールド69
+        string FIX_フィールド7
+        string FIX_フィールド70
+        string FIX_フィールド71
+        string FIX_フィールド72
+        string FIX_フィールド73
+        string FIX_フィールド74
+        string FIX_フィールド75
+        string FIX_フィールド76
+        string FIX_フィールド77
+        string FIX_フィールド78
+        string FIX_フィールド79
+        string FIX_フィールド8
+        string FIX_フィールド80
+        string FIX_フィールド81
+        string FIX_フィールド82
+        string FIX_フィールド83
+        string FIX_フィールド84
+        string FIX_フィールド85
+        string FIX_フィールド86
+        string FIX_フィールド87
+        string FIX_フィールド88
+        string FIX_フィールド89
+        string FIX_フィールド9
+        string FIX_フィールド90
+        string FIX_フィールド91
+        string FIX_フィールド92
+        string FIX_フィールド93
+        string FIX_フィールド94
+        string FIX_フィールド95
+        string FIX_フィールド96
+        string FIX_フィールド97
+        string FIX_フィールド98
+        string FIX_フィールド99
+        string 並び順
+    }
+    T_SEIKYU_SAP_FB_非表示選択 {
+        string UNKNOWN_COL
+    }
+    T_SEIKYU_SAP_不請求選択G会社 {
+        string UNKNOWN_COL
+    }
+    Temp_Q利用者 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Temp_TMSF共通ID {
+        string GP組織コード
+        string ID PK,FK
+        string 会社コード
+        string 共通ID FK
+        string 各社従番
+        string 各社組織コード
+        string 名
+        string 在籍_3
+        string 姓
+        string 実在_A
+        string 氏名
+    }
+    Temp_TMセンター員 {
+        string FIX_メールアドレス
+        string FIX_ユーザーID FK
+        string ID PK,FK
+        string TA
+        string 名
+        string 業務区分
+        string 氏
+        string 氏名
+    }
+    Temp_TM会社 {
+        string FIX_オーダー
+        string 並び順
+        string 会社コード
+        string 会社名
+        string 会社名ひらがな
+        string 会社略称
+        string 会社管理区分
+        string 区分
+        string 受講制限評価用
+        string 履歴
+        string 得意先コード
+        string 抽出条件
+        string 推薦書
+        string 推薦部門
+        string 有効
+        string 誓約書
+        string 費用区分
+    }
+    Temp_TM再募集締切日 {
+        string FIX_コースID FK
+        string 再募集締切日
+        string 募集結果_中止再募集中
+        string 募集結果_中止開催
+        string 注記
+        string 講座開始日
+        string 開催講座名称
+    }
+    Temp_TM募集期日 {
+        string 募集締切日
+        string 募集開始日
+        string 月
+        string 集約日
+    }
+    Temp_TM宿泊室 {
+        string FIX_コントロール名
+        string 優先利用
+        string 分割開催回
+        string 利用区分
+        string 利用可
+        string 受付番号
+        string 宿泊室番号
+        string 氏名_漢字
+        string 選択
+        string 開催講座コード
+    }
+    Temp_TM必修対象者 {
+        string 共通従業員番号
+        string 従業員番号
+        string 氏名
+        string 開催講座コード
+    }
+    Temp_Tカレンダー {
+        string ID PK,FK
+        string 休日
+        string 休種
+        string 日付
+    }
+    Temp_T制御入出力_マスタ {
+        string FIX_エラー
+        string ID PK,FK
+        string 備考
+        string 入力
+        string 処理日時
+        string 出力
+        string 制御値
+        string 制御区分
+        string 当該システム
+        string 更新日時
+        string 更新有
+    }
+    Temp_T各回講座開催情報 {
+        string FIX_アイテムID FK
+        string FIX_オーダ
+        string FIX_コース
+        string ID PK,FK
+        string 中止フラグ
+        string 主題領域階層１名称
+        string 主題領域階層１ＩＤ
+        string 主題領域階層２名称
+        string 主題領域階層２ＩＤ
+        string 主題領域階層３名称
+        string 主題領域階層３ＩＤ
+        string 主題領域階層４名称
+        string 主題領域階層４ＩＤ
+        string 事務局
+        string 備考
+        string 内訳_受講料_その他_円／人
+        string 内訳_受講料_社内_円／人
+        string 内訳_受講料_社外_円／人
+        string 内訳_宿泊棟利用料_その他_円／人
+        string 内訳_宿泊棟利用料_社内_円／人
+        string 内訳_宿泊棟利用料_社外_円／人
+        string 内訳_教材費_その他_円／人
+        string 内訳_教材費_社内_円／人
+        string 内訳_教材費_社外_円／人
+        string 内訳_研修棟利用料_その他_円／人
+        string 内訳_研修棟利用料_社内_円／人
+        string 内訳_研修棟利用料_社外_円／人
+        string 内訳_雑費_その他_円／人
+        string 内訳_雑費_社内_円／人
+        string 内訳_雑費_社外_円／人
+        string 内訳_食費_その他_円／人
+        string 内訳_食費_社内_円／人
+        string 内訳_食費_社外_円／人
+        string 内訳_ｲﾝﾌﾗﾌｨｰ_その他_円／人
+        string 内訳_ｲﾝﾌﾗﾌｨｰ_社内_円／人
+        string 内訳_ｲﾝﾌﾗﾌｨｰ_社外_円／人
+        string 再募集期日
+        string 出張開催時の最少人数_人
+        string 分割開催回
+        string 分野
+        string 受講にあたって必要な能力
+        string 受講後に備わる能力
+        string 受講案内用情報_懇親会
+        string 受講案内用情報_持参品
+        string 受講案内用情報_講座固有の連絡事項
+        string 受講者限定
+        string 基本講座コード
+        string 増減履歴
+        string 定員_人
+        string 定員割増の可否
+        string 必修区分
+        string 改訂履歴
+        string 教育コースコード
+        string 教育形態
+        string 最少人数_人
+        string 期間_日
+        string 期間中休日数_日
+        string 特記事項
+        string 研修費単価_その他_円／人日
+        string 研修費単価_社内_円／人日
+        string 研修費単価_社外_円／人日
+        string 研修費請求有無
+        string 研修費請求額_その他_円／人
+        string 研修費請求額_社内_円／人
+        string 研修費請求額_社外_円／人
+        string 終了日
+        string 講師依頼_講師への連絡事項
+        string 講座のポイント
+        string 講座企画組織_名称
+        string 講座企画組織_担当者_所属１_正式名称
+        string 講座企画組織_担当者_所属２_正式名称
+        string 講座企画組織_担当者_所属３_正式名称
+        string 講座企画組織_担当者_所属４_正式名称
+        string 講座企画組織_担当者_所属５_正式名称
+        string 講座企画組織_担当者_氏名
+        string 講座企画組織_担当者_職位
+        string 講座名称
+        string 講座担当
+        string 講座担当組織_全体_名称
+        string 講座担当組織_全体_担当者_所属１_正式名称
+        string 講座担当組織_全体_担当者_所属２_正式名称
+        string 講座担当組織_全体_担当者_所属３_正式名称
+        string 講座担当組織_全体_担当者_所属４_正式名称
+        string 講座担当組織_全体_担当者_所属５_正式名称
+        string 講座担当組織_全体_担当者_氏名
+        string 講座担当組織_全体_担当者_職位
+        string 講座担当２
+        string 講座秘匿性レベル
+        string 講座秘匿性レベル状態フラグ
+        string 講座責任者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座名称
+        string 開始日
+        string 非居住者受講可否
+        string ＴＡ
+    }
+    Temp_T教室DB {
+        string FIX_ロック
+        string ID PK,FK
+        string 使用日
+        string 分割開催回
+        string 分割開催講座コード
+        string 室
+        string 拡大開催講座コード
+        string 期
+        string 開催講座コード
+    }
+    Temp_T申込締切時利用者情報 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Temp_T終了後利用者情報 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル区分
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル料請求指標
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI
+        string MHI従業員番号
+        string SBU
+        string TA
+        string 一般研修
+        string 並び順
+        string 中止
+        string 事務局
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社略称
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 出張開催時の最少人数
+        string 分割開催回
+        string 分割開催講座
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 取纏
+        string 受付番号
+        string 受付番号年
+        string 受付番号月
+        string 受講制限評価指標
+        string 受講制限評価用
+        string 受講制限評価用指標
+        string 受講可否
+        string 受講可否初期値
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 名簿用宿泊室番号
+        string 増減
+        string 女
+        string 宿泊
+        string 宿泊予約済
+        string 宿泊室番号
+        string 宿泊棟利用料
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 必修区分
+        string 必修対象者
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 教育コースコード
+        string 施設利用料
+        string 施設利用料単価
+        string 最大人数
+        string 最少人数
+        string 最終承認者_姓名
+        string 期間
+        string 期間中休日数
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 男
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費区分
+        string 研修費区分2
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 研修費請求
+        string 研修費請求者
+        string 終了年
+        string 終了日
+        string 終了月
+        string 職種
+        string 職群等級
+        string 要研修費請求
+        string 講師
+        string 講座コード
+        string 講座中止
+        string 講座分野
+        string 講座秘匿性レベル
+        string 費用区分
+        string 超過前泊数
+        string 超過宿泊数
+        string 超過延泊数
+        string 追加申込
+        string 週
+        string 選択必修対象者
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座コード分割回
+        string 開催講座名称
+        string 開催講座略称
+        string 開始年
+        string 開始日
+        string 開始月
+        string 雑費単価
+        string 雑費計
+        string 食費
+        string Ｇ会社
+    }
+    Temp_T講師情報 {
+        string 勤務地
+        string 所属
+        string 科目実施日
+        string 講師シメイ
+        string 講師氏名
+        string 開催講座コード
+    }
+    Temp_T講座実施DB {
+        string FIX_その他インフラフィー
+        string FIX_その他依頼事項_作業内容
+        string FIX_その他依頼事項_実施時期
+        string FIX_その他依頼事項_工数
+        string FIX_その他受講料
+        string FIX_その他宿泊棟利用料
+        string FIX_その他教材費
+        string FIX_その他研修棟利用料
+        string FIX_その他研修費
+        string FIX_その他雑費
+        string FIX_その他食費
+        string FIX_アイテムID FK
+        string FIX_オーダ
+        string FIX_キャンセルその他インフラフィー
+        string FIX_キャンセルその他受講料
+        string FIX_キャンセルその他宿泊棟利用料
+        string FIX_キャンセルその他教材費
+        string FIX_キャンセルその他研修棟利用料
+        string FIX_キャンセルその他研修費
+        string FIX_キャンセルその他雑費
+        string FIX_キャンセルその他食費
+        string FIX_キャンセル不泊その他インフラフィー
+        string FIX_キャンセル不泊その他受講料
+        string FIX_キャンセル不泊その他宿泊棟利用料
+        string FIX_キャンセル不泊その他教材費
+        string FIX_キャンセル不泊その他研修棟利用料
+        string FIX_キャンセル不泊その他研修費
+        string FIX_キャンセル不泊その他雑費
+        string FIX_キャンセル不泊その他食費
+        string FIX_キャンセル不泊区分BCインフラフィー
+        string FIX_キャンセル不泊区分BC受講料
+        string FIX_キャンセル不泊区分BC宿泊棟利用料
+        string FIX_キャンセル不泊区分BC教材費
+        string FIX_キャンセル不泊区分BC研修棟利用料
+        string FIX_キャンセル不泊区分BC研修費
+        string FIX_キャンセル不泊区分BC雑費
+        string FIX_キャンセル不泊区分BC食費
+        string FIX_キャンセル不泊区分Ａインフラフィー
+        string FIX_キャンセル不泊区分Ａ受講料
+        string FIX_キャンセル不泊区分Ａ宿泊棟利用料
+        string FIX_キャンセル不泊区分Ａ教材費
+        string FIX_キャンセル不泊区分Ａ研修棟利用料
+        string FIX_キャンセル不泊区分Ａ研修費
+        string FIX_キャンセル不泊区分Ａ雑費
+        string FIX_キャンセル不泊区分Ａ食費
+        string FIX_キャンセル不泊社内インフラフィー
+        string FIX_キャンセル不泊社内受講料
+        string FIX_キャンセル不泊社内宿泊棟利用料
+        string FIX_キャンセル不泊社内教材費
+        string FIX_キャンセル不泊社内研修棟利用料
+        string FIX_キャンセル不泊社内研修費
+        string FIX_キャンセル不泊社内雑費
+        string FIX_キャンセル不泊社内食費
+        string FIX_キャンセル区分BCインフラフィー
+        string FIX_キャンセル区分BC受講料
+        string FIX_キャンセル区分BC宿泊棟利用料
+        string FIX_キャンセル区分BC教材費
+        string FIX_キャンセル区分BC研修棟利用料
+        string FIX_キャンセル区分BC研修費
+        string FIX_キャンセル区分BC雑費
+        string FIX_キャンセル区分BC食費
+        string FIX_キャンセル区分Ａインフラフィー
+        string FIX_キャンセル区分Ａ受講料
+        string FIX_キャンセル区分Ａ宿泊棟利用料
+        string FIX_キャンセル区分Ａ教材費
+        string FIX_キャンセル区分Ａ研修棟利用料
+        string FIX_キャンセル区分Ａ研修費
+        string FIX_キャンセル区分Ａ雑費
+        string FIX_キャンセル区分Ａ食費
+        string FIX_キャンセル社内インフラフィー
+        string FIX_キャンセル社内受講料
+        string FIX_キャンセル社内宿泊棟利用料
+        string FIX_キャンセル社内教材費
+        string FIX_キャンセル社内研修棟利用料
+        string FIX_キャンセル社内研修費
+        string FIX_キャンセル社内雑費
+        string FIX_キャンセル社内食費
+        string FIX_コース
+        string FIX_チェック用ID FK
+        string FIX_チェック用_備考
+        string FIX_テキスト秘匿性レベル状態フラグ
+        string ID PK,FK
+        string MHIモード要否
+        string TA
+        string 一括見積対象判別
+        string 不泊その他インフラフィー
+        string 不泊その他受講料
+        string 不泊その他宿泊棟利用料
+        string 不泊その他教材費
+        string 不泊その他研修棟利用料
+        string 不泊その他研修費
+        string 不泊その他雑費
+        string 不泊その他食費
+        string 不泊区分BCインフラフィー
+        string 不泊区分BC受講料
+        string 不泊区分BC宿泊棟利用料
+        string 不泊区分BC教材費
+        string 不泊区分BC研修棟利用料
+        string 不泊区分BC研修費
+        string 不泊区分BC雑費
+        string 不泊区分BC食費
+        string 不泊区分Ａインフラフィー
+        string 不泊区分Ａ受講料
+        string 不泊区分Ａ宿泊棟利用料
+        string 不泊区分Ａ教材費
+        string 不泊区分Ａ研修棟利用料
+        string 不泊区分Ａ研修費
+        string 不泊区分Ａ雑費
+        string 不泊区分Ａ食費
+        string 不泊社内インフラフィー
+        string 不泊社内受講料
+        string 不泊社内宿泊棟利用料
+        string 不泊社内教材費
+        string 不泊社内研修棟利用料
+        string 不泊社内研修費
+        string 不泊社内雑費
+        string 不泊社内食費
+        string 中止
+        string 主題領域階層１名称
+        string 主題領域階層１ＩＤ
+        string 主題領域階層２名称
+        string 主題領域階層２ＩＤ
+        string 主題領域階層３名称
+        string 主題領域階層３ＩＤ
+        string 主題領域階層４名称
+        string 主題領域階層４ＩＤ
+        string 事前準備_作業内容
+        string 事前準備_実施時期
+        string 事前準備_工数
+        string 事務局
+        string 作業_工数集計
+        string 作業区分
+        string 依頼状況
+        string 修正月
+        string 備考
+        string 再募集期日
+        string 出張開催時の最少人数_人
+        string 分割数
+        string 分割番号
+        string 分割開催回
+        string 分割開催講座
+        string 分割開催講座コード
+        string 分野
+        string 区分BC受講料
+        string 区分BC宿泊棟利用料
+        string 区分BC教材費
+        string 区分BC研修棟利用料
+        string 区分BC研修費
+        string 区分BC雑費
+        string 区分BC食費
+        string 区分Ａインフラフィー
+        string 区分Ａ受講料
+        string 区分Ａ宿泊棟利用料
+        string 区分Ａ教材費
+        string 区分Ａ研修棟利用料
+        string 区分Ａ研修費
+        string 区分Ａ雑費
+        string 区分Ａ食費
+        string 区分ＢＣインフラフィー
+        string 取纏
+        string 受講者限定
+        string 増減
+        string 定員割増の可否
+        string 宿泊登録用
+        string 後始末_作業内容
+        string 後始末_実施時期
+        string 後始末_工数
+        string 必修区分
+        string 手配者_TA_変更内容確認日
+        string 技術取纏
+        string 担当
+        string 拡大開催講座コード
+        string 改訂履歴
+        string 教育コースコード
+        string 教育形態
+        string 日程用
+        string 最大人数
+        string 最少人数
+        string 期間
+        string 期間中休日数
+        string 標準研修費その他
+        string 標準研修費区分BC
+        string 標準研修費区分Ａ
+        string 標準研修費社内
+        string 略称
+        string 登録制御フラグ
+        string 研修費請求
+        string 社内インフラフィー
+        string 社内受講料
+        string 社内宿泊棟利用料
+        string 社内教材費
+        string 社内研修棟利用料
+        string 社内研修費
+        string 社内雑費
+        string 社内食費
+        string 終了日
+        string 見積不要確認
+        string 講座コード
+        string 講座企画組織ID FK
+        string 講座企画者
+        string 講座名称
+        string 講座秘匿性レベル
+        string 講座秘匿性レベル状態フラグ
+        string 講座責任者確認日
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催所在地
+        string 開催講座コード
+        string 開催講座名称
+        string 開始日
+        string 非居住者受講可否
+    }
+    Temp_T講座申込書 {
+        string FIX_オーダ_アイテム
+        string FIX_ファイル名
+        string FIX_メールアドレス
+        string MHIからの休職派遣者
+        string MHI内線番号
+        string MHI従業員番号
+        string SBU
+        string 会社名
+        string 備考
+        string 入社年月日
+        string 勤務地_フリー
+        string 勤務地_選択
+        string 受講目的
+        string 各社従業員番号
+        string 名_漢字
+        string 名_英字
+        string 姓_漢字
+        string 姓_英字
+        string 専攻分野
+        string 年齢
+        string 役職名
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 申込日時
+        string 登録日付
+        string 研修セ宿泊手配要否
+        string 職種
+        string 開催講座コード
+        string 開催講座名称
+        string 電話番号
+    }
+    Tオブジェクト更新_リストオブジェクト {
+        string FIX_オブジェクト名 PK,FK
+        string FIX_グループ名
+        string 作成日時 FK
+        string 更新日時 FK
+    }
+    Tオブジェクト更新_リストオブジェクトグループ {
+        string UNKNOWN_COL
+    }
+    Tオブジェクト更新_作成日時 {
+        string FIX_オブジェクトタイプ
+        string FIX_オブジェクト名 PK,FK
+        string FIX_グループ名
+        string FIX_ファイルパス
+        string 作成日時
+        string 更新日時
+        string 選択
+    }
+    Tオーダー変更 {
+        string FIX_MHI従業員番号 FK
+        string FIX_オーダ_アイテム
+        string ID PK,FK
+        string MHI従業員番号 PK,FK
+        string 氏名_漢字 PK,FK
+        string 開催講座コード PK,FK
+    }
+    Tカレンダー {
+        string 日付
+    }
+    TカードID {
+        string FIX_カードID PK,FK
+        string FIX_カード番号
+    }
+    Tクラス親子 {
+        string FIX_オブジェクト名
+        string 子
+        string 親
+    }
+    Tリスト利用者フィールド並び {
+        string FIX_カラム
+        string FIX_フィールド名 FK
+        string ID PK,FK
+        string 並び名
+    }
+    Tリスト利用者フィールド仕様 {
+        string FIX_コントロールタイプ
+        string FIX_コントロール有
+        string FIX_データ型
+        string FIX_フィールド名 FK
+        string FIX_フィールド幅Twip
+        string FIX_フィールド幅cm
+        string 変更可
+        string 複数処理可
+    }
+    Tリスト選択行 {
+        string UNKNOWN_COL
+    }
+    T予約済宿泊室 {
+        string UNKNOWN_COL
+    }
+    T保管コントロール入力 {
+        string UNKNOWN_COL
+    }
+    T出入管理用 {
+        string FIX_レコード種別
+    }
+    T利用者 {
+        string FIX_オーダ_アイテム FK
+        string FIX_オーダー
+        string FIX_カード抹消日付 FK
+        string FIX_カード発行回数 FK
+        string FIX_カード登録日付 FK
+        string FIX_カードＩＤ PK,FK
+        string FIX_キャンセル事前連絡有 FK
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求 FK
+        string FIX_キャンセル理由 PK,FK
+        string FIX_グローバル等級
+        string FIX_チェックアウト FK
+        string FIX_チェックイン FK
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI従業員番号 PK,FK
+        string SBU
+        string オーダ_アイテム FK
+        string 一般研修
+        string 休職派遣者
+        string 会社コード PK,FK
+        string 会社名
+        string 会社管理区分 FK
+        string 修了認定 FK
+        string 備考 FK
+        string 入社年月日
+        string 共通従業員番号 PK,FK
+        string 出席率 FK
+        string 分割開催
+        string 分割開催回 PK,FK
+        string 前泊数 FK
+        string 勘定コード
+        string 勤務地 FK
+        string 受付番号 PK,FK
+        string 受講制限評価用 PK,FK
+        string 受講可否 PK,FK
+        string 受講生 PK,FK
+        string 受講番号 FK
+        string 受講目的
+        string 受講者限定 FK
+        string 各社従業員番号 PK,FK
+        string 宿泊 FK
+        string 宿泊室番号 PK,FK
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数 FK
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 施設利用料
+        string 最終承認者_姓名
+        string 氏名_漢字 PK,FK
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 終了月
+        string 職種
+        string 職群等級
+        string 講師
+        string 講座秘匿性レベル PK,FK
+        string 費用区分 PK,FK
+        string 追加申込 FK
+        string 選択必修対象者
+        string 開催講座コード PK,FK
+        string 雑費計
+        string 非居住者
+    }
+    T利用者2 {
+        string 分割開催回 FK
+        string 氏名_漢字 FK
+        string 開催講座コード FK
+    }
+    T利用者2021_09 {
+        string 追加申込
+        string 開催講座コード
+    }
+    T利用者2025_05_復元 {
+        string UNKNOWN_COL
+    }
+    T利用者N {
+        string カード抹消日付
+        string 会社コード
+        string 受講生
+        string 宿泊室番号
+    }
+    T利用者_20250714 {
+        string UNKNOWN_COL
+    }
+    T利用者削除 {
+        string FIX_オーダ_アイテム
+        string FIX_オーダー
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ FK
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル理由 FK
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックイン
+        string FIX_ドメイン
+        string FIX_メールアドレス
+        string G会社管理区分
+        string ID PK,FK
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI従業員番号 FK
+        string SBU
+        string 一般研修
+        string 休職派遣者
+        string 会社コード FK
+        string 会社名
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 分割開催
+        string 分割開催回 FK
+        string 削除日時
+        string 削除者名
+        string 前泊数
+        string 勘定コード
+        string 勤務地 FK
+        string 受付番号 FK
+        string 受講制限評価用 FK
+        string 受講可否 FK
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 宿泊登録用
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 当該インフラフィー
+        string 当該受講料
+        string 当該宿泊棟利用料
+        string 当該教材費
+        string 当該研修棟利用料
+        string 当該研修費
+        string 当該雑費
+        string 当該食費
+        string 役職名
+        string 復元日時 FK
+        string 復元者名 FK
+        string 復活日時
+        string 復活者名
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 指図書番号
+        string 施設利用料
+        string 最終承認者_姓名
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込形態
+        string 申込日時
+        string 登録日付
+        string 研修費
+        string 研修費分析Ⅰ
+        string 研修費分析Ⅱ
+        string 研修費分析Ⅲ
+        string 研修費分析Ⅳ
+        string 研修費分析Ⅴ
+        string 研修費合計
+        string 研修費総計
+        string 研修費総計含消費税
+        string 終了月
+        string 職種
+        string 職群等級
+        string 講師
+        string 講座秘匿性レベル FK
+        string 費用区分 FK
+        string 追加申込
+        string 選択必修対象者
+        string 開催講座コード PK,FK
+        string 雑費計
+        string 非居住者
+    }
+    T利用者削除復元作業用 {
+        string ID PK,FK
+        string 受付番号 PK,FK
+    }
+    T利用者情報 {
+        string UNKNOWN_COL
+    }
+    T制御ファイル {
+        string 今回更新した
+    }
+    T制御入出力 {
+        string FIX_エラー
+        string ID PK,FK
+        string 備考
+        string 入力
+        string 処理日時
+        string 出力 PK,FK
+        string 制御値
+        string 制御区分
+        string 当該システム
+        string 更新日時 FK
+    }
+    T制御入出力1 {
+        string FIX_エラー
+        string ID PK,FK
+        string 備考
+        string 入力
+        string 処理日時
+        string 出力
+        string 制御値
+        string 制御区分
+        string 当該システム
+        string 更新日時
+        string 更新有
+    }
+    T制御入出力_マスタ {
+        string 出力 PK,FK
+        string 当該システム
+        string 更新日時
+    }
+    T受講者データ変更用_受講者データ一時保管 {
+        string FIX_カード抹消日付 FK
+        string FIX_カード発行回数 FK
+        string FIX_カード登録日付 FK
+        string FIX_カードＩＤ FK
+        string FIX_キャンセル事前連絡有 FK
+        string FIX_キャンセル料請求 FK
+        string FIX_キャンセル理由 FK
+        string FIX_チェックアウト FK
+        string FIX_チェックイン FK
+        string 修了認定 FK
+        string 備考 FK
+        string 出席率 FK
+        string 分割開催回 PK,FK
+        string 前泊数 FK
+        string 受付番号 FK
+        string 受講生 PK,FK
+        string 受講番号 FK
+        string 宿泊 FK
+        string 宿泊室番号 FK
+        string 延泊数 FK
+        string 氏名_漢字 PK,FK
+        string 追加申込 FK
+        string 開催講座コード PK,FK
+    }
+    T受講者データ変更用_講座申込書 {
+        string 受講生 FK
+        string 氏名_漢字 FK
+        string 開催講座コード FK
+    }
+    T各回講座開催情報 {
+        string 分割開催回 PK,FK
+        string 教育形態
+        string 開催講座コード PK,FK
+    }
+    T各社従業員番号置換 {
+        string 受付番号 FK
+    }
+    T宿泊室予約日毎レコード {
+        string FIX_シメイ
+        string FIX_チェックアウト予定
+        string FIX_チェックイン予定
+        string 分割開催回
+        string 受付番号
+        string 宿泊室番号 FK
+        string 宿泊日 FK
+        string 氏名
+        string 終了日
+        string 講師
+        string 開催講座コード
+        string 開催講座略称
+        string 開始日
+    }
+    T教室DB {
+        string UNKNOWN_COL
+    }
+    T標準親子 {
+        string FIX_オブジェクト名 FK
+        string 子
+        string 親 FK
+    }
+    T申込締切時利用者情報 {
+        string UNKNOWN_COL
+    }
+    T終了後利用者情報 {
+        string UNKNOWN_COL
+    }
+    T設計書 {
+        string FIX_データ
+        string 並び
+        string 区分
+        string 数番
+        string 項目
+    }
+    T講師情報 {
+        string UNKNOWN_COL
+    }
+    T講座実施DB {
+        string FIX_その他インフラフィー
+        string FIX_その他依頼事項_作業内容
+        string FIX_その他依頼事項_実施時期
+        string FIX_その他依頼事項_工数
+        string FIX_その他受講料
+        string FIX_その他宿泊棟利用料
+        string FIX_その他教材費
+        string FIX_その他研修棟利用料
+        string FIX_その他研修費
+        string FIX_その他雑費
+        string FIX_その他食費
+        string FIX_アイテムID FK
+        string FIX_オーダ
+        string FIX_キャンセルその他インフラフィー
+        string FIX_キャンセルその他受講料
+        string FIX_キャンセルその他宿泊棟利用料
+        string FIX_キャンセルその他教材費
+        string FIX_キャンセルその他研修棟利用料
+        string FIX_キャンセルその他研修費
+        string FIX_キャンセルその他雑費
+        string FIX_キャンセルその他食費
+        string FIX_キャンセル不泊その他インフラフィー
+        string FIX_キャンセル不泊その他受講料
+        string FIX_キャンセル不泊その他宿泊棟利用料
+        string FIX_キャンセル不泊その他教材費
+        string FIX_キャンセル不泊その他研修棟利用料
+        string FIX_キャンセル不泊その他研修費
+        string FIX_キャンセル不泊その他雑費
+        string FIX_キャンセル不泊その他食費
+        string FIX_キャンセル不泊区分BCインフラフィー
+        string FIX_キャンセル不泊区分BC受講料
+        string FIX_キャンセル不泊区分BC宿泊棟利用料
+        string FIX_キャンセル不泊区分BC教材費
+        string FIX_キャンセル不泊区分BC研修棟利用料
+        string FIX_キャンセル不泊区分BC研修費
+        string FIX_キャンセル不泊区分BC雑費
+        string FIX_キャンセル不泊区分BC食費
+        string FIX_キャンセル不泊区分Ａインフラフィー
+        string FIX_キャンセル不泊区分Ａ受講料
+        string FIX_キャンセル不泊区分Ａ宿泊棟利用料
+        string FIX_キャンセル不泊区分Ａ教材費
+        string FIX_キャンセル不泊区分Ａ研修棟利用料
+        string FIX_キャンセル不泊区分Ａ研修費
+        string FIX_キャンセル不泊区分Ａ雑費
+        string FIX_キャンセル不泊区分Ａ食費
+        string FIX_キャンセル不泊区分ＢＣインフラフィー
+        string FIX_キャンセル不泊社内インフラフィー
+        string FIX_キャンセル不泊社内受講料
+        string FIX_キャンセル不泊社内宿泊棟利用料
+        string FIX_キャンセル不泊社内教材費
+        string FIX_キャンセル不泊社内研修棟利用料
+        string FIX_キャンセル不泊社内研修費
+        string FIX_キャンセル不泊社内雑費
+        string FIX_キャンセル不泊社内食費
+        string FIX_キャンセル区分BCインフラフィー
+        string FIX_キャンセル区分BC受講料
+        string FIX_キャンセル区分BC宿泊棟利用料
+        string FIX_キャンセル区分BC教材費
+        string FIX_キャンセル区分BC研修棟利用料
+        string FIX_キャンセル区分BC研修費
+        string FIX_キャンセル区分BC雑費
+        string FIX_キャンセル区分BC食費
+        string FIX_キャンセル区分Ａインフラフィー
+        string FIX_キャンセル区分Ａ受講料
+        string FIX_キャンセル区分Ａ宿泊棟利用料
+        string FIX_キャンセル区分Ａ教材費
+        string FIX_キャンセル区分Ａ研修棟利用料
+        string FIX_キャンセル区分Ａ研修費
+        string FIX_キャンセル区分Ａ雑費
+        string FIX_キャンセル区分Ａ食費
+        string FIX_キャンセル区分ＢＣインフラフィー
+        string FIX_キャンセル社内インフラフィー
+        string FIX_キャンセル社内受講料
+        string FIX_キャンセル社内宿泊棟利用料
+        string FIX_キャンセル社内教材費
+        string FIX_キャンセル社内研修棟利用料
+        string FIX_キャンセル社内研修費
+        string FIX_キャンセル社内雑費
+        string FIX_キャンセル社内食費
+        string FIX_コース
+        string FIX_チェック用ID FK
+        string FIX_チェック用_備考
+        string FIX_テキスト秘匿性レベル状態フラグ
+        string ID PK,FK
+        string MHIモード要否
+        string TA
+        string 一括見積対象判別
+        string 不泊その他インフラフィー
+        string 不泊その他受講料
+        string 不泊その他宿泊棟利用料
+        string 不泊その他教材費
+        string 不泊その他研修棟利用料
+        string 不泊その他研修費
+        string 不泊その他雑費
+        string 不泊その他食費
+        string 不泊区分BCインフラフィー
+        string 不泊区分BC受講料
+        string 不泊区分BC宿泊棟利用料
+        string 不泊区分BC教材費
+        string 不泊区分BC研修棟利用料
+        string 不泊区分BC研修費
+        string 不泊区分BC雑費
+        string 不泊区分BC食費
+        string 不泊区分Ａインフラフィー
+        string 不泊区分Ａ受講料
+        string 不泊区分Ａ宿泊棟利用料
+        string 不泊区分Ａ教材費
+        string 不泊区分Ａ研修棟利用料
+        string 不泊区分Ａ研修費
+        string 不泊区分Ａ雑費
+        string 不泊区分Ａ食費
+        string 不泊区分ＢＣインフラフィー
+        string 不泊社内インフラフィー
+        string 不泊社内受講料
+        string 不泊社内宿泊棟利用料
+        string 不泊社内教材費
+        string 不泊社内研修棟利用料
+        string 不泊社内研修費
+        string 不泊社内雑費
+        string 不泊社内食費
+        string 中止
+        string 主題領域階層１名称
+        string 主題領域階層１ＩＤ
+        string 主題領域階層２名称
+        string 主題領域階層２ＩＤ
+        string 主題領域階層３名称
+        string 主題領域階層３ＩＤ
+        string 主題領域階層４名称
+        string 主題領域階層４ＩＤ
+        string 事前準備_作業内容
+        string 事前準備_実施時期
+        string 事前準備_工数
+        string 事務局
+        string 作業_工数集計
+        string 作業区分
+        string 依頼状況
+        string 修正月
+        string 備考
+        string 再募集期日
+        string 出張開催時の最少人数_人
+        string 分割数
+        string 分割番号
+        string 分割開催回 PK,FK
+        string 分割開催講座
+        string 分割開催講座コード
+        string 分野
+        string 区分BC受講料
+        string 区分BC宿泊棟利用料
+        string 区分BC教材費
+        string 区分BC研修棟利用料
+        string 区分BC研修費
+        string 区分BC雑費
+        string 区分BC食費
+        string 区分Ａインフラフィー
+        string 区分Ａ受講料
+        string 区分Ａ宿泊棟利用料
+        string 区分Ａ教材費
+        string 区分Ａ研修棟利用料
+        string 区分Ａ研修費
+        string 区分Ａ雑費
+        string 区分Ａ食費
+        string 区分ＢＣインフラフィー
+        string 取纏
+        string 受講者限定
+        string 増減
+        string 定員割増の可否
+        string 宿泊登録用
+        string 後始末_作業内容
+        string 後始末_実施時期
+        string 後始末_工数
+        string 必修区分
+        string 手配者_TA_変更内容確認日
+        string 技術取纏
+        string 担当
+        string 拡大開催講座コード
+        string 改訂履歴
+        string 教育コースコード
+        string 教育形態
+        string 日程用
+        string 最大人数
+        string 最少人数
+        string 期間
+        string 期間中休日数
+        string 標準研修費その他
+        string 標準研修費区分BC
+        string 標準研修費区分Ａ
+        string 標準研修費社内
+        string 略称
+        string 登録制御フラグ
+        string 研修費請求
+        string 社内インフラフィー
+        string 社内受講料
+        string 社内宿泊棟利用料
+        string 社内教材費
+        string 社内研修棟利用料
+        string 社内研修費
+        string 社内雑費
+        string 社内食費
+        string 終了日
+        string 見積不要確認
+        string 講座コード
+        string 講座企画組織ID FK
+        string 講座企画者
+        string 講座名称
+        string 講座秘匿性レベル
+        string 講座秘匿性レベル状態フラグ
+        string 講座責任者確認日
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催所在地
+        string 開催講座コード PK,FK
+        string 開催講座名称 FK
+        string 開始日
+        string 非居住者受講可否
+    }
+    T講座実施DB_Temp {
+        string FIX_その他インフラフィー
+        string FIX_その他受講料
+        string FIX_その他宿泊棟利用料
+        string FIX_その他教材費
+        string FIX_その他研修棟利用料
+        string FIX_その他研修費
+        string FIX_その他雑費
+        string FIX_その他食費
+        string FIX_オーダ
+        string FIX_キャンセルその他インフラフィー
+        string FIX_キャンセルその他受講料
+        string FIX_キャンセルその他宿泊棟利用料
+        string FIX_キャンセルその他教材費
+        string FIX_キャンセルその他研修棟利用料
+        string FIX_キャンセルその他研修費
+        string FIX_キャンセルその他雑費
+        string FIX_キャンセルその他食費
+        string FIX_キャンセル不泊その他インフラフィー
+        string FIX_キャンセル不泊その他受講料
+        string FIX_キャンセル不泊その他宿泊棟利用料
+        string FIX_キャンセル不泊その他教材費
+        string FIX_キャンセル不泊その他研修棟利用料
+        string FIX_キャンセル不泊その他研修費
+        string FIX_キャンセル不泊その他雑費
+        string FIX_キャンセル不泊その他食費
+        string FIX_キャンセル不泊区分BC受講料
+        string FIX_キャンセル不泊区分BC宿泊棟利用料
+        string FIX_キャンセル不泊区分BC教材費
+        string FIX_キャンセル不泊区分BC研修棟利用料
+        string FIX_キャンセル不泊区分BC研修費
+        string FIX_キャンセル不泊区分BC雑費
+        string FIX_キャンセル不泊区分BC食費
+        string FIX_キャンセル不泊区分Ａインフラフィー
+        string FIX_キャンセル不泊区分Ａ受講料
+        string FIX_キャンセル不泊区分Ａ宿泊棟利用料
+        string FIX_キャンセル不泊区分Ａ教材費
+        string FIX_キャンセル不泊区分Ａ研修棟利用料
+        string FIX_キャンセル不泊区分Ａ研修費
+        string FIX_キャンセル不泊区分Ａ雑費
+        string FIX_キャンセル不泊区分Ａ食費
+        string FIX_キャンセル不泊区分ＢＣインフラフィー
+        string FIX_キャンセル不泊社内インフラフィー
+        string FIX_キャンセル不泊社内受講料
+        string FIX_キャンセル不泊社内宿泊棟利用料
+        string FIX_キャンセル不泊社内教材費
+        string FIX_キャンセル不泊社内研修棟利用料
+        string FIX_キャンセル不泊社内研修費
+        string FIX_キャンセル不泊社内雑費
+        string FIX_キャンセル不泊社内食費
+        string FIX_キャンセル区分BC受講料
+        string FIX_キャンセル区分BC宿泊棟利用料
+        string FIX_キャンセル区分BC教材費
+        string FIX_キャンセル区分BC研修棟利用料
+        string FIX_キャンセル区分BC研修費
+        string FIX_キャンセル区分BC雑費
+        string FIX_キャンセル区分BC食費
+        string FIX_キャンセル区分Ａインフラフィー
+        string FIX_キャンセル区分Ａ受講料
+        string FIX_キャンセル区分Ａ宿泊棟利用料
+        string FIX_キャンセル区分Ａ教材費
+        string FIX_キャンセル区分Ａ研修棟利用料
+        string FIX_キャンセル区分Ａ研修費
+        string FIX_キャンセル区分Ａ雑費
+        string FIX_キャンセル区分Ａ食費
+        string FIX_キャンセル区分ＢＣインフラフィー
+        string FIX_キャンセル社内インフラフィー
+        string FIX_キャンセル社内受講料
+        string FIX_キャンセル社内宿泊棟利用料
+        string FIX_キャンセル社内教材費
+        string FIX_キャンセル社内研修棟利用料
+        string FIX_キャンセル社内研修費
+        string FIX_キャンセル社内雑費
+        string FIX_キャンセル社内食費
+        string FIX_コース
+        string MHIモード要否
+        string TA
+        string 不泊その他インフラフィー
+        string 不泊その他受講料
+        string 不泊その他宿泊棟利用料
+        string 不泊その他教材費
+        string 不泊その他研修棟利用料
+        string 不泊その他研修費
+        string 不泊その他雑費
+        string 不泊その他食費
+        string 不泊区分BC受講料
+        string 不泊区分BC宿泊棟利用料
+        string 不泊区分BC教材費
+        string 不泊区分BC研修棟利用料
+        string 不泊区分BC研修費
+        string 不泊区分BC雑費
+        string 不泊区分BC食費
+        string 不泊区分Ａインフラフィー
+        string 不泊区分Ａ受講料
+        string 不泊区分Ａ宿泊棟利用料
+        string 不泊区分Ａ教材費
+        string 不泊区分Ａ研修棟利用料
+        string 不泊区分Ａ研修費
+        string 不泊区分Ａ雑費
+        string 不泊区分Ａ食費
+        string 不泊区分ＢＣインフラフィー
+        string 不泊社内インフラフィー
+        string 不泊社内受講料
+        string 不泊社内宿泊棟利用料
+        string 不泊社内教材費
+        string 不泊社内研修棟利用料
+        string 不泊社内研修費
+        string 不泊社内雑費
+        string 不泊社内食費
+        string 中止
+        string 備考
+        string 分割開催回
+        string 分割開催講座
+        string 分割開催講座コード
+        string 分野
+        string 区分BC受講料
+        string 区分BC宿泊棟利用料
+        string 区分BC教材費
+        string 区分BC研修棟利用料
+        string 区分BC研修費
+        string 区分BC雑費
+        string 区分BC食費
+        string 区分Ａインフラフィー
+        string 区分Ａ受講料
+        string 区分Ａ宿泊棟利用料
+        string 区分Ａ教材費
+        string 区分Ａ研修棟利用料
+        string 区分Ａ研修費
+        string 区分Ａ雑費
+        string 区分Ａ食費
+        string 区分ＢＣインフラフィー
+        string 取纏
+        string 受講者限定
+        string 増減
+        string 定員一割増の可否
+        string 宿泊登録用
+        string 技術取纏
+        string 改訂履歴
+        string 教育コースコード
+        string 最大人数
+        string 最少人数
+        string 期間
+        string 期間中休日数
+        string 標準研修費その他
+        string 標準研修費区分BC
+        string 標準研修費区分Ａ
+        string 標準研修費社内
+        string 略称
+        string 研修費請求
+        string 社内インフラフィー
+        string 社内受講料
+        string 社内宿泊棟利用料
+        string 社内教材費
+        string 社内研修棟利用料
+        string 社内研修費
+        string 社内雑費
+        string 社内食費
+        string 終了日
+        string 講座コード
+        string 講座名称
+        string 講座秘匿性レベル
+        string 開催回
+        string 開催場所
+        string 開催形態
+        string 開催講座コード
+        string 開催講座名称
+        string 開始日
+    }
+    T講座申込書 {
+        string FIX_その他G会社
+        string FIX_オーダ_アイテム
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックアウト予定
+        string FIX_チェックイン
+        string FIX_チェックイン予定
+        string FIX_ファイル名 FK
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHIからの休職派遣者
+        string MHI内線番号
+        string MHI従業員番号
+        string SBU
+        string オーダ_アイテム
+        string ファイル名 FK
+        string メールアドレス
+        string 一般研修
+        string 休職派遣者
+        string 会社コード PK,FK
+        string 会社名 PK,FK
+        string 会社名エラー
+        string 会社管理区分 FK
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 共通従業員番号
+        string 出席率
+        string 分割開催回 PK,FK
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 勤務地_フリー
+        string 勤務地_選択
+        string 受付番号
+        string 受講制限評価用 PK,FK
+        string 受講可否 FK
+        string 受講生 FK
+        string 受講番号
+        string 受講目的
+        string 受講者限定 FK
+        string 各社従業員番号 FK
+        string 名_漢字
+        string 名_英字
+        string 姓_漢字
+        string 姓_英字
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 役職名
+        string 性別
+        string 所属_ドメイン
+        string 所属_事業部
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 所属_課係班
+        string 所属_部
+        string 施設利用料
+        string 最終承認者_姓名
+        string 未入力MHIエラー
+        string 未入力エラー
+        string 氏名
+        string 氏名_漢字 PK,FK
+        string 氏名_英字
+        string 消費税
+        string 申込ファイル移動済
+        string 申込日時
+        string 申込書重複エラー
+        string 申込済エラー
+        string 登録日付
+        string 研修セ宿泊手配要否
+        string 研修費
+        string 研修費合計
+        string 研修費総計
+        string 職種
+        string 職群等級
+        string 講師
+        string 講座秘匿性レベル PK,FK
+        string 費用区分 FK
+        string 追加申込
+        string 選択必修対象者
+        string 開催講座コード PK,FK
+        string 開催講座コードエラー
+        string 開催講座名称 FK
+        string 開催講座名称エラー
+        string 雑費計
+        string 電話番号
+        string 非居住者
+    }
+    T講座申込書_受付番号 {
+        string FIX_オーダ_アイテム
+        string FIX_カード抹消日付
+        string FIX_カード発行回数
+        string FIX_カード登録日付
+        string FIX_カードＩＤ
+        string FIX_キャンセル事前連絡有
+        string FIX_キャンセル料
+        string FIX_キャンセル料請求
+        string FIX_キャンセル理由
+        string FIX_グローバル等級
+        string FIX_チェックアウト
+        string FIX_チェックイン
+        string FIX_メールアドレス
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI従業員番号
+        string SBU
+        string 一般研修
+        string 休職派遣者
+        string 会社コード
+        string 会社名
+        string 会社管理区分
+        string 修了認定
+        string 備考
+        string 入社年月日
+        string 出席率
+        string 分割開催回 FK
+        string 前泊数
+        string 勘定コード
+        string 勤務地
+        string 受付番号
+        string 受講制限評価用
+        string 受講可否
+        string 受講生
+        string 受講番号
+        string 受講目的
+        string 受講者限定
+        string 各社従業員番号
+        string 宿泊
+        string 宿泊室番号
+        string 宿泊棟手配
+        string 専攻分野
+        string 年齢
+        string 延泊数
+        string 役職名
+        string 性別
+        string 所属_所属1
+        string 所属_所属2
+        string 所属_所属3
+        string 所属_所属4
+        string 所属_所属コード
+        string 所属_所属名称
+        string 施設利用料
+        string 最終承認者_姓名
+        string 氏名_漢字
+        string 氏名_英字
+        string 消費税
+        string 申込日時
+        string 登録日付
+        string 研修費
+        string 研修費合計
+        string 研修費総計
+        string 職種
+        string 職群等級
+        string 講師
+        string 講座秘匿性レベル
+        string 費用区分
+        string 追加申込
+        string 選択必修対象者
+        string 開催講座コード FK
+        string 雑費計
+        string 非居住者
+    }
+    T講座申込書_履歴 {
+        string 氏名_英字
+        string 登録日付
+        string 開催講座コード
+    }
+    T講座申込書移動ファイルリスト {
+        string FIX_ファイル名 FK
+        string ファイル名 FK
+    }
+    T階層更新 {
+        string UNKNOWN_COL
+    }
+    ZZ_MODULE_FORM {
+        string SEQ
+        string Source
+        string name
+    }
+    ZZ_MODULE_STD {
+        string SEQ
+        string Source
+        string name
+    }
+    ZZ_WKQUERY1 {
+        string ObjectName
+        string ReferenceFrom
+        string ReferenceTo FK
+    }
+    ZZ_WKTABLE {
+        string ObjectName FK
+    }
+    ZZ_WKXRLIST {
+        string Forms
+        string ID PK,FK
+        string LastUpDated
+        string Link_Pass
+        string ModuleName
+        string ObjectName
+        string Proceduer
+        string Query
+        string QueryType
+        string Seq
+        string SortSEQ
+        string Table
+    }
+    FIX_601QM宿泊室予約表作成日付設定 ||--o{ T宿泊室予約日毎レコード : "日付 = 宿泊日"
+    FIX_T講座申込書 ||--o{ FIX_T利用者 : "FIX_氏名_漢字 = FIX_氏名_漢字"
+    MSYSOBJECTS ||--o{ MSYSQUERIES : "Id = ObjectId"
+    QF階層9 ||--o{ TF階層 : "階層9 = 階層1"
+    QG会社別受講申込リスト ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    QModule_標準 ||--o{ Q標準親子 : "name = FIX_オブジェクト名"
+    QModule_標準 ||--o{ Q標準親子 : "name2 = 親1"
+    QModule名_クラス ||--o{ Qクラス親子 : "FIX_ModuleName = FIX_オブジェクト名"
+    QModule名_クラス ||--o{ Qクラス親子 : "FIX_ProcName = 親"
+    QModule名_標準 ||--o{ T標準親子 : "ModuleName = FIX_オブジェクト名"
+    QModule名_標準 ||--o{ T標準親子 : "Proceduer = 親"
+    QM宿泊室 ||--o{ FIX_504Q予約済宿泊室 : "宿泊室番号 = 宿泊室番号"
+    Qクラス標準親子 ||--o{ Q標準親子 : "子 = 親1"
+    Qクラス標準親子Ⅱ ||--o{ Q標準親子 : "子1 = 親1"
+    Qクラス標準親子Ⅲ ||--o{ Q標準親子 : "子1 = 親1"
+    Qクラス親子 ||--o{ Q標準親子 : "子 = 親1"
+    Q分割開催回n講座 ||--o{ FIX_Q分割開催回0講座 : "FIX_キャンセル理由 = FIX_キャンセル理由"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "MHI従業員番号 = MHI従業員番号"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "共通従業員番号 = 共通従業員番号"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "各社従業員番号 = 各社従業員番号"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "氏名_漢字 = 氏名_漢字"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "氏名_英字 = 氏名_英字"
+    Q分割開催回n講座 ||--o{ Q分割開催回0講座 : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ FIX_TMSF共通ID : "各社従業員番号 = FIX_共通ID"
+    Q利用者 ||--o{ QG会社別受講申込リスト : "氏名_漢字 = 氏名_漢字"
+    Q利用者 ||--o{ QG会社別受講申込リスト : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ QM宿泊室 : "宿泊室番号 = 宿泊室番号"
+    Q利用者 ||--o{ Q入社年数当該講座名簿用 : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ TMSF共通ID : "共通従業員番号 = 共通ID"
+    Q利用者 ||--o{ TM会社 : "会社コード = 会社コード"
+    Q利用者 ||--o{ TM必修対象者 : "MHI従業員番号 = 従業員番号"
+    Q利用者 ||--o{ TM必修対象者 : "氏名_漢字 = 氏名"
+    Q利用者 ||--o{ T_EXCELG会社別受講申込リスト_合計 : "氏名_漢字 = 氏名_漢字"
+    Q利用者 ||--o{ T_EXCELG会社別受講申込リスト_合計 : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ T利用者 : "受付番号 = 受付番号"
+    Q利用者 ||--o{ T利用者2 : "分割開催回 = 分割開催回"
+    Q利用者 ||--o{ T利用者2 : "氏名_漢字 = 氏名_漢字"
+    Q利用者 ||--o{ T利用者2 : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ T利用者削除復元作業用 : "受付番号 = 受付番号"
+    Q利用者 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    Q利用者 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    Q利用者 ||--o{ T講座申込書 : "会社名 = 会社名"
+    Q利用者 ||--o{ T講座申込書 : "氏名_漢字 = 氏名_漢字"
+    Q利用者 ||--o{ T講座申込書 : "開催講座コード = 開催講座コード"
+    Q利用者N ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    Q利用者N ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    Q受講申込書会社名含むその他集計 ||--o{ TM会社 : "会社略称 = 会社略称"
+    T20220921共通従業員番号修正用 ||--o{ T利用者 : "ID_アイテム = ID_アイテム"
+    TM会社 ||--o{ T利用者 : "会社コード = 会社コード"
+    TM会社 ||--o{ T講座申込書 : "会社コード = 会社コード"
+    TM宿泊室 ||--o{ FIX_601Q宿泊室予約日毎レコード : "宿泊室番号 = 宿泊室番号2"
+    TM宿泊室 ||--o{ T利用者 : "宿泊室番号 = 宿泊室番号"
+    TM宿泊室 ||--o{ T宿泊室予約日毎レコード : "宿泊室番号 = 宿泊室番号"
+    TQUERYUSEFUNCTION ||--o{ TMODULE : "FunctionName = ProceduerName"
+    TQUERYUSEFUNCTION ||--o{ TOBJECTQUERY2 : "QueryName = ObjectName"
+    Tオブジェクト更新_リストオブジェクト ||--o{ FIX_Tオブジェクト更新_作成日時 : "作成日時 = FIX_作成日時"
+    Tオブジェクト更新_リストオブジェクト ||--o{ FIX_Tオブジェクト更新_作成日時 : "更新日時 = FIX_更新日時"
+    Tオブジェクト更新_リストオブジェクト ||--o{ Tオブジェクト更新_作成日時 : "FIX_オブジェクト名 = FIX_オブジェクト名"
+    Tオブジェクト更新_作成日時 ||--o{ Tオブジェクト更新_リストオブジェクト : "FIX_オブジェクト名 = FIX_オブジェクト名"
+    Tオーダー変更 ||--o{ T利用者 : "MHI従業員番号 = MHI従業員番号"
+    Tオーダー変更 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    Tオーダー変更 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    Tリスト利用者フィールド並び ||--o{ Tリスト利用者フィールド仕様 : "FIX_フィールド名 = FIX_フィールド名"
+    T利用者 ||--o{ FIX_T20220921共通従業員番号修正用 : "共通従業員番号 = ID_ユーザー"
+    T利用者 ||--o{ FIX_TMSF共通ID : "MHI従業員番号 = FIX_各社従番"
+    T利用者 ||--o{ FIX_TM会社 : "会社管理区分 = FIX_会社管理区分"
+    T利用者 ||--o{ FIX_TM会社 : "受講制限評価用 = FIX_受講制限評価用"
+    T利用者 ||--o{ FIX_TM会社 : "費用区分 = FIX_費用区分"
+    T利用者 ||--o{ FIX_TM受講制限区分 : "受講可否 = FIX_受講可否初期値"
+    T利用者 ||--o{ FIX_TM必修対象者 : "MHI従業員番号 = FIX_従業員番号"
+    T利用者 ||--o{ FIX_Tオーダー変更 : "FIX_オーダ_アイテム = FIX_オーダー"
+    T利用者 ||--o{ FIX_Tオーダー変更 : "オーダ_アイテム = FIX_オーダ_アイテム"
+    T利用者 ||--o{ FIX_T各社従業員番号置換 : "各社従業員番号 = FIX_MHI従業員番号"
+    T利用者 ||--o{ FIX_T講座実施DB : "受講者限定 = FIX_受講者限定"
+    T利用者 ||--o{ FIX_T講座実施DB : "講座秘匿性レベル = FIX_講座秘匿性レベル"
+    T利用者 ||--o{ T20220921共通従業員番号修正用 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ TDX講座終了状況 : "共通従業員番号 = FIX_ユーザーID"
+    T利用者 ||--o{ TMSF共通ID : "共通従業員番号 = 共通ID"
+    T利用者 ||--o{ TMキャンセル : "FIX_キャンセル理由 = FIX_キャンセルコード"
+    T利用者 ||--o{ TM会社 : "会社コード = 会社コード"
+    T利用者 ||--o{ TM勤務地 : "勤務地 = 勤務地"
+    T利用者 ||--o{ TM受講制限区分 : "受講制限評価用 = 受講制限評価用"
+    T利用者 ||--o{ TM受講制限区分 : "講座秘匿性レベル = 講座秘匿性レベル"
+    T利用者 ||--o{ TM受講可否 : "受講可否 = 受講可否コード"
+    T利用者 ||--o{ TM必修対象者 : "MHI従業員番号 = 従業員番号"
+    T利用者 ||--o{ TM必修対象者 : "共通従業員番号 = 共通従業員番号"
+    T利用者 ||--o{ TM必修対象者 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ TM料金 : "費用区分 = 費用区分"
+    T利用者 ||--o{ Tオーダー変更 : "MHI従業員番号 = FIX_MHI従業員番号"
+    T利用者 ||--o{ Tオーダー変更 : "MHI従業員番号 = MHI従業員番号"
+    T利用者 ||--o{ Tオーダー変更 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ Tオーダー変更 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ TカードID : "FIX_カードＩＤ = FIX_カードID"
+    T利用者 ||--o{ T利用者削除復元作業用 : "受付番号 = 受付番号"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_カード抹消日付 = FIX_カード抹消日付"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_カード発行回数 = FIX_カード発行回数"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_カード登録日付 = FIX_カード登録日付"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_カードＩＤ = FIX_カードＩＤ"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_キャンセル事前連絡有 = FIX_キャンセル事前連絡有"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_キャンセル料請求 = FIX_キャンセル料請求"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_キャンセル理由 = FIX_キャンセル理由"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_チェックアウト = FIX_チェックアウト"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "FIX_チェックイン = FIX_チェックイン"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "修了認定 = 修了認定"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "備考 = 備考"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "出席率 = 出席率"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "分割開催回 = 分割開催回"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "前泊数 = 前泊数"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "受付番号 = 受付番号"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "受講生 = 受講生"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "受講番号 = 受講番号"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "宿泊 = 宿泊"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "宿泊室番号 = 宿泊室番号"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "延泊数 = 延泊数"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "追加申込 = 追加申込"
+    T利用者 ||--o{ T受講者データ変更用_受講者データ一時保管 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ T各回講座開催情報 : "分割開催回 = 分割開催回"
+    T利用者 ||--o{ T各回講座開催情報 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ T各社従業員番号置換 : "受付番号 = 受付番号"
+    T利用者 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T利用者 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ T講座申込書 : "受講生 = 受講生"
+    T利用者 ||--o{ T講座申込書 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ T講座申込書 : "開催講座コード = 開催講座コード"
+    T利用者削除 ||--o{ FIX_T利用者削除復元作業用 : "復元日時 = FIX_作業日時"
+    T利用者削除 ||--o{ FIX_T利用者削除復元作業用 : "復元者名 = FIX_作業者名"
+    T利用者削除 ||--o{ TMキャンセル : "FIX_キャンセル理由 = FIX_キャンセルコード"
+    T利用者削除 ||--o{ TM会社 : "会社コード = 会社コード"
+    T利用者削除 ||--o{ TM勤務地 : "勤務地 = 勤務地"
+    T利用者削除 ||--o{ TM受講制限区分 : "受講制限評価用 = 受講制限評価用"
+    T利用者削除 ||--o{ TM受講制限区分 : "講座秘匿性レベル = 講座秘匿性レベル"
+    T利用者削除 ||--o{ TM受講可否 : "受講可否 = 受講可否コード"
+    T利用者削除 ||--o{ TM必修対象者 : "MHI従業員番号 = 従業員番号"
+    T利用者削除 ||--o{ TM必修対象者 : "開催講座コード = 開催講座コード"
+    T利用者削除 ||--o{ TM料金 : "費用区分 = 費用区分"
+    T利用者削除 ||--o{ TカードID : "FIX_カードＩＤ = FIX_カードID"
+    T利用者削除 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T利用者削除 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T利用者削除復元作業用 ||--o{ T利用者削除 : "ID = ID"
+    T利用者削除復元作業用 ||--o{ T利用者削除 : "受付番号 = 受付番号"
+    T制御入出力 ||--o{ FIX_T制御入出力_マスタ : "更新日時 = FIX_更新日時"
+    T制御入出力 ||--o{ T制御入出力_マスタ : "出力 = 出力"
+    T制御入出力_マスタ ||--o{ T制御入出力 : "出力 = 出力"
+    T受講者データ変更用_受講者データ一時保管 ||--o{ T利用者 : "分割開催回 = 分割開催回"
+    T受講者データ変更用_受講者データ一時保管 ||--o{ T利用者 : "受講生 = 受講生"
+    T受講者データ変更用_受講者データ一時保管 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    T受講者データ変更用_受講者データ一時保管 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    T受講者データ変更用_講座申込書 ||--o{ T利用者 : "受講生 = 受講生"
+    T受講者データ変更用_講座申込書 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    T受講者データ変更用_講座申込書 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    T講座実施DB ||--o{ T各回講座開催情報 : "分割開催回 = 分割開催回"
+    T講座実施DB ||--o{ T各回講座開催情報 : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ FIX_TM会社 : "会社コード = FIX_会社コード"
+    T講座申込書 ||--o{ FIX_TM会社 : "会社管理区分 = FIX_会社管理区分"
+    T講座申込書 ||--o{ FIX_TM会社 : "受講制限評価用 = FIX_受講制限評価用"
+    T講座申込書 ||--o{ FIX_TM会社 : "費用区分 = FIX_費用区分"
+    T講座申込書 ||--o{ FIX_TM受講制限区分 : "受講可否 = FIX_受講可否初期値"
+    T講座申込書 ||--o{ FIX_T講座実施DB : "受講者限定 = FIX_受講者限定"
+    T講座申込書 ||--o{ FIX_T講座実施DB : "講座秘匿性レベル = FIX_講座秘匿性レベル"
+    T講座申込書 ||--o{ Q利用者 : "氏名_漢字 = 氏名_漢字"
+    T講座申込書 ||--o{ Q利用者 : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ TM会社 : "会社名 = 会社名"
+    T講座申込書 ||--o{ TM受講制限区分 : "受講制限評価用 = 受講制限評価用"
+    T講座申込書 ||--o{ TM受講制限区分 : "講座秘匿性レベル = 講座秘匿性レベル"
+    T講座申込書 ||--o{ T利用者 : "分割開催回 = 分割開催回"
+    T講座申込書 ||--o{ T利用者 : "各社従業員番号 = 各社従業員番号"
+    T講座申込書 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    T講座申込書 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T講座申込書 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ T講座実施DB : "開催講座名称 = 開催講座名称"
+    T講座申込書_受付番号 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T講座申込書_受付番号 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T講座申込書移動ファイルリスト ||--o{ T講座申込書 : "FIX_ファイル名 = FIX_ファイル名"
+    T講座申込書移動ファイルリスト ||--o{ T講座申込書 : "ファイル名 = ファイル名"
+    ZZ_WKQUERY1 ||--o{ ZZ_WKTABLE : "ReferenceTo = ObjectName"
+    %% uncertain: FIX_601QM宿泊室予約表作成日付設定.日付 = T宿泊室予約日毎レコード.宿泊日 (FK方向が曖昧)
+    %% uncertain: FIX_T講座申込書.FIX_氏名_漢字 = FIX_T利用者.FIX_氏名_漢字 (FK方向が曖昧)
+    %% uncertain: QF階層9.階層9 = TF階層.階層1 (FK方向が曖昧)
+    %% uncertain: QG会社別受講申込リスト.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: QModule_標準.name = Q標準親子.FIX_オブジェクト名 (FK方向が曖昧)
+    %% uncertain: QModule_標準.name2 = Q標準親子.親1 (FK方向が曖昧)
+    %% uncertain: QModule名_クラス.FIX_ModuleName = Qクラス親子.FIX_オブジェクト名 (FK方向が曖昧)
+    %% uncertain: QModule名_クラス.FIX_ProcName = Qクラス親子.親 (FK方向が曖昧)
+    %% uncertain: QModule名_標準.ModuleName = T標準親子.FIX_オブジェクト名 (FK方向が曖昧)
+    %% uncertain: QModule名_標準.Proceduer = T標準親子.親 (FK方向が曖昧)
+    %% uncertain: QM宿泊室.宿泊室番号 = FIX_504Q予約済宿泊室.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: Qクラス標準親子.子 = Q標準親子.親1 (FK方向が曖昧)
+    %% uncertain: Qクラス標準親子Ⅱ.子1 = Q標準親子.親1 (FK方向が曖昧)
+    %% uncertain: Qクラス標準親子Ⅲ.子1 = Q標準親子.親1 (FK方向が曖昧)
+    %% uncertain: Qクラス親子.子 = Q標準親子.親1 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.FIX_キャンセル理由 = FIX_Q分割開催回0講座.FIX_キャンセル理由 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.MHI従業員番号 = Q分割開催回0講座.MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.共通従業員番号 = Q分割開催回0講座.共通従業員番号 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.各社従業員番号 = Q分割開催回0講座.各社従業員番号 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.氏名_漢字 = Q分割開催回0講座.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.氏名_英字 = Q分割開催回0講座.氏名_英字 (FK方向が曖昧)
+    %% uncertain: Q分割開催回n講座.開催講座コード = Q分割開催回0講座.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.氏名_漢字 = QG会社別受講申込リスト.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = QG会社別受講申込リスト.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.宿泊室番号 = QM宿泊室.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = Q入社年数当該講座名簿用.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.会社コード = TM会社.会社コード (FK方向が曖昧)
+    %% uncertain: Q利用者.MHI従業員番号 = TM必修対象者.従業員番号 (FK方向が曖昧)
+    %% uncertain: Q利用者.氏名_漢字 = TM必修対象者.氏名 (FK方向が曖昧)
+    %% uncertain: Q利用者.氏名_漢字 = T_EXCELG会社別受講申込リスト_合計.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = T_EXCELG会社別受講申込リスト_合計.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.受付番号 = T利用者.受付番号 (FK方向が曖昧)
+    %% uncertain: Q利用者.分割開催回 = T利用者2.分割開催回 (FK方向が曖昧)
+    %% uncertain: Q利用者.氏名_漢字 = T利用者2.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = T利用者2.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.受付番号 = T利用者削除復元作業用.受付番号 (FK方向が曖昧)
+    %% uncertain: Q利用者.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者.会社名 = T講座申込書.会社名 (FK方向が曖昧)
+    %% uncertain: Q利用者.氏名_漢字 = T講座申込書.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Q利用者.開催講座コード = T講座申込書.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q利用者N.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: Q利用者N.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: Q受講申込書会社名含むその他集計.会社略称 = TM会社.会社略称 (FK方向が曖昧)
+    %% uncertain: TM会社.会社コード = T利用者.会社コード (FK方向が曖昧)
+    %% uncertain: TM会社.会社コード = T講座申込書.会社コード (FK方向が曖昧)
+    %% uncertain: TM宿泊室.宿泊室番号 = FIX_601Q宿泊室予約日毎レコード.宿泊室番号2 (FK方向が曖昧)
+    %% uncertain: TM宿泊室.宿泊室番号 = T利用者.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: TM宿泊室.宿泊室番号 = T宿泊室予約日毎レコード.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: TQUERYUSEFUNCTION.FunctionName = TMODULE.ProceduerName (FK方向が曖昧)
+    %% uncertain: TQUERYUSEFUNCTION.QueryName = TOBJECTQUERY2.ObjectName (FK方向が曖昧)
+    %% uncertain: Tオブジェクト更新_リストオブジェクト.作成日時 = FIX_Tオブジェクト更新_作成日時.FIX_作成日時 (FK方向が曖昧)
+    %% uncertain: Tオブジェクト更新_リストオブジェクト.更新日時 = FIX_Tオブジェクト更新_作成日時.FIX_更新日時 (FK方向が曖昧)
+    %% uncertain: Tオブジェクト更新_リストオブジェクト.FIX_オブジェクト名 = Tオブジェクト更新_作成日時.FIX_オブジェクト名 (FK方向が曖昧)
+    %% uncertain: Tオブジェクト更新_作成日時.FIX_オブジェクト名 = Tオブジェクト更新_リストオブジェクト.FIX_オブジェクト名 (FK方向が曖昧)
+    %% uncertain: Tオーダー変更.MHI従業員番号 = T利用者.MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: Tオーダー変更.氏名_漢字 = T利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Tオーダー変更.開催講座コード = T利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: Tリスト利用者フィールド並び.FIX_フィールド名 = Tリスト利用者フィールド仕様.FIX_フィールド名 (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = FIX_TMSF共通ID.FIX_各社従番 (FK方向が曖昧)
+    %% uncertain: T利用者.会社管理区分 = FIX_TM会社.FIX_会社管理区分 (FK方向が曖昧)
+    %% uncertain: T利用者.受講制限評価用 = FIX_TM会社.FIX_受講制限評価用 (FK方向が曖昧)
+    %% uncertain: T利用者.費用区分 = FIX_TM会社.FIX_費用区分 (FK方向が曖昧)
+    %% uncertain: T利用者.受講可否 = FIX_TM受講制限区分.FIX_受講可否初期値 (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = FIX_TM必修対象者.FIX_従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_オーダ_アイテム = FIX_Tオーダー変更.FIX_オーダー (FK方向が曖昧)
+    %% uncertain: T利用者.オーダ_アイテム = FIX_Tオーダー変更.FIX_オーダ_アイテム (FK方向が曖昧)
+    %% uncertain: T利用者.各社従業員番号 = FIX_T各社従業員番号置換.FIX_MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.受講者限定 = FIX_T講座実施DB.FIX_受講者限定 (FK方向が曖昧)
+    %% uncertain: T利用者.講座秘匿性レベル = FIX_T講座実施DB.FIX_講座秘匿性レベル (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = T20220921共通従業員番号修正用.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_キャンセル理由 = TMキャンセル.FIX_キャンセルコード (FK方向が曖昧)
+    %% uncertain: T利用者.会社コード = TM会社.会社コード (FK方向が曖昧)
+    %% uncertain: T利用者.勤務地 = TM勤務地.勤務地 (FK方向が曖昧)
+    %% uncertain: T利用者.受講制限評価用 = TM受講制限区分.受講制限評価用 (FK方向が曖昧)
+    %% uncertain: T利用者.講座秘匿性レベル = TM受講制限区分.講座秘匿性レベル (FK方向が曖昧)
+    %% uncertain: T利用者.受講可否 = TM受講可否.受講可否コード (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = TM必修対象者.従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.共通従業員番号 = TM必修対象者.共通従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = TM必修対象者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.費用区分 = TM料金.費用区分 (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = Tオーダー変更.FIX_MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = Tオーダー変更.MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = Tオーダー変更.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = Tオーダー変更.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.受付番号 = T利用者削除復元作業用.受付番号 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_カード抹消日付 = T受講者データ変更用_受講者データ一時保管.FIX_カード抹消日付 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_カード発行回数 = T受講者データ変更用_受講者データ一時保管.FIX_カード発行回数 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_カード登録日付 = T受講者データ変更用_受講者データ一時保管.FIX_カード登録日付 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_カードＩＤ = T受講者データ変更用_受講者データ一時保管.FIX_カードＩＤ (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_キャンセル事前連絡有 = T受講者データ変更用_受講者データ一時保管.FIX_キャンセル事前連絡有 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_キャンセル料請求 = T受講者データ変更用_受講者データ一時保管.FIX_キャンセル料請求 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_キャンセル理由 = T受講者データ変更用_受講者データ一時保管.FIX_キャンセル理由 (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_チェックアウト = T受講者データ変更用_受講者データ一時保管.FIX_チェックアウト (FK方向が曖昧)
+    %% uncertain: T利用者.FIX_チェックイン = T受講者データ変更用_受講者データ一時保管.FIX_チェックイン (FK方向が曖昧)
+    %% uncertain: T利用者.修了認定 = T受講者データ変更用_受講者データ一時保管.修了認定 (FK方向が曖昧)
+    %% uncertain: T利用者.備考 = T受講者データ変更用_受講者データ一時保管.備考 (FK方向が曖昧)
+    %% uncertain: T利用者.出席率 = T受講者データ変更用_受講者データ一時保管.出席率 (FK方向が曖昧)
+    %% uncertain: T利用者.分割開催回 = T受講者データ変更用_受講者データ一時保管.分割開催回 (FK方向が曖昧)
+    %% uncertain: T利用者.前泊数 = T受講者データ変更用_受講者データ一時保管.前泊数 (FK方向が曖昧)
+    %% uncertain: T利用者.受付番号 = T受講者データ変更用_受講者データ一時保管.受付番号 (FK方向が曖昧)
+    %% uncertain: T利用者.受講生 = T受講者データ変更用_受講者データ一時保管.受講生 (FK方向が曖昧)
+    %% uncertain: T利用者.受講番号 = T受講者データ変更用_受講者データ一時保管.受講番号 (FK方向が曖昧)
+    %% uncertain: T利用者.宿泊 = T受講者データ変更用_受講者データ一時保管.宿泊 (FK方向が曖昧)
+    %% uncertain: T利用者.宿泊室番号 = T受講者データ変更用_受講者データ一時保管.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: T利用者.延泊数 = T受講者データ変更用_受講者データ一時保管.延泊数 (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = T受講者データ変更用_受講者データ一時保管.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.追加申込 = T受講者データ変更用_受講者データ一時保管.追加申込 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = T受講者データ変更用_受講者データ一時保管.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.分割開催回 = T各回講座開催情報.分割開催回 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = T各回講座開催情報.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.受付番号 = T各社従業員番号置換.受付番号 (FK方向が曖昧)
+    %% uncertain: T利用者.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.受講生 = T講座申込書.受講生 (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = T講座申込書.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = T講座申込書.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者削除.復元日時 = FIX_T利用者削除復元作業用.FIX_作業日時 (FK方向が曖昧)
+    %% uncertain: T利用者削除.復元者名 = FIX_T利用者削除復元作業用.FIX_作業者名 (FK方向が曖昧)
+    %% uncertain: T利用者削除.FIX_キャンセル理由 = TMキャンセル.FIX_キャンセルコード (FK方向が曖昧)
+    %% uncertain: T利用者削除.会社コード = TM会社.会社コード (FK方向が曖昧)
+    %% uncertain: T利用者削除.勤務地 = TM勤務地.勤務地 (FK方向が曖昧)
+    %% uncertain: T利用者削除.受講制限評価用 = TM受講制限区分.受講制限評価用 (FK方向が曖昧)
+    %% uncertain: T利用者削除.講座秘匿性レベル = TM受講制限区分.講座秘匿性レベル (FK方向が曖昧)
+    %% uncertain: T利用者削除.受講可否 = TM受講可否.受講可否コード (FK方向が曖昧)
+    %% uncertain: T利用者削除.MHI従業員番号 = TM必修対象者.従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者削除.開催講座コード = TM必修対象者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者削除.費用区分 = TM料金.費用区分 (FK方向が曖昧)
+    %% uncertain: T利用者削除.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: T利用者削除.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者削除復元作業用.受付番号 = T利用者削除.受付番号 (FK方向が曖昧)
+    %% uncertain: T制御入出力.更新日時 = FIX_T制御入出力_マスタ.FIX_更新日時 (FK方向が曖昧)
+    %% uncertain: T制御入出力.出力 = T制御入出力_マスタ.出力 (FK方向が曖昧)
+    %% uncertain: T制御入出力_マスタ.出力 = T制御入出力.出力 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_受講者データ一時保管.分割開催回 = T利用者.分割開催回 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_受講者データ一時保管.受講生 = T利用者.受講生 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_受講者データ一時保管.氏名_漢字 = T利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_受講者データ一時保管.開催講座コード = T利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_講座申込書.受講生 = T利用者.受講生 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_講座申込書.氏名_漢字 = T利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T受講者データ変更用_講座申込書.開催講座コード = T利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座実施DB.分割開催回 = T各回講座開催情報.分割開催回 (FK方向が曖昧)
+    %% uncertain: T講座実施DB.開催講座コード = T各回講座開催情報.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座申込書.会社コード = FIX_TM会社.FIX_会社コード (FK方向が曖昧)
+    %% uncertain: T講座申込書.会社管理区分 = FIX_TM会社.FIX_会社管理区分 (FK方向が曖昧)
+    %% uncertain: T講座申込書.受講制限評価用 = FIX_TM会社.FIX_受講制限評価用 (FK方向が曖昧)
+    %% uncertain: T講座申込書.費用区分 = FIX_TM会社.FIX_費用区分 (FK方向が曖昧)
+    %% uncertain: T講座申込書.受講可否 = FIX_TM受講制限区分.FIX_受講可否初期値 (FK方向が曖昧)
+    %% uncertain: T講座申込書.受講者限定 = FIX_T講座実施DB.FIX_受講者限定 (FK方向が曖昧)
+    %% uncertain: T講座申込書.講座秘匿性レベル = FIX_T講座実施DB.FIX_講座秘匿性レベル (FK方向が曖昧)
+    %% uncertain: T講座申込書.氏名_漢字 = Q利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T講座申込書.開催講座コード = Q利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座申込書.会社名 = TM会社.会社名 (FK方向が曖昧)
+    %% uncertain: T講座申込書.受講制限評価用 = TM受講制限区分.受講制限評価用 (FK方向が曖昧)
+    %% uncertain: T講座申込書.講座秘匿性レベル = TM受講制限区分.講座秘匿性レベル (FK方向が曖昧)
+    %% uncertain: T講座申込書.分割開催回 = T利用者.分割開催回 (FK方向が曖昧)
+    %% uncertain: T講座申込書.各社従業員番号 = T利用者.各社従業員番号 (FK方向が曖昧)
+    %% uncertain: T講座申込書.氏名_漢字 = T利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T講座申込書.開催講座コード = T利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座申込書.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: T講座申込書.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座申込書.開催講座名称 = T講座実施DB.開催講座名称 (FK方向が曖昧)
+    %% uncertain: T講座申込書_受付番号.分割開催回 = T講座実施DB.分割開催回 (FK方向が曖昧)
+    %% uncertain: T講座申込書_受付番号.開催講座コード = T講座実施DB.開催講座コード (FK方向が曖昧)
+    %% uncertain: T講座申込書移動ファイルリスト.FIX_ファイル名 = T講座申込書.FIX_ファイル名 (FK方向が曖昧)
+    %% uncertain: T講座申込書移動ファイルリスト.ファイル名 = T講座申込書.ファイル名 (FK方向が曖昧)
+    %% uncertain: ZZ_WKQUERY1.ReferenceTo = ZZ_WKTABLE.ObjectName (FK方向が曖昧)
+```

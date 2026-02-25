@@ -1,0 +1,22 @@
+```mermaid
+erDiagram
+    %% 分割版: 宿泊
+    TM宿泊室 {
+        string 宿泊室番号 FK
+    }
+    T利用者 {
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string 受付番号 PK,FK
+        string 受講番号 PK,FK
+        string 宿泊室番号 FK
+    }
+    T宿泊室予約日毎レコード {
+        string 受付番号 PK
+        string 宿泊室番号 FK
+    }
+    TM宿泊室 ||--o{ T利用者 : "宿泊室番号 = 宿泊室番号"
+    TM宿泊室 ||--o{ T宿泊室予約日毎レコード : "宿泊室番号 = 宿泊室番号"
+    %% uncertain: TM宿泊室.宿泊室番号 = T利用者.宿泊室番号 (FK方向が曖昧)
+    %% uncertain: TM宿泊室.宿泊室番号 = T宿泊室予約日毎レコード.宿泊室番号 (FK方向が曖昧)
+```

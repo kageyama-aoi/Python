@@ -1,0 +1,48 @@
+```mermaid
+erDiagram
+    %% 分割版: システム/制御
+    Tオーダー変更 {
+        string FIX_MHI従業員番号 FK
+        string ID PK,FK
+        string MHI従業員番号 FK
+        string 氏名_漢字 FK
+        string 開催講座コード FK
+    }
+    T利用者 {
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI従業員番号 FK
+        string 受付番号 PK,FK
+        string 受講番号 PK,FK
+        string 氏名_漢字 FK
+        string 開催講座コード FK
+    }
+    T制御入出力 {
+        string ID PK,FK
+        string 出力 FK
+    }
+    T制御入出力_マスタ {
+        string 出力 FK
+    }
+    Tオーダー変更 ||--o{ T利用者 : "MHI従業員番号 = MHI従業員番号"
+    Tオーダー変更 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    Tオーダー変更 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ Tオーダー変更 : "MHI従業員番号 = FIX_MHI従業員番号"
+    T利用者 ||--o{ Tオーダー変更 : "MHI従業員番号 = MHI従業員番号"
+    T利用者 ||--o{ Tオーダー変更 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ Tオーダー変更 : "開催講座コード = 開催講座コード"
+    T制御入出力 ||--o{ T制御入出力_マスタ : "出力 = 出力"
+    T制御入出力_マスタ ||--o{ T制御入出力 : "出力 = 出力"
+    %% uncertain: Tオーダー変更.MHI従業員番号 = T利用者.MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: Tオーダー変更.氏名_漢字 = T利用者.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: Tオーダー変更.開催講座コード = T利用者.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = Tオーダー変更.FIX_MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.MHI従業員番号 = Tオーダー変更.MHI従業員番号 (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = Tオーダー変更.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.氏名_漢字 = Tオーダー変更.氏名_漢字 (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = Tオーダー変更.開催講座コード (FK方向が曖昧)
+    %% uncertain: T利用者.開催講座コード = Tオーダー変更.開催講座コード (FK方向が曖昧)
+    %% uncertain: T制御入出力.出力 = T制御入出力_マスタ.出力 (FK方向が曖昧)
+    %% uncertain: T制御入出力.出力 = T制御入出力_マスタ.出力 (FK方向が曖昧)
+    %% uncertain: T制御入出力_マスタ.出力 = T制御入出力.出力 (FK方向が曖昧)
+```
