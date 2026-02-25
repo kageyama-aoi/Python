@@ -1,0 +1,132 @@
+```mermaid
+erDiagram
+    %% 受講生フロー向け（受講判定・必修・料金を重視）
+    %% flag: 受講生
+    TMSF共通ID {
+        string 共通ID PK,FK
+        %% sample columns
+        string 各社従番
+    }
+    TM会社 {
+        string 会社コード FK
+        string 会社名 FK
+        %% sample columns
+        string 会社略称
+        string 並び順
+    }
+    TM勤務地 {
+        string 勤務地 FK
+    }
+    TM受講制限区分 {
+        string 受講制限評価用 FK
+        string 講座秘匿性レベル FK
+        %% sample columns
+        string 受講可否初期値
+    }
+    TM受講可否 {
+        string 受講可否コード FK
+        %% sample columns
+        string 受講可否区分
+    }
+    TM宿泊室 {
+        string 宿泊室番号 FK
+        %% sample columns
+        string 優先利用
+        string 利用可
+        string 選択
+    }
+    TM必修対象者 {
+        string 共通従業員番号 FK
+        string 従業員番号 FK
+        string 開催講座コード FK
+        %% sample columns
+        string 氏名
+    }
+    TM料金 {
+        string 費用区分 FK
+        %% sample columns
+        string 宿泊棟利用料
+        string 施設利用料単価
+    }
+    T利用者 {
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string MHI従業員番号 FK
+        string 会社コード FK
+        string 共通従業員番号 FK
+        string 分割開催回 FK
+        string 勤務地 FK
+        string 受付番号 PK,FK
+        string 受講制限評価用 FK
+        string 受講可否 FK
+        string 受講生 FK
+        string 受講番号 PK,FK
+        %% sample columns
+        string 氏名_漢字
+    }
+    T各回講座開催情報 {
+        string 分割開催回 FK
+        string 開催講座コード FK
+        %% sample columns
+        string 教育形態
+    }
+    T講座実施DB {
+        string ID PK,FK
+        string 分割開催回 FK
+        string 開催講座コード FK
+        string 開催講座名称 FK
+        %% sample columns
+        string 開催形態
+        string 開催場所
+    }
+    T講座申込書 {
+        string ID_アイテム PK,FK
+        string ID_開催日程 PK,FK
+        string 会社コード FK
+        string 会社名 FK
+        string 分割開催回 FK
+        string 受付番号 PK
+        string 受講制限評価用 FK
+        string 受講生 FK
+        string 受講番号 PK
+        string 各社従業員番号 FK
+        string 氏名_漢字 FK
+        string 講座秘匿性レベル FK
+        string 開催講座コード FK
+        string 開催講座名称 FK
+        %% sample columns
+        string 未入力エラー
+    }
+    TM会社 ||--o{ T利用者 : "会社コード = 会社コード"
+    TM会社 ||--o{ T講座申込書 : "会社コード = 会社コード"
+    TM宿泊室 ||--o{ T利用者 : "宿泊室番号 = 宿泊室番号"
+    T利用者 ||--o{ TMSF共通ID : "共通従業員番号 = 共通ID"
+    T利用者 ||--o{ TM会社 : "会社コード = 会社コード"
+    T利用者 ||--o{ TM勤務地 : "勤務地 = 勤務地"
+    T利用者 ||--o{ TM受講制限区分 : "受講制限評価用 = 受講制限評価用"
+    T利用者 ||--o{ TM受講制限区分 : "講座秘匿性レベル = 講座秘匿性レベル"
+    T利用者 ||--o{ TM受講可否 : "受講可否 = 受講可否コード"
+    T利用者 ||--o{ TM必修対象者 : "MHI従業員番号 = 従業員番号"
+    T利用者 ||--o{ TM必修対象者 : "共通従業員番号 = 共通従業員番号"
+    T利用者 ||--o{ TM必修対象者 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ TM料金 : "費用区分 = 費用区分"
+    T利用者 ||--o{ T各回講座開催情報 : "分割開催回 = 分割開催回"
+    T利用者 ||--o{ T各回講座開催情報 : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T利用者 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T利用者 ||--o{ T講座申込書 : "受講生 = 受講生"
+    T利用者 ||--o{ T講座申込書 : "氏名_漢字 = 氏名_漢字"
+    T利用者 ||--o{ T講座申込書 : "開催講座コード = 開催講座コード"
+    T講座実施DB ||--o{ T各回講座開催情報 : "分割開催回 = 分割開催回"
+    T講座実施DB ||--o{ T各回講座開催情報 : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ TM会社 : "会社名 = 会社名"
+    T講座申込書 ||--o{ TM受講制限区分 : "受講制限評価用 = 受講制限評価用"
+    T講座申込書 ||--o{ TM受講制限区分 : "講座秘匿性レベル = 講座秘匿性レベル"
+    T講座申込書 ||--o{ T利用者 : "分割開催回 = 分割開催回"
+    T講座申込書 ||--o{ T利用者 : "各社従業員番号 = 各社従業員番号"
+    T講座申込書 ||--o{ T利用者 : "氏名_漢字 = 氏名_漢字"
+    T講座申込書 ||--o{ T利用者 : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ T講座実施DB : "分割開催回 = 分割開催回"
+    T講座申込書 ||--o{ T講座実施DB : "開催講座コード = 開催講座コード"
+    T講座申込書 ||--o{ T講座実施DB : "開催講座名称 = 開催講座名称"
+```
