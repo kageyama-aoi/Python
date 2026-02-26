@@ -11,9 +11,20 @@
   <h1>業務ロジック タイムラインビューアー</h1>
 
   <div class="controls">
+    <label class="btn btn-file" for="fileInput">
+      <span class="material-symbols-outlined">upload_file</span>
+      <span>JSONを選択</span>
+    </label>
     <input type="file" id="fileInput" accept=".json" />
-    <button onclick="expandAll()">すべて展開</button>
-    <button onclick="collapseAll()">すべて折りたたみ</button>
+    <button class="btn" onclick="expandAll()">
+      <span class="material-symbols-outlined">unfold_more</span>
+      <span>すべて展開</span>
+    </button>
+    <button class="btn" onclick="collapseAll()">
+      <span class="material-symbols-outlined">unfold_less</span>
+      <span>すべて折りたたみ</span>
+    </button>
+    <span id="fileName" class="file-name">未選択</span>
   </div>
 
   <div id="commonInfo" class="card" style="display:none;"></div>

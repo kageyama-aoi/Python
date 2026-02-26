@@ -35,10 +35,14 @@ h1 {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
   margin-bottom: 14px;
 }
 
-button {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid #c8d5e2;
   background: var(--panel);
   color: var(--text);
@@ -46,10 +50,37 @@ button {
   padding: 8px 12px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  user-select: none;
 }
 
-button:hover {
+.btn:hover {
   border-color: #9ab0c7;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  background: #f8fbff;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #7aa2c7;
+  outline-offset: 2px;
+}
+
+.btn-file {
+  cursor: pointer;
+}
+
+#fileInput {
+  display: none;
+}
+
+.file-name {
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card {
@@ -74,6 +105,60 @@ button:hover {
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.input-panel {
+  margin-top: 12px;
+  border: 1px solid #d8e3ee;
+  border-radius: 10px;
+  background: #fbfdff;
+  overflow: hidden;
+}
+
+.input-title {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #4c6278;
+  font-weight: 700;
+  border-bottom: 1px solid #dce7f1;
+  background: #f5f9fd;
+}
+
+.input-table {
+  font-size: 12px;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.4fr;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid #edf2f7;
+  align-items: start;
+}
+
+.input-row:first-child {
+  border-top: none;
+}
+
+.input-head {
+  background: #f9fcff;
+  color: #526579;
+  font-weight: 700;
+}
+
+.input-key {
+  color: #1e293b;
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+.input-value {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.input-note {
+  color: #5b6b7d;
 }
 
 .metric {
@@ -111,6 +196,7 @@ button:hover {
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .tab.active {
@@ -174,6 +260,12 @@ button:hover {
 
 .logic-card {
   padding: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.logic-card:hover {
+  border-color: #c5d7ea;
+  box-shadow: 0 8px 20px rgba(30, 58, 95, 0.08);
 }
 
 .logic-head {
@@ -230,6 +322,40 @@ button:hover {
   font-size: 13px;
 }
 
+.note-section {
+  margin-top: 10px;
+}
+
+.note-title {
+  font-size: 12px;
+  color: #586779;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.note-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.note-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f6f9fc;
+  border: 1px solid #d8e3ef;
+  color: #334155;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.note-chip .material-symbols-outlined {
+  font-size: 14px;
+  color: #64748b;
+}
+
 .action-row {
   margin-top: 10px;
   display: flex;
@@ -238,6 +364,9 @@ button:hover {
 }
 
 .toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 1px solid #cdd9e6;
   border-radius: 999px;
   padding: 5px 10px;
@@ -245,6 +374,21 @@ button:hover {
   color: #0f172a;
   background: #f8fbff;
   cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.toggle:hover {
+  border-color: #a9bfd5;
+  background: #f1f7ff;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid #7aa2c7;
+  outline-offset: 2px;
+}
+
+.toggle .material-symbols-outlined {
+  font-size: 16px;
 }
 
 .detail-box {
@@ -287,5 +431,10 @@ button:hover {
 
   .timeline-item {
     padding-left: 32px;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
