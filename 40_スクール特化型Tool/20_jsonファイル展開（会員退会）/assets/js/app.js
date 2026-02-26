@@ -6,10 +6,12 @@ const fileInput = document.getElementById("fileInput");
 const tabsContainer = document.getElementById("tabs");
 const output = document.getElementById("output");
 const commonInfo = document.getElementById("commonInfo");
+const fileName = document.getElementById("fileName");
 
 fileInput.addEventListener("change", function (e) {
   const file = e.target.files[0];
   if (!file) return;
+  if (fileName) fileName.textContent = file.name;
 
   const reader = new FileReader();
   reader.onload = function (evt) {
@@ -103,6 +105,7 @@ function createCourseSummaryCard(course) {
   card.className = "card summary-card";
 
   const summary = countCourseSummary(course.conditions ?? []);
+  const inputSnapshot = buildInputSnapshotHtml(course);
 
   card.innerHTML = `
     <div class="summary-title">${course.event_name ?? "コース"} / 処理サマリー</div>
@@ -124,9 +127,74 @@ function createCourseSummaryCard(course) {
         <div class="metric-value">${course.precondition?.main_root?.value ?? "-"} / ${course.precondition?.final_employment_month?.value ?? "-"}</div>
       </div>
     </div>
+    ${inputSnapshot}
   `;
 
   return card;
+}
+
+function buildInputSnapshotHtml(course) {
+  const rows = [];
+  const pre = course?.precondition ?? {};
+
+  for (const key of Object.keys(pre)) {
+    const item = pre[key];
+    if (!item || typeof item !== "object") continue;
+
+    if ("value" in item) {
+      const value = item.value ?? "-";
+      const note = item?.value_meta?.note ?? "";
+      const label = resolveOptionLabel(item, value);
+      rows.push({
+        key,
+        value: `${value}${label ? ` (${label})` : ""}`,
+        note,
+      });
+    }
+
+    if ("input_month" in item) {
+      rows.push({
+        key: `${key}.input_month`,
+        value: item.input_month ?? "-",
+        note: "判定に使用した入力月",
+      });
+    }
+  }
+
+  if (rows.length === 0) return "";
+
+  const body = rows
+    .map(
+      (r) => `
+      <div class="input-row">
+        <div class="input-key">${escapeHtml(r.key)}</div>
+        <div class="input-value">${escapeHtml(String(r.value))}</div>
+        <div class="input-note">${escapeHtml(r.note || "")}</div>
+      </div>
+    `
+    )
+    .join("");
+
+  return `
+    <div class="input-panel">
+      <div class="input-title">入力スナップショット（このコースで判定に使った値）</div>
+      <div class="input-table">
+        <div class="input-row input-head">
+          <div>入力キー</div>
+          <div>値</div>
+          <div>意味</div>
+        </div>
+        ${body}
+      </div>
+    </div>
+  `;
+}
+
+function resolveOptionLabel(item, value) {
+  const options = item?.value_meta?.options;
+  if (!Array.isArray(options)) return "";
+  const matched = options.find((o) => o?.value === value);
+  return matched?.label ?? "";
 }
 
 function createTimelineItem(cond) {
@@ -148,6 +216,7 @@ function createTimelineItem(cond) {
 
   const badges = buildBadges(cond);
   const reason = buildReason(cond);
+  const noteHtml = buildNoteSection(cond);
 
   card.innerHTML = `
     <div class="logic-head">
@@ -155,6 +224,7 @@ function createTimelineItem(cond) {
       <div class="badges">${badges}</div>
     </div>
     <div class="reason">${reason}</div>
+    ${noteHtml}
   `;
 
   const actionRow = document.createElement("div");
@@ -261,6 +331,41 @@ function buildReason(cond) {
   return parts.join(" ");
 }
 
+function buildNoteSection(cond) {
+  const notes = extractNotes(cond);
+  if (notes.length === 0) return "";
+
+  const chips = notes
+    .map((note) => `<span class="note-chip"><span class="material-symbols-outlined">sticky_note_2</span>${escapeHtml(note)}</span>`)
+    .join("");
+
+  return `
+    <div class="note-section">
+      <div class="note-title">業務ノート</div>
+      <div class="note-list">${chips}</div>
+    </div>
+  `;
+}
+
+function extractNotes(cond) {
+  const notes = [];
+  const push = (value) => {
+    if (typeof value !== "string") return;
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (!notes.includes(trimmed)) notes.push(trimmed);
+  };
+
+  push(cond?.note);
+  push(cond?.meta?.note);
+  push(cond?.update?.meta?.note);
+  push(cond?.create?.meta?.note);
+  push(cond?.result?.meta?.note);
+  push(cond?.route_scope?.meta?.note);
+
+  return notes;
+}
+
 function selectNodeIcon(cond) {
   if (Number(cond.update?.updated_records ?? 0) > 0) return "sync_alt";
   if (cond.result?.has_target === "Y") return "my_location";
@@ -274,15 +379,24 @@ function createToggleButton(closedText, openedText) {
   button.dataset.closedText = closedText;
   button.dataset.openedText = openedText;
   button.dataset.opened = "false";
-  button.textContent = closedText;
+  button.innerHTML =
+    '<span class="material-symbols-outlined">expand_more</span><span class="toggle-label"></span>';
+  setToggleVisual(button, false);
   return button;
 }
 
 function toggleSection(toggle, section) {
   const isOpen = section.style.display === "block";
   section.style.display = isOpen ? "none" : "block";
-  toggle.dataset.opened = isOpen ? "false" : "true";
-  toggle.textContent = isOpen ? toggle.dataset.closedText : toggle.dataset.openedText;
+  setToggleVisual(toggle, !isOpen);
+}
+
+function setToggleVisual(toggle, opened) {
+  const icon = toggle.querySelector(".material-symbols-outlined");
+  const label = toggle.querySelector(".toggle-label");
+  toggle.dataset.opened = opened ? "true" : "false";
+  if (icon) icon.textContent = opened ? "expand_less" : "expand_more";
+  if (label) label.textContent = opened ? toggle.dataset.openedText : toggle.dataset.closedText;
 }
 
 function expandAll() {
@@ -291,8 +405,7 @@ function expandAll() {
     el.style.display = "block";
   });
   document.querySelectorAll(".toggle").forEach((btn) => {
-    btn.dataset.opened = "true";
-    btn.textContent = btn.dataset.openedText;
+    setToggleVisual(btn, true);
   });
 }
 
@@ -302,8 +415,7 @@ function collapseAll() {
     el.style.display = "none";
   });
   document.querySelectorAll(".toggle").forEach((btn) => {
-    btn.dataset.opened = "false";
-    btn.textContent = btn.dataset.closedText;
+    setToggleVisual(btn, false);
   });
 }
 
@@ -315,6 +427,15 @@ function formatObject(obj) {
     html += `${key} : ${JSON.stringify(obj[key])}<br/>`;
   }
   return html;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 window.expandAll = expandAll;
