@@ -615,9 +615,13 @@ textarea.json-input {
 }
 .lec-line {
   position: absolute;
-  top: 50%; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(77,184,255,0.3), transparent);
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: var(--lec);
+  opacity: 0.55;
+  box-shadow: 0 0 6px rgba(77,184,255,0.5);
+  border-radius: 1px;
 }
 .lec-dot-wrap {
   position: absolute;

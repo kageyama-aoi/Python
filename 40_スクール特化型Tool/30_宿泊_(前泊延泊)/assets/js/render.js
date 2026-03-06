@@ -32,8 +32,19 @@ function renderLectureRow(chart, allDates, lectures, dateToFrac, fracToPercent) 
 
   const lecDots = document.createElement('div');
   lecDots.className = 'lec-dots-row';
+
+  // 講義期間を示す実線（最初の点〜最後の点）
+  const sortedLec = [...lectures].sort((a, b) => allDates.indexOf(a) - allDates.indexOf(b));
   const lecLine = document.createElement('div');
   lecLine.className = 'lec-line';
+  if (sortedLec.length >= 2) {
+    const fFirst = dateToFrac(sortedLec[0]);
+    const fLast  = dateToFrac(sortedLec[sortedLec.length - 1]);
+    if (fFirst !== null && fLast !== null) {
+      lecLine.style.left  = fracToPercent(fFirst);
+      lecLine.style.width = fracToPercent(fLast - fFirst);
+    }
+  }
   lecDots.appendChild(lecLine);
 
   allDates.forEach(d => {
