@@ -8,7 +8,7 @@
 <body>
   <div class="portal-container">
     <h1>Data Flow Portal</h1>
-    <div class="meta">Generated: 2026-03-06 16:18:00 | Input: data_flow_dummy.csv</div>
+    <div class="meta">Generated: 2026-03-06 16:30:52 | Input: data_flow_dummy.csv</div>
     <div class="controls"><label for="tableFilter">テーブル絞り込み:</label><select id='tableFilter'><option value=''>すべて</option><option value='orders'>orders</option><option value='payments'>payments</option><option value='customers'>customers</option></select><label for="caseFilter">ケース絞り込み:</label><select id='caseFilter'><option value=''>すべて</option><option value='CASE-000'>CASE-000:新規作成</option><option value='CASE-001'>CASE-001:注文確定</option><option value='CASE-002'>CASE-002:キャンセル</option><option value='CASE-003'>CASE-003:SupportTool</option><option value='CASE-004'>CASE-004:BatchJob</option><option value='CASE-005'>CASE-005:AdminUI</option><option value='CASE-006'>CASE-006:RefundAPI</option></select><label for="inputSelector">入力CSV:</label><select id="inputSelector"><option value='data/input/data_flow_dummy.csv' selected>data_flow_dummy.csv</option><option value='data/input/data_flow_dummy_alt.csv'>data_flow_dummy_alt.csv</option></select><span class="hint" id="inputHint">選択後は再生成が必要です</span></div>
     <div class="table-wrap">
       <table>
@@ -93,71 +93,6 @@ trigger: RefundAPI
       </table>
     </div>
   </div>
-  
-  <script>
-    const tableFilter = document.getElementById('tableFilter');
-    const caseFilter = document.getElementById('caseFilter');
-    if (tableFilter || caseFilter) {
-      const changeGroupHeader = document.getElementById('changeGroupHeader');
-      const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
-      const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
-      const applyFilters = () => {
-        const tableValue = tableFilter ? tableFilter.value : '';
-        const caseValue = caseFilter ? caseFilter.value : '';
-        document.querySelectorAll('tbody tr').forEach((row) => {
-          const table = row.getAttribute('data-table') || '';
-          const caseId = row.getAttribute('data-case') || '';
-          const tableOk = (tableValue === '' || table === tableValue);
-          const caseOk = (caseValue === '' || caseId === caseValue);
-          row.style.display = (tableOk && caseOk) ? '' : 'none';
-        });
-
-        const visibleGroups = new Map();
-        groupHeaderCells.forEach((th) => {
-          const group = th.getAttribute('data-group') || '';
-          const count = parseInt(th.getAttribute('data-count') || '0', 10);
-          const visible = (tableValue === '' || group === tableValue);
-          th.style.display = visible ? '' : 'none';
-          if (visible) {
-            visibleGroups.set(group, count);
-            th.setAttribute('colspan', String(count));
-          }
-        });
-
-        columnCells.forEach((cell) => {
-          const group = cell.getAttribute('data-group') || '';
-          const visible = (tableValue === '' || group === tableValue);
-          cell.style.display = visible ? '' : 'none';
-        });
-
-        if (changeGroupHeader) {
-          let total = 0;
-          visibleGroups.forEach((count) => { total += count; });
-          if (tableValue === '') {
-            total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
-          }
-          changeGroupHeader.setAttribute('colspan', String(total));
-        }
-      };
-
-      if (tableFilter) {
-        tableFilter.addEventListener('change', applyFilters);
-      }
-      if (caseFilter) {
-        caseFilter.addEventListener('change', applyFilters);
-      }
-    }
-
-    const inputSelector = document.getElementById('inputSelector');
-    if (inputSelector) {
-      inputSelector.addEventListener('change', () => {
-        const hint = document.getElementById('inputHint');
-        if (hint) {
-          hint.textContent = '選択後は再生成が必要です';
-        }
-      });
-    }
-  </script>
-    
+  <script src="assets/app.js"></script>
 </body>
 </html>

@@ -1,9 +1,12 @@
 import os
+import shutil
 from datetime import datetime
 
 from src.utils.attrs import build_attr_key, extract_attr_label, split_attr_key
 from src.utils.fs import ensure_dir, write_text
 from src.utils.null_check import is_null
+
+_ASSETS_SRC = os.path.join(os.path.dirname(__file__), "..", "assets")
 
 
 class PortalRenderer:
@@ -20,8 +23,11 @@ class PortalRenderer:
         ensure_dir(output_dir)
         ensure_dir(assets_dir)
 
-        css_path = os.path.join(assets_dir, "style.css")
-        write_text(css_path, build_css())
+        for filename in ("style.css", "app.js"):
+            shutil.copy(
+                os.path.join(_ASSETS_SRC, filename),
+                os.path.join(assets_dir, filename),
+            )
 
         html = self.build_html(events, columns, input_csv, "assets/style.css")
         index_path = os.path.join(output_dir, "index.html")
@@ -156,7 +162,6 @@ class PortalRenderer:
             self.config["display"].get("input_candidates", []),
             input_csv,
         )
-        script_html = build_filter_script()
 
         return f"""<!DOCTYPE html>
 <html lang="ja">
@@ -183,306 +188,9 @@ class PortalRenderer:
       </table>
     </div>
   </div>
-  {script_html}
+  <script src="assets/app.js"></script>
 </body>
 </html>
-"""
-
-
-def build_css():
-    return """
-:root {
-  --bg: #f6f7f9;
-  --line: #e2e5ea;
-  --text: #1f2a37;
-  --muted: #6b7280;
-  --added: #22c55e;
-  --removed: #b91c1c;
-  --changed: #111827;
-  --same: #9ca3af;
-  --insert: #10b981;
-  --update: #f59e0b;
-  --delete: #ef4444;
-}
-
-body {
-  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  padding: 24px;
-}
-
-.portal-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-h1 {
-  margin: 0 0 8px 0;
-}
-
-.meta {
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.legend {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.legend.inline {
-  display: inline-flex;
-  gap: 6px;
-  margin-left: 10px;
-}
-
-.controls {
-  margin: 8px 0 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.controls select {
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.controls .hint {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.badge.added { color: var(--added); }
-.badge.removed { color: var(--removed); }
-.badge.changed { color: var(--changed); }
-.badge.same { color: var(--same); }
-
-.table-wrap {
-  overflow: auto;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-table {
-  border-collapse: collapse;
-  width: max-content;
-  min-width: 100%;
-  font-size: 13px;
-  table-layout: fixed;
-}
-
-th, td {
-  border: 1px solid var(--line);
-  padding: 8px 10px;
-  text-align: left;
-  white-space: nowrap;
-  box-sizing: border-box;
-}
-
-th {
-  position: sticky;
-  top: 0;
-  background: #f9fafb;
-  z-index: 3;
-}
-
-.sticky-top-1 {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: #eef2f7;
-  font-weight: 600;
-}
-
-.sticky-top-2 {
-  position: sticky;
-  top: 28px;
-  z-index: 4;
-  background: #f3f4f6;
-}
-
-.sticky-top-3 {
-  position: sticky;
-  top: 56px;
-  z-index: 3;
-  background: #f9fafb;
-}
-
-.group-header {
-  text-align: center;
-  letter-spacing: 0.02em;
-  font-size: 14px;
-  font-weight: 700;
-  background: #eef2f7;
-  border-bottom: 2px solid #cbd5e1;
-}
-
-.group-title {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-tr:hover td {
-  background: #f3f4f6;
-}
-
-tbody tr:nth-child(even) {
-  background: #fafafa;
-}
-
-td.empty {
-  background: #fafafa;
-}
-
-.sticky-col {
-  position: sticky;
-  left: 0;
-  background: #fff;
-  z-index: 2;
-  box-shadow: 2px 0 0 var(--line);
-}
-
-th.sticky-col {
-  z-index: 7;
-  color: var(--muted);
-  font-size: 12px;
-  background: #f7f7f9;
-}
-
-td.sticky-col {
-  z-index: 3;
-  color: var(--muted);
-  font-size: 12px;
-  background: #f7f7f9;
-}
-
-.op-insert td:first-child {
-  border-left: 4px solid var(--insert);
-}
-
-.op-update td:first-child {
-  border-left: 4px solid var(--update);
-}
-
-.op-delete td:first-child {
-  border-left: 4px solid var(--delete);
-}
-
-.op-insert td.sticky-col {
-  background: #ecfdf3;
-}
-
-.op-update td.sticky-col {
-  background: #fff7ed;
-}
-
-.op-delete td.sticky-col {
-  background: #f3f4f6;
-  color: var(--muted);
-}
-
-.change {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.change .before {
-  color: var(--same);
-}
-
-.change .after.added {
-  color: var(--added);
-  font-weight: 600;
-  background: #dcfce7;
-  padding: 1px 3px;
-  border-radius: 4px;
-}
-
-.change .after.removed {
-  color: var(--removed);
-  font-weight: 600;
-  background: #fee2e2;
-  padding: 1px 3px;
-  border-radius: 4px;
-}
-
-.change .after.changed {
-  color: var(--changed);
-  font-weight: 700;
-  background: #fef3c7;
-  padding: 1px 3px;
-  border-radius: 4px;
-}
-
-.change.same {
-  color: var(--same);
-}
-
-.change.current {
-  color: var(--muted);
-  font-style: italic;
-}
-
-.group-start {
-  border-left: 3px solid #94a3b8 !important;
-}
-
-.fixed-header-top {
-  border-top: 3px solid #94a3b8 !important;
-}
-
-.detail-hover {
-  position: relative;
-  cursor: help;
-}
-
-.detail-hover:hover::after,
-.detail-hover:focus::after {
-  content: attr(data-detail);
-  white-space: pre-line;
-  position: absolute;
-  left: 0;
-  bottom: 120%;
-  min-width: 220px;
-  max-width: 320px;
-  padding: 8px 10px;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 6px;
-  font-size: 12px;
-  line-height: 1.4;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-}
-
-.detail-hover:hover::before,
-.detail-hover:focus::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  bottom: 110%;
-  border-width: 6px 6px 0 6px;
-  border-style: solid;
-  border-color: #111827 transparent transparent transparent;
-  z-index: 10;
-}
 """
 
 
@@ -643,75 +351,6 @@ def build_meta(generated_at, input_csv, show_generated_at, show_input_name):
     if show_input_name:
         meta_parts.append(f"Input: {os.path.basename(input_csv)}")
     return " | ".join(meta_parts)
-
-
-def build_filter_script():
-    return """
-  <script>
-    const tableFilter = document.getElementById('tableFilter');
-    const caseFilter = document.getElementById('caseFilter');
-    if (tableFilter || caseFilter) {
-      const changeGroupHeader = document.getElementById('changeGroupHeader');
-      const groupHeaderCells = document.querySelectorAll('th.group-header[data-group]');
-      const columnCells = document.querySelectorAll('th.sticky-top-3[data-group], td[data-group]');
-      const applyFilters = () => {
-        const tableValue = tableFilter ? tableFilter.value : '';
-        const caseValue = caseFilter ? caseFilter.value : '';
-        document.querySelectorAll('tbody tr').forEach((row) => {
-          const table = row.getAttribute('data-table') || '';
-          const caseId = row.getAttribute('data-case') || '';
-          const tableOk = (tableValue === '' || table === tableValue);
-          const caseOk = (caseValue === '' || caseId === caseValue);
-          row.style.display = (tableOk && caseOk) ? '' : 'none';
-        });
-
-        const visibleGroups = new Map();
-        groupHeaderCells.forEach((th) => {
-          const group = th.getAttribute('data-group') || '';
-          const count = parseInt(th.getAttribute('data-count') || '0', 10);
-          const visible = (tableValue === '' || group === tableValue);
-          th.style.display = visible ? '' : 'none';
-          if (visible) {
-            visibleGroups.set(group, count);
-            th.setAttribute('colspan', String(count));
-          }
-        });
-
-        columnCells.forEach((cell) => {
-          const group = cell.getAttribute('data-group') || '';
-          const visible = (tableValue === '' || group === tableValue);
-          cell.style.display = visible ? '' : 'none';
-        });
-
-        if (changeGroupHeader) {
-          let total = 0;
-          visibleGroups.forEach((count) => { total += count; });
-          if (tableValue === '') {
-            total = parseInt(changeGroupHeader.getAttribute('data-count') || '0', 10);
-          }
-          changeGroupHeader.setAttribute('colspan', String(total));
-        }
-      };
-
-      if (tableFilter) {
-        tableFilter.addEventListener('change', applyFilters);
-      }
-      if (caseFilter) {
-        caseFilter.addEventListener('change', applyFilters);
-      }
-    }
-
-    const inputSelector = document.getElementById('inputSelector');
-    if (inputSelector) {
-      inputSelector.addEventListener('change', () => {
-        const hint = document.getElementById('inputHint');
-        if (hint) {
-          hint.textContent = '選択後は再生成が必要です';
-        }
-      });
-    }
-  </script>
-    """
 
 
 def build_table_groups(events, columns):
