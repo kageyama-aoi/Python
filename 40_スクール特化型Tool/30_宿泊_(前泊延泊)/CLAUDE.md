@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 start timeline-builder.html
 ```
 
-テスト・Lint の仕組みは存在しない。動作確認はブラウザの開発者ツール（Console）で行う。
+テスト・Lint の仕組みは存在しない。動作確認はブラウザの開発者ツール（Console）で行う。外部JSファイルを `<script src>` で読み込んでいるため、`file://` 直接オープンで動作する（ローカルサーバー不要）。
 
 ## ディレクトリ構成
 
