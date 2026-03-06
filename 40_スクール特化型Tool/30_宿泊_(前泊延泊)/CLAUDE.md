@@ -59,7 +59,7 @@ let customPlans = [
 
 ### 日付フォーマット
 
-**`'M/D'` 形式のみ使用**（例: `'2/16'`）。`Date` オブジェクトは内部計算のみに使い、文字列として保持・描画する。年は `2025` ハードコード（`addDays`, `getAllDates` 内）→ Phase4で修正予定。
+**`'M/D'` 形式のみ使用**（例: `'2/16'`）。`Date` オブジェクトは内部計算のみに使い、文字列として保持・描画する。年は `const YEAR = new Date().getFullYear()` で動的取得（`addDays`, `getAllDates`, `nightsBetween` が参照）。
 
 ### コアロジック（`getStandard` / `render`）
 
@@ -85,7 +85,7 @@ BOM付き UTF-8（`'\uFEFF'` プレフィックス）で Blob を生成し `<a>`
 
 ## 開発上の注意
 
-- **年のハードコード**: `addDays` と `getAllDates` 内で `new Date(2025, ...)` を使用。年をまたぐ研修には対応していない（Phase4で修正予定）。
+- **年の取得**: `YEAR` 定数（`new Date().getFullYear()`）を `addDays`・`getAllDates`・`nightsBetween` が参照。年をまたぐ研修（12月〜1月）には未対応。
 - **`render()` は副作用あり**: DOM を破壊・再構築するため、呼び出し前に `chart.innerHTML = ''` が実行される。
 - **プランの色**: `COLORS` 配列（8色）をインデックスでループ。標準プランは常に `--c0`（index 0）。カスタムプランは `(i+1) % 8`。
 - **JSONパース**: `parseSchedule()` と `parsePlans()` はそれぞれ独立したエラーハンドリングを持つ。入力が不正な場合はトーストを表示して `config`/`customPlans` を変更しない。

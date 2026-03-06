@@ -845,6 +845,7 @@ let nextId = 7;
 // ─────────────────────────────────────────────
 // DATE UTILS
 // ─────────────────────────────────────────────
+const YEAR = new Date().getFullYear();
 function parseDate(str) {
   // "M/D" → {m, d}
   const [m, d] = str.split('/').map(Number);
@@ -859,7 +860,7 @@ function dateToVal(str) {
 function addDays(str, n) {
   // Only works within same month for simplicity; extend if needed
   const { m, d } = parseDate(str);
-  const base = new Date(2025, m - 1, d);
+  const base = new Date(YEAR, m - 1, d);
   base.setDate(base.getDate() + n);
   return `${base.getMonth()+1}/${base.getDate()}`;
 }
@@ -868,8 +869,8 @@ function getAllDates(start, end) {
   const dates = [];
   const { m: sm, d: sd } = parseDate(start);
   const { m: em, d: ed } = parseDate(end);
-  let cur = new Date(2025, sm - 1, sd);
-  const endD = new Date(2025, em - 1, ed);
+  let cur = new Date(YEAR, sm - 1, sd);
+  const endD = new Date(YEAR, em - 1, ed);
   while (cur <= endD) {
     dates.push(`${cur.getMonth()+1}/${cur.getDate()}`);
     cur.setDate(cur.getDate() + 1);
@@ -1388,7 +1389,7 @@ function render() {
 function nightsBetween(a, b) {
   const { m: am, d: ad } = parseDate(a);
   const { m: bm, d: bd } = parseDate(b);
-  return Math.round((new Date(2025,bm-1,bd) - new Date(2025,am-1,ad)) / 86400000);
+  return Math.round((new Date(YEAR,bm-1,bd) - new Date(YEAR,am-1,ad)) / 86400000);
 }
 
 function downloadCsv(filename, rows) {
