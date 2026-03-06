@@ -89,6 +89,14 @@ function makeSpinGroup(label, value, onChange, color) {
   lbl.className = 'spin-label';
   lbl.textContent = label;
 
+  const row = document.createElement('div');
+  row.className = 'spin-row';
+
+  const btnMinus = document.createElement('button');
+  btnMinus.className = 'spin-btn';
+  btnMinus.textContent = '−';
+  btnMinus.style.color = color;
+
   const inp = document.createElement('input');
   inp.className = 'spin-input';
   inp.type = 'number';
@@ -96,8 +104,28 @@ function makeSpinGroup(label, value, onChange, color) {
   inp.style.color = color;
   inp.addEventListener('input', e => onChange(parseInt(e.target.value) || 0));
 
+  const btnPlus = document.createElement('button');
+  btnPlus.className = 'spin-btn';
+  btnPlus.textContent = '＋';
+  btnPlus.style.color = color;
+
+  btnMinus.addEventListener('click', () => {
+    const next = (parseInt(inp.value) || 0) - 1;
+    inp.value = next;
+    onChange(next);
+  });
+  btnPlus.addEventListener('click', () => {
+    const next = (parseInt(inp.value) || 0) + 1;
+    inp.value = next;
+    onChange(next);
+  });
+
+  row.appendChild(btnMinus);
+  row.appendChild(inp);
+  row.appendChild(btnPlus);
+
   g.appendChild(lbl);
-  g.appendChild(inp);
+  g.appendChild(row);
   return g;
 }
 
