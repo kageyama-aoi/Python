@@ -80,10 +80,16 @@ function renderPlanRow(chart, plan, std, allDates, lectures, dateToFrac, fracToP
   badge.textContent = plan.num;
   const nameWrap = document.createElement('div');
   nameWrap.style.cssText = 'overflow:hidden;flex:1;';
-  nameWrap.innerHTML = `
-    <div class="row-name" style="color:${plan.color}">${plan.name}</div>
-    <div class="row-tag" style="font-size:10px;color:var(--muted2);letter-spacing:0.03em;">${plan.tag}</div>
-  `;
+  const rowName = document.createElement('div');
+  rowName.className = 'row-name';
+  rowName.style.color = plan.color;
+  rowName.textContent = plan.name;
+  const rowTag = document.createElement('div');
+  rowTag.className = 'row-tag';
+  rowTag.style.cssText = 'font-size:10px;color:var(--muted2);letter-spacing:0.03em;';
+  rowTag.textContent = plan.tag;
+  nameWrap.appendChild(rowName);
+  nameWrap.appendChild(rowTag);
   lbl.appendChild(badge);
   lbl.appendChild(nameWrap);
   row.appendChild(lbl);

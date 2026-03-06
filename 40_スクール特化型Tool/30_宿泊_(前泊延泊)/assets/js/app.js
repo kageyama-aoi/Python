@@ -31,6 +31,26 @@ const plansStatus      = document.getElementById('json-plans-status');
 // ─────────────────────────────────────────────
 // SCHEDULE FORM UI
 // ─────────────────────────────────────────────
+const MD_RE = /^\d{1,2}\/\d{1,2}$/;
+
+function isValidMD(v) { return MD_RE.test(v); }
+
+function showFormError(inputEl, msg) {
+  inputEl.style.borderColor = 'var(--danger)';
+  const existing = inputEl.nextElementSibling;
+  if (existing?.classList.contains('form-error')) existing.remove();
+  const err = document.createElement('div');
+  err.className = 'form-error';
+  err.textContent = msg;
+  inputEl.after(err);
+}
+
+function clearFormError(inputEl) {
+  inputEl.style.borderColor = '';
+  const existing = inputEl.nextElementSibling;
+  if (existing?.classList.contains('form-error')) existing.remove();
+}
+
 function renderScheduleForm() {
   document.getElementById('form-start').value = config.timeline.start;
   document.getElementById('form-end').value   = config.timeline.end;
@@ -73,8 +93,11 @@ function syncFormToJson() {
 
 // Form input handlers
 document.getElementById('form-start').addEventListener('change', e => {
-  const v = e.target.value.trim();
+  const inp = e.target;
+  const v = inp.value.trim();
   if (!v) return;
+  if (!isValidMD(v)) { showFormError(inp, 'M/D 形式で入力してください（例: 2/13）'); return; }
+  clearFormError(inp);
   config.timeline.start = v;
   syncFormToJson();
   updateScheduleSummary();
@@ -82,8 +105,11 @@ document.getElementById('form-start').addEventListener('change', e => {
 });
 
 document.getElementById('form-end').addEventListener('change', e => {
-  const v = e.target.value.trim();
+  const inp = e.target;
+  const v = inp.value.trim();
   if (!v) return;
+  if (!isValidMD(v)) { showFormError(inp, 'M/D 形式で入力してください（例: 2/22）'); return; }
+  clearFormError(inp);
   config.timeline.end = v;
   syncFormToJson();
   updateScheduleSummary();
@@ -94,6 +120,8 @@ document.getElementById('btn-add-lecture').addEventListener('click', () => {
   const inp = document.getElementById('form-add-lecture');
   const v = inp.value.trim();
   if (!v) return;
+  if (!isValidMD(v)) { showFormError(inp, 'M/D 形式で入力してください（例: 2/16）'); return; }
+  clearFormError(inp);
   if (!config.lectures.includes(v)) {
     config.lectures.push(v);
   }
@@ -223,12 +251,6 @@ document.getElementById('btn-plans-export').addEventListener('click', () => {
   navigator.clipboard.writeText(out).then(() => showToast('copy-toast-plans')).catch(()=>{});
 });
 
-// 初回パース用（後方互換）
-function parseJSON(applyPlans) {
-  parseSchedule();
-  if (applyPlans) parsePlans(true);
-}
-
 // ─────────────────────────────────────────────
 // DRAWER
 // ─────────────────────────────────────────────
@@ -260,6 +282,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
-parseJSON(true);
+parseSchedule();
+parsePlans(true);
 renderSidebar();
 renderScheduleForm();

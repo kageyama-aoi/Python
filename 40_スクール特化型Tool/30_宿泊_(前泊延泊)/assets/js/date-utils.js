@@ -41,3 +41,8 @@ function clamp(date, start, end) {
   if (v > dateToVal(end))   return end;
   return date;
 }
+
+function numToCircle(n) {
+  const circles = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
+  return circles[n - 1] || `(${n})`;
+}

@@ -127,10 +127,6 @@ function makeSpinGroup(label, value, onChange, color) {
   return g;
 }
 
-function numToCircle(n) {
-  const circles = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫'];
-  return circles[n - 1] || `(${n})`;
-}
 
 document.getElementById('btn-add-plan').addEventListener('click', () => {
   updatePlans(() => {
