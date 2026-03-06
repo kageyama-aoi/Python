@@ -14,6 +14,29 @@ function getStandard() {
 // ─────────────────────────────────────────────
 // PLAN DATE COMPUTATION
 // ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+// BUILD ALL PLANS (render / csv 共用)
+// ─────────────────────────────────────────────
+function buildAllPlans(std) {
+  return [
+    {
+      num: '①', name: '標準', early: 0, late: 0,
+      daytrip: false, isBase: true,
+      startDate: std.baseIn, endDate: std.baseOut,
+    },
+    ...customPlans.map((p, i) => {
+      const { startDate, endDate } = computePlanDates(p, std);
+      return {
+        num: numToCircle(i + 2), name: p.name,
+        early: p.early, late: p.late,
+        daytrip: p.daytrip, isBase: false,
+        startDate, endDate,
+      };
+    }),
+  ];
+}
+
 function computePlanDates(plan, std) {
   if (plan.daytrip) {
     const startDate = clamp(addDays(std.baseIn, -plan.early), config.timeline.start, config.timeline.end);

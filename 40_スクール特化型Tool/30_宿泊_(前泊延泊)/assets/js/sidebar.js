@@ -11,6 +11,14 @@ function renderSidebar() {
   const list = document.getElementById('plan-list');
   list.innerHTML = '';
 
+  if (customPlans.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'plan-list-empty';
+    empty.textContent = 'プランがありません';
+    list.appendChild(empty);
+    return;
+  }
+
   customPlans.forEach((plan, i) => {
     const color = COLORS[(i + 1) % COLORS.length]; // +1 because ① is index 0
     const entry = document.createElement('div');

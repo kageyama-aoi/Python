@@ -18,18 +18,6 @@ function downloadCsv(filename, rows) {
 
 function q(v) { return `"${String(v).replace(/"/g, '""')}"`; }
 
-function buildAllPlans(std) {
-  return [
-    { num:'①', name:'標準', early:0, late:0, daytrip:false,
-      startDate:std.baseIn, endDate:std.baseOut },
-    ...customPlans.map((p, i) => {
-      const { startDate, endDate } = computePlanDates(p, std);
-      return { num:numToCircle(i+2), name:p.name, early:p.early,
-               late:p.late, daytrip:p.daytrip, startDate, endDate };
-    })
-  ];
-}
-
 // ── 日程CSV（講義日程 + 標準プランのみ） ──
 document.getElementById('btn-csv-schedule').addEventListener('click', () => {
   const std = getStandard();

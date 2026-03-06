@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────
 // CHART RENDER HELPERS
 // ─────────────────────────────────────────────
+const LABEL_W = 188; // チャート左ラベル列の幅 (px)
 function renderDateHeader(chart, allDates, lectures, dateToFrac, fracToPercent) {
   const dateRow = document.createElement('div');
   dateRow.className = 'date-row';
@@ -251,31 +252,15 @@ function render() {
   renderDateHeader(chart, allDates, config.lectures, dateToFrac, fracToPercent);
   renderLectureRow(chart, allDates, config.lectures, dateToFrac, fracToPercent);
 
-  const allPlans = [
-    {
-      num: '①', name: '標準', color: COLORS[0],
-      startDate: std.baseIn, endDate: std.baseOut,
-      early: 0, late: 0, daytrip: false, isBase: true,
-      tag: `${std.baseIn} → ${std.baseOut}`
-    },
-    ...customPlans.map((p, i) => {
-      const color = COLORS[(i + 1) % COLORS.length];
-      const { startDate, endDate } = computePlanDates(p, std);
-      const tag = p.daytrip
+  const allPlans = buildAllPlans(std).map((p, i) => {
+    const color = COLORS[i % COLORS.length];
+    const tag = p.isBase
+      ? `${p.startDate} → ${p.endDate}`
+      : p.daytrip
         ? `入り ${p.early >= 0 ? '+' : ''}${p.early}（日帰り）`
         : `前 ${p.early === 0 ? '0' : (p.early > 0 ? `+${p.early}` : p.early)}  延 ${p.late === 0 ? '0' : (p.late > 0 ? `+${p.late}` : p.late)}`;
-      return {
-        num: numToCircle(i + 2),
-        name: p.name,
-        color,
-        startDate, endDate,
-        early: p.early, late: p.late,
-        daytrip: p.daytrip,
-        isBase: false,
-        tag
-      };
-    })
-  ];
+    return { ...p, color, tag };
+  });
 
   allPlans.forEach(plan =>
     renderPlanRow(chart, plan, std, allDates, config.lectures, dateToFrac, fracToPercent, N)

@@ -2,7 +2,6 @@
 // STATE
 // ─────────────────────────────────────────────
 const COLORS = ['var(--c0)','var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)'];
-const LABEL_W = 188;
 
 let config = {
   timeline: { start: '2/13', end: '2/22' },
@@ -61,6 +60,15 @@ function renderScheduleForm() {
 function renderLectureTags() {
   const container = document.getElementById('lecture-tags');
   container.innerHTML = '';
+
+  if (config.lectures.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'tags-empty';
+    empty.textContent = '講義日を追加してください';
+    container.appendChild(empty);
+    return;
+  }
+
   [...config.lectures]
     .sort((a, b) => dateToVal(a) - dateToVal(b))
     .forEach(d => {
@@ -139,32 +147,38 @@ document.getElementById('form-add-lecture').addEventListener('keydown', e => {
 // ─────────────────────────────────────────────
 // TAB SWITCHING
 // ─────────────────────────────────────────────
+function showPanel(panel) {
+  panel.style.display = '';
+  panel.classList.remove('tab-panel-enter');
+  void panel.offsetWidth; // reflow でアニメーションをリセット
+  panel.classList.add('tab-panel-enter');
+  panel.addEventListener('animationend', () => panel.classList.remove('tab-panel-enter'), { once: true });
+}
+
 function switchTab(section, mode) {
   const formPanel = document.getElementById(`${section}-form-panel`);
   const jsonPanel = document.getElementById(`${section}-json-panel`);
   const formTab   = document.getElementById(`tab-${section}-form`);
   const jsonTab   = document.getElementById(`tab-${section}-json`);
 
-  if (mode === 'form') {
-    formPanel.style.display = '';
-    jsonPanel.style.display = 'none';
-    formTab.classList.add('active');
-    jsonTab.classList.remove('active');
-    if (section === 'schedule') renderScheduleForm();
-  } else {
-    formPanel.style.display = 'none';
-    jsonPanel.style.display = '';
-    formTab.classList.remove('active');
-    jsonTab.classList.add('active');
-    if (section === 'schedule') syncFormToJson();
-    if (section === 'plans') {
-      const out = JSON.stringify(customPlans.map(p => ({
-        name: p.name, early: p.early, late: p.late, daytrip: p.daytrip
-      })), null, 2);
-      plansTextarea.value = out;
-      plansStatus.textContent = '✓ valid';
-      plansStatus.className = 'json-status ok';
-    }
+  const [reveal, hide, activeTab, inactiveTab] = mode === 'form'
+    ? [formPanel, jsonPanel, formTab, jsonTab]
+    : [jsonPanel, formPanel, jsonTab, formTab];
+
+  activeTab.classList.add('active');
+  inactiveTab.classList.remove('active');
+  hide.style.display = 'none';
+  showPanel(reveal);
+
+  if (mode === 'form'  && section === 'schedule') renderScheduleForm();
+  if (mode === 'json'  && section === 'schedule') syncFormToJson();
+  if (mode === 'json'  && section === 'plans') {
+    const out = JSON.stringify(customPlans.map(p => ({
+      name: p.name, early: p.early, late: p.late, daytrip: p.daytrip
+    })), null, 2);
+    plansTextarea.value = out;
+    plansStatus.textContent = '✓ valid';
+    plansStatus.className = 'json-status ok';
   }
 }
 
