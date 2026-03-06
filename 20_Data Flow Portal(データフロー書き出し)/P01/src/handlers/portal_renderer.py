@@ -1,3 +1,4 @@
+import html as _html
 import os
 import shutil
 from datetime import datetime
@@ -38,8 +39,62 @@ class PortalRenderer:
         generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fixed_widths = build_fixed_widths(self.fixed_columns)
         left_offsets = build_left_offsets(fixed_widths)
-        table_labels = self.config["display"].get("table_labels", {})
+        table_groups = build_table_groups(events, columns)
+        grouped_columns = [col for _, cols in table_groups for col in cols]
+        col_group_map = {col: label for label, cols in table_groups for col in cols}
+        group_starts = build_group_starts(table_groups)
 
+        header_group, table_group_cells, header_cells = self._build_header_rows(
+            fixed_widths, left_offsets, table_groups, grouped_columns, col_group_map, group_starts
+        )
+        body_rows = self._build_body_rows(
+            events, grouped_columns, col_group_map, group_starts,
+            left_offsets, fixed_widths,
+            self.config["display"].get("table_labels", {}),
+        )
+        meta_html = build_meta(
+            generated_at,
+            input_csv,
+            self.config["display"].get("show_generated_at", True),
+            self.config["display"].get("show_input_name", True),
+        )
+        controls_html = build_controls(
+            events,
+            self.config["display"].get("input_candidates", []),
+            input_csv,
+        )
+
+        return f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Data Flow Portal</title>
+  <link rel="stylesheet" href="{css_path}">
+</head>
+<body>
+  <div class="portal-container">
+    <h1>Data Flow Portal</h1>
+    <div class="meta">{meta_html}</div>
+    {controls_html}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>{header_group}</tr>
+          <tr>{''.join(table_group_cells)}</tr>
+          <tr>{''.join(header_cells)}</tr>
+        </thead>
+        <tbody>
+          {''.join(body_rows)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="assets/app.js"></script>
+</body>
+</html>
+"""
+
+    def _build_header_rows(self, fixed_widths, left_offsets, table_groups, grouped_columns, col_group_map, group_starts):
         legend_html = ""
         if self.config["display"].get("show_legend", True):
             legend_html = """
@@ -53,12 +108,6 @@ class PortalRenderer:
 
         fixed_total = sum(fixed_widths)
         fixed_group_style = build_sticky_style(0, fixed_total)
-        table_groups = build_table_groups(events, columns)
-        grouped_columns = [col for _, cols in table_groups for col in cols]
-        col_group_map = {}
-        for label, cols in table_groups:
-            for col in cols:
-                col_group_map[col] = label
 
         header_group = (
             f"<th class='group-header sticky-top-1 sticky-col fixed-header-top' "
@@ -86,7 +135,6 @@ class PortalRenderer:
                 f"<th class='sticky-col sticky-top-3 fixed-header-top' "
                 f"style='{style}'>{col}</th>"
             )
-        group_starts = build_group_starts(table_groups)
         for col in grouped_columns:
             group = col_group_map.get(col, "")
             start_class = " group-start" if col in group_starts else ""
@@ -95,6 +143,9 @@ class PortalRenderer:
                 f"<th class='sticky-top-3 fixed-header-top{start_class}' data-group='{group}'>{label}</th>"
             )
 
+        return header_group, table_group_cells, header_cells
+
+    def _build_body_rows(self, events, grouped_columns, col_group_map, group_starts, left_offsets, fixed_widths, table_labels):
         body_rows = []
         for event in events:
             operation = (event.get("operation") or "").lower()
@@ -150,48 +201,7 @@ class PortalRenderer:
                 + "".join(row_cells)
                 + "</tr>"
             )
-
-        meta_html = build_meta(
-            generated_at,
-            input_csv,
-            self.config["display"].get("show_generated_at", True),
-            self.config["display"].get("show_input_name", True),
-        )
-        controls_html = build_controls(
-            events,
-            self.config["display"].get("input_candidates", []),
-            input_csv,
-        )
-
-        return f"""<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <title>Data Flow Portal</title>
-  <link rel="stylesheet" href="{css_path}">
-</head>
-<body>
-  <div class="portal-container">
-    <h1>Data Flow Portal</h1>
-    <div class="meta">{meta_html}</div>
-    {controls_html}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>{header_group}</tr>
-          <tr>{''.join(table_group_cells)}</tr>
-          <tr>{''.join(header_cells)}</tr>
-        </thead>
-        <tbody>
-          {''.join(body_rows)}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <script src="assets/app.js"></script>
-</body>
-</html>
-"""
+        return body_rows
 
 
 def build_fixed_widths(columns):
@@ -227,8 +237,7 @@ def render_change(case_id, attr_type, before, after, null_values, operation, tri
     detail_text = (
         f"{case_id} / {attr_type}\n"
         f"operation: {operation}\n"
-        f"trigger: {trigger}\n"
-        "詳細は後で追記"
+        f"trigger: {trigger}"
     )
     before_text = display_value(before, null_values)
     after_text = display_value(after, null_values)
@@ -275,13 +284,7 @@ def display_value(value, null_values):
 
 
 def escape_html(text):
-    return (
-        text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&#39;")
-    )
+    return _html.escape(str(text)).replace("'", "&#39;")
 
 
 def format_table_value(value, table_labels):
