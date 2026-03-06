@@ -16,23 +16,37 @@ function renderSidebar() {
     const entry = document.createElement('div');
     entry.className = 'plan-entry';
 
-    // badge
+    // ── 行1: バッジ + 名前入力 + 削除ボタン ──
+    const header = document.createElement('div');
+    header.className = 'plan-entry-header';
+
     const badge = document.createElement('div');
     badge.className = 'plan-badge';
     badge.style.background = color;
-    badge.textContent = `${numToCircle(i + 2)}`;
-    entry.appendChild(badge);
-
-    // name col
-    const nameCol = document.createElement('div');
-    nameCol.style.cssText = 'display:flex;flex-direction:column;gap:4px;overflow:hidden;';
+    badge.textContent = numToCircle(i + 2);
 
     const nameInput = document.createElement('input');
     nameInput.className = 'name-input';
     nameInput.value = plan.name;
     nameInput.addEventListener('input', e => { plan.name = e.target.value; render(); });
 
-    // daytrip toggle
+    const btnRm = document.createElement('button');
+    btnRm.className = 'btn-remove';
+    btnRm.textContent = '✕';
+    btnRm.title = '削除';
+    btnRm.addEventListener('click', () => {
+      updatePlans(() => { customPlans = customPlans.filter(p => p.id !== plan.id); });
+    });
+
+    header.appendChild(badge);
+    header.appendChild(nameInput);
+    header.appendChild(btnRm);
+    entry.appendChild(header);
+
+    // ── 行2: 日帰りトグル + スピングループ ──
+    const controls = document.createElement('div');
+    controls.className = 'plan-entry-controls';
+
     const dtRow = document.createElement('div');
     dtRow.className = 'daytrip-row';
     const toggleId = `dt-${plan.id}`;
@@ -48,34 +62,18 @@ function renderSidebar() {
       updatePlans(() => { plan.daytrip = e.target.checked; });
     });
 
-    nameCol.appendChild(nameInput);
-    nameCol.appendChild(dtRow);
-    entry.appendChild(nameCol);
-
+    const spins = document.createElement('div');
+    spins.className = 'plan-spins';
     if (!plan.daytrip) {
-      // early spin
-      const earlyGroup = makeSpinGroup('前泊', plan.early, v => { plan.early = v; render(); }, color);
-      const lateGroup  = makeSpinGroup('延泊', plan.late,  v => { plan.late  = v; render(); }, color);
-      entry.appendChild(earlyGroup);
-      entry.appendChild(lateGroup);
+      spins.appendChild(makeSpinGroup('前泊', plan.early, v => { plan.early = v; render(); }, color));
+      spins.appendChild(makeSpinGroup('延泊', plan.late,  v => { plan.late  = v; render(); }, color));
     } else {
-      // daytrip: just show arrival offset
-      const earlyGroup = makeSpinGroup('入り', plan.early, v => { plan.early = v; render(); }, color);
-      entry.appendChild(earlyGroup);
-      // placeholder
-      const ph = document.createElement('div'); ph.style.width='48px';
-      entry.appendChild(ph);
+      spins.appendChild(makeSpinGroup('入り', plan.early, v => { plan.early = v; render(); }, color));
     }
 
-    // remove
-    const btnRm = document.createElement('button');
-    btnRm.className = 'btn-remove';
-    btnRm.textContent = '✕';
-    btnRm.title = '削除';
-    btnRm.addEventListener('click', () => {
-      updatePlans(() => { customPlans = customPlans.filter(p => p.id !== plan.id); });
-    });
-    entry.appendChild(btnRm);
+    controls.appendChild(dtRow);
+    controls.appendChild(spins);
+    entry.appendChild(controls);
 
     list.appendChild(entry);
   });

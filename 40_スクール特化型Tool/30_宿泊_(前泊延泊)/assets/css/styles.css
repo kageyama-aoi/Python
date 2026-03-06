@@ -220,14 +220,36 @@ textarea.json-input {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
-  display: grid;
-  grid-template-columns: 28px 1fr auto auto auto;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   transition: border-color 0.15s;
 }
 
 .plan-entry:hover { border-color: var(--border2); }
+
+.plan-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-entry-header .name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-entry-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-spins {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
 
 .plan-badge {
   width: 28px; height: 28px;
@@ -352,7 +374,6 @@ textarea.json-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 0;
 }
 
 .toggle {
