@@ -951,15 +951,15 @@ function parsePlans(apply) {
     plansStatus.textContent = '✓ valid';
     plansStatus.className = 'json-status ok';
     if (apply) {
-      customPlans = parsed.map((p, i) => ({
-        id: nextId++,
-        name:    p.name    ?? `プラン ${i + 2}`,
-        early:   p.early   ?? 0,
-        late:    p.late    ?? 0,
-        daytrip: p.daytrip ?? false,
-      }));
-      renderSidebar();
-      render();
+      updatePlans(() => {
+        customPlans = parsed.map((p, i) => ({
+          id: nextId++,
+          name:    p.name    ?? `プラン ${i + 2}`,
+          early:   p.early   ?? 0,
+          late:    p.late    ?? 0,
+          daytrip: p.daytrip ?? false,
+        }));
+      });
     }
   } catch(e) {
     plansStatus.textContent = '✗ ' + e.message;
@@ -1003,6 +1003,12 @@ function parseJSON(applyPlans) {
 // ─────────────────────────────────────────────
 // SIDEBAR PLAN LIST
 // ─────────────────────────────────────────────
+function updatePlans(mutateFn) {
+  mutateFn();
+  renderSidebar();
+  render();
+}
+
 function renderSidebar() {
   const list = document.getElementById('plan-list');
   list.innerHTML = '';
@@ -1041,9 +1047,7 @@ function renderSidebar() {
       <span class="toggle-label">日帰り</span>
     `;
     dtRow.querySelector('input').addEventListener('change', e => {
-      plan.daytrip = e.target.checked;
-      renderSidebar();
-      render();
+      updatePlans(() => { plan.daytrip = e.target.checked; });
     });
 
     nameCol.appendChild(nameInput);
@@ -1071,9 +1075,7 @@ function renderSidebar() {
     btnRm.textContent = '✕';
     btnRm.title = '削除';
     btnRm.addEventListener('click', () => {
-      customPlans = customPlans.filter(p => p.id !== plan.id);
-      renderSidebar();
-      render();
+      updatePlans(() => { customPlans = customPlans.filter(p => p.id !== plan.id); });
     });
     entry.appendChild(btnRm);
 
@@ -1107,9 +1109,9 @@ function numToCircle(n) {
 }
 
 document.getElementById('btn-add-plan').addEventListener('click', () => {
-  customPlans.push({ id: nextId++, name: `プラン ${customPlans.length + 2}`, early: 0, late: 0, daytrip: false });
-  renderSidebar();
-  render();
+  updatePlans(() => {
+    customPlans.push({ id: nextId++, name: `プラン ${customPlans.length + 2}`, early: 0, late: 0, daytrip: false });
+  });
 });
 
 // ─────────────────────────────────────────────
