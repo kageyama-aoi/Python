@@ -20,7 +20,7 @@ let customPlans = [
 let nextId = 7;
 
 // ─────────────────────────────────────────────
-// JSON EDITOR — 日程設定 / プラン設定 分離
+// DOM REFERENCES
 // ─────────────────────────────────────────────
 const scheduleTextarea = document.getElementById('json-schedule');
 const scheduleStatus   = document.getElementById('json-schedule-status');
@@ -28,7 +28,127 @@ const jsonRange        = document.getElementById('json-date-range');
 const plansTextarea    = document.getElementById('json-plans');
 const plansStatus      = document.getElementById('json-plans-status');
 
-function showToast(id, color) {
+// ─────────────────────────────────────────────
+// SCHEDULE FORM UI
+// ─────────────────────────────────────────────
+function renderScheduleForm() {
+  document.getElementById('form-start').value = config.timeline.start;
+  document.getElementById('form-end').value   = config.timeline.end;
+  renderLectureTags();
+  updateScheduleSummary();
+}
+
+function renderLectureTags() {
+  const container = document.getElementById('lecture-tags');
+  container.innerHTML = '';
+  [...config.lectures]
+    .sort((a, b) => dateToVal(a) - dateToVal(b))
+    .forEach(d => {
+      const chip = document.createElement('div');
+      chip.className = 'lec-chip';
+      chip.innerHTML = `<span>${d}</span><span class="lec-chip-remove">✕</span>`;
+      chip.addEventListener('click', () => {
+        config.lectures = config.lectures.filter(l => l !== d);
+        renderLectureTags();
+        syncFormToJson();
+        updateScheduleSummary();
+        render();
+      });
+      container.appendChild(chip);
+    });
+}
+
+function updateScheduleSummary() {
+  const el = document.getElementById('schedule-summary');
+  if (el) el.textContent = `${config.timeline.start} → ${config.timeline.end} / 講義${config.lectures.length}日`;
+  if (jsonRange) jsonRange.textContent = `${config.timeline.start} → ${config.timeline.end}`;
+}
+
+function syncFormToJson() {
+  const out = JSON.stringify({ timeline: config.timeline, lectures: config.lectures }, null, 2);
+  scheduleTextarea.value = out;
+  scheduleStatus.textContent = '✓ valid';
+  scheduleStatus.className = 'json-status ok';
+}
+
+// Form input handlers
+document.getElementById('form-start').addEventListener('change', e => {
+  const v = e.target.value.trim();
+  if (!v) return;
+  config.timeline.start = v;
+  syncFormToJson();
+  updateScheduleSummary();
+  render();
+});
+
+document.getElementById('form-end').addEventListener('change', e => {
+  const v = e.target.value.trim();
+  if (!v) return;
+  config.timeline.end = v;
+  syncFormToJson();
+  updateScheduleSummary();
+  render();
+});
+
+document.getElementById('btn-add-lecture').addEventListener('click', () => {
+  const inp = document.getElementById('form-add-lecture');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (!config.lectures.includes(v)) {
+    config.lectures.push(v);
+  }
+  inp.value = '';
+  renderLectureTags();
+  syncFormToJson();
+  updateScheduleSummary();
+  render();
+});
+
+document.getElementById('form-add-lecture').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-add-lecture').click();
+});
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(section, mode) {
+  const formPanel = document.getElementById(`${section}-form-panel`);
+  const jsonPanel = document.getElementById(`${section}-json-panel`);
+  const formTab   = document.getElementById(`tab-${section}-form`);
+  const jsonTab   = document.getElementById(`tab-${section}-json`);
+
+  if (mode === 'form') {
+    formPanel.style.display = '';
+    jsonPanel.style.display = 'none';
+    formTab.classList.add('active');
+    jsonTab.classList.remove('active');
+    if (section === 'schedule') renderScheduleForm();
+  } else {
+    formPanel.style.display = 'none';
+    jsonPanel.style.display = '';
+    formTab.classList.remove('active');
+    jsonTab.classList.add('active');
+    if (section === 'schedule') syncFormToJson();
+    if (section === 'plans') {
+      const out = JSON.stringify(customPlans.map(p => ({
+        name: p.name, early: p.early, late: p.late, daytrip: p.daytrip
+      })), null, 2);
+      plansTextarea.value = out;
+      plansStatus.textContent = '✓ valid';
+      plansStatus.className = 'json-status ok';
+    }
+  }
+}
+
+document.getElementById('tab-schedule-form').addEventListener('click', () => switchTab('schedule', 'form'));
+document.getElementById('tab-schedule-json').addEventListener('click', () => switchTab('schedule', 'json'));
+document.getElementById('tab-plans-form').addEventListener('click',    () => switchTab('plans', 'form'));
+document.getElementById('tab-plans-json').addEventListener('click',    () => switchTab('plans', 'json'));
+
+// ─────────────────────────────────────────────
+// JSON EDITOR — 日程設定 / プラン設定 分離
+// ─────────────────────────────────────────────
+function showToast(id) {
   const t = document.getElementById(id);
   t.style.display = 'block';
   setTimeout(() => t.style.display = 'none', 2000);
@@ -43,7 +163,8 @@ function parseSchedule() {
     config = { timeline: parsed.timeline, lectures: parsed.lectures };
     scheduleStatus.textContent = '✓ valid';
     scheduleStatus.className = 'json-status ok';
-    jsonRange.textContent = `${config.timeline.start} → ${config.timeline.end}`;
+    updateScheduleSummary();
+    renderScheduleForm();
     render();
   } catch(e) {
     scheduleStatus.textContent = '✗ ' + e.message;
@@ -111,9 +232,9 @@ function parseJSON(applyPlans) {
 // ─────────────────────────────────────────────
 // DRAWER
 // ─────────────────────────────────────────────
-const sidebar        = document.getElementById('sidebar');
-const overlay        = document.getElementById('sidebar-overlay');
-const btnHamburger   = document.getElementById('btn-hamburger');
+const sidebar         = document.getElementById('sidebar');
+const overlay         = document.getElementById('sidebar-overlay');
+const btnHamburger    = document.getElementById('btn-hamburger');
 const btnCloseSidebar = document.getElementById('btn-close-sidebar');
 
 function openDrawer() {
@@ -141,3 +262,4 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 // ─────────────────────────────────────────────
 parseJSON(true);
 renderSidebar();
+renderScheduleForm();

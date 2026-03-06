@@ -33,46 +33,92 @@
     <button class="btn-close-sidebar" id="btn-close-sidebar">✕</button>
   </div>
 
-  <!-- 日程設定JSON -->
+  <!-- 日程設定 -->
   <div>
     <div class="section-title" style="display:flex;align-items:center;">
       日程設定
+      <span id="schedule-summary" class="section-summary"></span>
       <span style="margin-left:auto;display:flex;gap:6px;">
-        <button class="btn-icon" id="btn-schedule-import">↓ 適用</button>
-        <button class="btn-icon btn-icon-export" id="btn-schedule-export">↑ 書き出し</button>
+        <button class="tab-btn active" id="tab-schedule-form">フォーム</button>
+        <button class="tab-btn" id="tab-schedule-json">JSON</button>
       </span>
     </div>
-    <div class="json-editor">
-      <div class="json-editor-header">
-        <span>日程設定.json</span>
-        <span id="json-date-range" style="color:var(--lec)"></span>
+
+    <!-- フォームパネル -->
+    <div id="schedule-form-panel">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">開始日</label>
+          <input class="form-text-input" id="form-start" placeholder="2/13" maxlength="5">
+        </div>
+        <div class="form-field">
+          <label class="form-label">終了日</label>
+          <input class="form-text-input" id="form-end" placeholder="2/22" maxlength="5">
+        </div>
       </div>
-      <textarea class="json-input" id="json-schedule" spellcheck="false">{
+      <div class="form-field">
+        <label class="form-label">講義日 <span style="color:var(--muted);font-weight:normal;text-transform:none;letter-spacing:0">（クリックで削除）</span></label>
+        <div class="lecture-tags" id="lecture-tags"></div>
+        <div class="lecture-add-row">
+          <input class="form-text-input" id="form-add-lecture" placeholder="例: 2/16" maxlength="5">
+          <button class="btn-add-lec" id="btn-add-lecture">＋ 追加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSONパネル -->
+    <div id="schedule-json-panel" style="display:none">
+      <div class="json-actions">
+        <button class="btn-icon" id="btn-schedule-import">↓ 適用</button>
+        <button class="btn-icon btn-icon-export" id="btn-schedule-export">↑ 書き出し</button>
+      </div>
+      <div class="json-editor">
+        <div class="json-editor-header">
+          <span>日程設定.json</span>
+          <span id="json-date-range" style="color:var(--lec)"></span>
+        </div>
+        <textarea class="json-input" id="json-schedule" spellcheck="false">{
   "timeline": {
     "start": "2/13",
     "end": "2/22"
   },
   "lectures": ["2/16", "2/20"]
 }</textarea>
-      <div class="json-status ok" id="json-schedule-status">✓ valid</div>
+        <div class="json-status ok" id="json-schedule-status">✓ valid</div>
+      </div>
+      <div id="copy-toast-schedule" style="display:none;margin-top:6px;padding:6px 10px;background:var(--lec);color:#0c0e14;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;">✓ コピーしました</div>
     </div>
-    <div id="copy-toast-schedule" style="display:none;margin-top:6px;padding:6px 10px;background:var(--lec);color:#0c0e14;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;">✓ コピーしました</div>
   </div>
 
-  <!-- プラン設定JSON -->
+  <!-- プラン設定 -->
   <div>
     <div class="section-title" style="display:flex;align-items:center;">
       プラン設定
       <span style="margin-left:auto;display:flex;gap:6px;">
-        <button class="btn-icon" id="btn-plans-import">↓ 適用</button>
-        <button class="btn-icon btn-icon-export" id="btn-plans-export">↑ 書き出し</button>
+        <button class="tab-btn active" id="tab-plans-form">フォーム</button>
+        <button class="tab-btn" id="tab-plans-json">JSON</button>
       </span>
     </div>
-    <div class="json-editor">
-      <div class="json-editor-header">
-        <span>プラン設定.json</span>
+
+    <!-- フォームパネル -->
+    <div id="plans-form-panel">
+      <div class="plan-list" id="plan-list"></div>
+      <button class="btn-add" id="btn-add-plan" style="margin-top:8px">
+        ＋ プランを追加
+      </button>
+    </div>
+
+    <!-- JSONパネル -->
+    <div id="plans-json-panel" style="display:none">
+      <div class="json-actions">
+        <button class="btn-icon" id="btn-plans-import">↓ 適用</button>
+        <button class="btn-icon btn-icon-export" id="btn-plans-export">↑ 書き出し</button>
       </div>
-      <textarea class="json-input" id="json-plans" spellcheck="false">[
+      <div class="json-editor">
+        <div class="json-editor-header">
+          <span>プラン設定.json</span>
+        </div>
+        <textarea class="json-input" id="json-plans" spellcheck="false">[
   { "name": "前泊 +2",  "early":  2, "late":  0, "daytrip": false },
   { "name": "延泊 +2",  "early":  0, "late":  2, "daytrip": false },
   { "name": "前泊 −1",  "early": -1, "late":  0, "daytrip": false },
@@ -80,18 +126,10 @@
   { "name": "複合",     "early":  2, "late": -3, "daytrip": false },
   { "name": "日帰り",   "early":  2, "late": -3, "daytrip": true  }
 ]</textarea>
-      <div class="json-status ok" id="json-plans-status">✓ valid</div>
+        <div class="json-status ok" id="json-plans-status">✓ valid</div>
+      </div>
+      <div id="copy-toast-plans" style="display:none;margin-top:6px;padding:6px 10px;background:var(--success);color:#0c0e14;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;">✓ コピーしました</div>
     </div>
-    <div id="copy-toast-plans" style="display:none;margin-top:6px;padding:6px 10px;background:var(--success);color:#0c0e14;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;">✓ コピーしました</div>
-  </div>
-
-  <!-- プラン一覧 -->
-  <div>
-    <div class="section-title">カスタムプラン</div>
-    <div class="plan-list" id="plan-list"></div>
-    <button class="btn-add" id="btn-add-plan" style="margin-top:8px">
-      ＋ プランを追加
-    </button>
   </div>
 
 </div>

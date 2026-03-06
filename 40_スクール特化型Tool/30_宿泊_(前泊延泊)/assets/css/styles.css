@@ -744,3 +744,130 @@ textarea.json-input {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── TAB BUTTONS ── */
+.tab-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--muted2);
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.tab-btn:not(.active):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── SECTION SUMMARY BADGE ── */
+.section-summary {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: var(--lec);
+  margin-left: 8px;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── FORM FIELDS ── */
+.form-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+.form-label {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.form-text-input {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  width: 100%;
+}
+.form-text-input:focus { border-color: var(--accent); }
+
+/* ── LECTURE CHIPS ── */
+.lecture-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  margin-bottom: 8px;
+}
+.lec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(77,184,255,0.12);
+  border: 1px solid rgba(77,184,255,0.35);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--lec);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.lec-chip:hover {
+  background: rgba(255,107,107,0.12);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.lec-chip-remove { font-size: 9px; opacity: 0.6; }
+
+.lecture-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.btn-add-lec {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--muted2);
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  padding: 7px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.btn-add-lec:hover { border-color: var(--lec); color: var(--lec); }
+
+/* ── JSON MODE ACTIONS ── */
+.json-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 8px;
+}
