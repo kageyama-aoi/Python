@@ -1,3 +1,7 @@
+from src.utils.attrs import build_attr_key
+from src.utils.null_check import is_null
+
+
 def aggregate_events(rows, null_values):
     events = []
     index = {}
@@ -39,16 +43,3 @@ def aggregate_events(rows, null_values):
         latest_by_table[table] = dict(event["current_values"])
 
     return events
-
-
-def is_null(value, null_values):
-    if value is None:
-        return True
-    text = str(value).strip()
-    if text == "":
-        return True
-    return text.lower() in {str(v).lower() for v in null_values}
-
-
-def build_attr_key(table, attr_type):
-    return f"{table}::{attr_type}"

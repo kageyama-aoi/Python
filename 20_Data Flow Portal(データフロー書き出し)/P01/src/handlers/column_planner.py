@@ -1,3 +1,6 @@
+from src.utils.attrs import build_attr_key
+
+
 def plan_columns(rows, priority_columns):
     counts = {}
     order = {}
@@ -17,7 +20,3 @@ def plan_columns(rows, priority_columns):
     priority = [col for col in priority_columns if col in sorted_columns]
     remaining = [col for col in sorted_columns if col not in priority]
     return priority + remaining
-
-
-def build_attr_key(table, attr_type):
-    return f"{table}::{attr_type}"

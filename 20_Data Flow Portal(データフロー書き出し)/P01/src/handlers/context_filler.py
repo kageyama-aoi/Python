@@ -1,4 +1,5 @@
 from src.utils.errors import UserInputError
+from src.utils.null_check import is_blank
 
 
 def fill_context(rows, carry_columns, required_columns):
@@ -31,7 +32,3 @@ def fill_context(rows, carry_columns, required_columns):
         filled.append(row)
 
     return filled
-
-
-def is_blank(value):
-    return value is None or str(value).strip() == ""

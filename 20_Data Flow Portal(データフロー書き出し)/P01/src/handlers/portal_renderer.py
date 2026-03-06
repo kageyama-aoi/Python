@@ -1,7 +1,9 @@
 import os
 from datetime import datetime
 
+from src.utils.attrs import build_attr_key, extract_attr_label, split_attr_key
 from src.utils.fs import ensure_dir, write_text
+from src.utils.null_check import is_null
 
 
 class PortalRenderer:
@@ -564,15 +566,6 @@ def display_value(value, null_values):
     return escape_html(str(value))
 
 
-def is_null(value, null_values):
-    if value is None:
-        return True
-    text = str(value).strip()
-    if text == "":
-        return True
-    return text.lower() in null_values
-
-
 def escape_html(text):
     return (
         text.replace("&", "&amp;")
@@ -774,15 +767,3 @@ def resolve_group(column, table_names):
             if column.startswith(prefix):
                 return table
     return ""
-
-
-def split_attr_key(column):
-    if "::" in column:
-        table, attr = column.split("::", 1)
-        return table, attr
-    return "", column
-
-
-def extract_attr_label(column):
-    _, attr = split_attr_key(column)
-    return attr

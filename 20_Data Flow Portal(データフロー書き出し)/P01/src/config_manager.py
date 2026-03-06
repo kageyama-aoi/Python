@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
         "log_dir": "logs",
     },
     "csv": {
-        "required_columns": ["event_id", "attr_type"],
+        "required_columns": ["case_id", "attr_type"],
         "optional_columns": [
             "table",
             "operation",
@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
         "null_values": ["NULL", "null", "None", ""],
     },
     "display": {
-        "fixed_columns": ["event_id", "table", "operation", "trigger"],
+        "fixed_columns": ["case_id", "table", "operation", "trigger"],
         "priority_columns": [],
         "show_generated_at": True,
         "show_input_name": True,
