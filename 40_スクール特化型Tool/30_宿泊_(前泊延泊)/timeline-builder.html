@@ -898,6 +898,20 @@ function getStandard() {
 }
 
 // ─────────────────────────────────────────────
+// PLAN DATE COMPUTATION
+// ─────────────────────────────────────────────
+function computePlanDates(plan, std) {
+  if (plan.daytrip) {
+    const startDate = clamp(addDays(std.baseIn, -plan.early), config.timeline.start, config.timeline.end);
+    return { startDate, endDate: startDate };
+  }
+  return {
+    startDate: clamp(addDays(std.baseIn,  -plan.early), config.timeline.start, config.timeline.end),
+    endDate:   clamp(addDays(std.baseOut,  plan.late),  config.timeline.start, config.timeline.end),
+  };
+}
+
+// ─────────────────────────────────────────────
 // JSON EDITOR — 日程設定 / プラン設定 分離
 // ─────────────────────────────────────────────
 const scheduleTextarea = document.getElementById('json-schedule');
@@ -1197,25 +1211,10 @@ function render() {
     },
     ...customPlans.map((p, i) => {
       const color = COLORS[(i + 1) % COLORS.length];
-      let startDate, endDate, tag;
-
-      if (p.daytrip) {
-        // 日帰り: 入り日だけ
-        startDate = addDays(std.baseIn, -p.early);
-        // clamp to timeline
-        startDate = clamp(startDate, config.timeline.start, config.timeline.end);
-        endDate = startDate;
-        tag = `入り ${p.early >= 0 ? '+' : ''}${p.early}（日帰り）`;
-      } else {
-        startDate = addDays(std.baseIn,  -p.early); // 前泊+は早くなる→引く
-        endDate   = addDays(std.baseOut,  p.late);   // 延泊+は遅くなる→足す
-        startDate = clamp(startDate, config.timeline.start, config.timeline.end);
-        endDate   = clamp(endDate,   config.timeline.start, config.timeline.end);
-        const earlyStr = p.early === 0 ? '0' : (p.early > 0 ? `+${p.early}` : `${p.early}`);
-        const lateStr  = p.late  === 0 ? '0' : (p.late  > 0 ? `+${p.late}`  : `${p.late}`);
-        tag = `前 ${earlyStr}  延 ${lateStr}`;
-      }
-
+      const { startDate, endDate } = computePlanDates(p, std);
+      const tag = p.daytrip
+        ? `入り ${p.early >= 0 ? '+' : ''}${p.early}（日帰り）`
+        : `前 ${p.early === 0 ? '0' : (p.early > 0 ? `+${p.early}` : p.early)}  延 ${p.late === 0 ? '0' : (p.late > 0 ? `+${p.late}` : p.late)}`;
       return {
         num: numToCircle(i + 2),
         name: p.name,
@@ -1408,14 +1407,7 @@ function buildAllPlans(std) {
     { num:'①', name:'標準', early:0, late:0, daytrip:false,
       startDate:std.baseIn, endDate:std.baseOut },
     ...customPlans.map((p, i) => {
-      let startDate, endDate;
-      if (p.daytrip) {
-        startDate = clamp(addDays(std.baseIn, -p.early), config.timeline.start, config.timeline.end);
-        endDate = startDate;
-      } else {
-        startDate = clamp(addDays(std.baseIn,  -p.early), config.timeline.start, config.timeline.end);
-        endDate   = clamp(addDays(std.baseOut,  p.late),  config.timeline.start, config.timeline.end);
-      }
+      const { startDate, endDate } = computePlanDates(p, std);
       return { num:numToCircle(i+2), name:p.name, early:p.early,
                late:p.late, daytrip:p.daytrip, startDate, endDate };
     })
