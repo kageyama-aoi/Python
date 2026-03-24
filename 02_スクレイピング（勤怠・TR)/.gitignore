@@ -1,6 +1,7 @@
 desktop.ini
 *.log
 *.png
+data/downloads/*.csv
 /build
 /src/__pycache__
 /.vscode/
