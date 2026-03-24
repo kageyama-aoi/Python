@@ -103,17 +103,17 @@ def main():
                 browser_utils.select_option_by_text(driver, "css", "select[name='status']", NEW_STATUS)
                 print(f"  → ステータス変更完了: {NEW_STATUS}")
 
-                # 入力内容をスクリーンショット（カレンダークリック前＝遷移前に撮影）
-                screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
-                browser_utils.save_screenshot(driver, screenshot_path)
-                print(f"  → Screenshot saved -> {screenshot_path}")
-
                 # Owned By 隣のカレンダーアイコンをクリック（保存・遷移）
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")
 
                 # 保存処理完了を待つ
                 time.sleep(3)
+
+                # スクリーンショット（保存後の画面を撮影）
+                screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
+                browser_utils.save_screenshot(driver, screenshot_path)
+                print(f"  → Screenshot saved -> {screenshot_path}")
 
                 # 検索結果に戻る
                 browser_utils.navigate(driver, search_url)
