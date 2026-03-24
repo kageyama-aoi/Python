@@ -4,6 +4,7 @@
 """
 import os
 import re
+import time
 import datetime
 import tkinter as tk
 from tkinter import messagebox
@@ -110,6 +111,9 @@ def main():
                 # Owned By 隣のカレンダーアイコンをクリック（保存・遷移）
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")
+
+                # 保存処理完了を待つ
+                time.sleep(3)
 
                 # 検索結果に戻る
                 browser_utils.navigate(driver, search_url)
