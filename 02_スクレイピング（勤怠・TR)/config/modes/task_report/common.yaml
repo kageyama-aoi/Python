@@ -4,6 +4,10 @@ task_report_settings:
   # エントリーURL (main.pyで使用予定)
   entry_url: "https://taskreport.e-school.jp/bugfix.php"
 
+  # 検索モード設定
+  search:
+    target_status: "06.Merge Apprvl Rq."  # この値のみコメント更新対象とする
+
   # セレクタ定義
   selectors:
     # 既存ロジック用 (直接URL遷移するようになれば不要かもしれないが念のため)

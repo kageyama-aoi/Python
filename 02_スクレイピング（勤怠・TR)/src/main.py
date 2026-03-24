@@ -48,7 +48,7 @@ def main():
 
         # 検索モード
         if user_select_school == 'search':
-            TARGET_STATUS = "06.Merge Apprvl Rq."
+            TARGET_STATUS = config.CONF.get('task_report_settings', {}).get('search', {}).get('target_status', '')
             search_url = f"{target_url}?bugsearch={quote(search_keyword)}"
             print(f"DEBUG: Navigating to search URL -> {search_url}")
             browser_utils.navigate(driver, search_url)
