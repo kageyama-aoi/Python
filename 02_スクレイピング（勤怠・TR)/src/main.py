@@ -102,8 +102,8 @@ def main():
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")
 
-                # ステータスを変更
-                browser_utils.select_option(driver, "name", "status", NEW_STATUS)
+                # ステータスを変更（CSSで<select>要素を明示指定、表示テキストで選択）
+                browser_utils.select_option_by_text(driver, "css", "select[name='status']", NEW_STATUS)
                 print(f"  → ステータス変更完了: {NEW_STATUS}")
 
                 screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"

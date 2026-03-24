@@ -185,6 +185,20 @@ def select_option(driver: webdriver.Remote, attribute: str, element: str, input_
     Select(find_element(driver, attribute, element)).select_by_value(input_value)
 
 
+def select_option_by_text(driver: webdriver.Remote, attribute: str, element: str, visible_text: str):
+    """
+    セレクトボックス（ドロップダウン）から表示テキストで値を選択します。
+    YAMLに表示名をそのまま書きたい場合に使用します。
+
+    Args:
+        driver: Selenium WebDriverインスタンス
+        attribute (str): 要素検索に使用する属性タイプ
+        element (str): 要素検索に使用する値
+        visible_text (str): 選択するオプションの表示テキスト
+    """
+    Select(find_element(driver, attribute, element)).select_by_visible_text(visible_text)
+
+
 def click_element(driver: webdriver.Remote, attribute: str, element: str):
     """
     指定された要素をクリックします。
