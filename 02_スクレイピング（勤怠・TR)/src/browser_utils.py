@@ -196,7 +196,9 @@ def select_option_by_text(driver: webdriver.Remote, attribute: str, element: str
         element (str): 要素検索に使用する値
         visible_text (str): 選択するオプションの表示テキスト
     """
-    Select(find_element(driver, attribute, element)).select_by_visible_text(visible_text)
+    elem = find_element(driver, attribute, element)
+    Select(elem).select_by_visible_text(visible_text)
+    driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles: true}));", elem)
 
 
 def get_selected_option_text(driver: webdriver.Remote, attribute: str, element: str) -> str:
@@ -264,6 +266,14 @@ def click_body(driver: webdriver.Remote):
 # ---------------------------------------------------------------------------
 # その他
 # ---------------------------------------------------------------------------
+
+def scroll_to_top(driver: webdriver.Remote):
+    """
+    ページの先頭までスクロールします。
+    スクリーンショット撮影前に呼び出すことで、意図した位置を撮影できます。
+    """
+    driver.execute_script("window.scrollTo(0, 0);")
+
 
 def save_screenshot(driver: webdriver.Remote, path: str):
     """
