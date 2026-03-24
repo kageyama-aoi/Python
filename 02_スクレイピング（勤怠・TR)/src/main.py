@@ -23,8 +23,8 @@ def main():
     logger = config.setup_logger(log_folder)
 
     # GUIによるユーザー入力の取得
-    user_select_school, environment_name = gui.get_user_input_gui()
-    
+    user_select_school, environment_name, search_keyword = gui.get_user_input_gui()
+
     # ユーザーがキャンセルまたは閉じた場合
     if user_select_school is None:
         print("操作がキャンセルされました。")
@@ -43,17 +43,26 @@ def main():
             target_url = config.CONF.get('crowdlog_settings', {}).get('entry_url', '')
         else:
             target_url = config.CONF.get('task_report_settings', {}).get('entry_url', '')
-        
+
         print(f"DEBUG: Navigating to {target_url}")
         driver.get(target_url)
         driver.implicitly_wait(3)
-        
-        # 初期アクション（タスクレポート系のみ）
+
+        # 検索モード
+        if user_select_school == 'search':
+            print(f"DEBUG: Search mode, keyword='{search_keyword}'")
+            browser_utils.input_text(driver, "name", "bugsearch", search_keyword)
+            browser_utils.find_element(driver, "css", "input[type='submit'][value='>']").click()
+            print("DEBUG: Search submitted. Waiting for results...")
+            driver.implicitly_wait(5)
+            # 検索結果表示まで（以降の処理はフェーズ2）
+            return
+
+        # 初期アクション（タスクレポート作成系のみ）
         if user_select_school != 'cl':
-            # TR共通設定からセレクタを取得
             tr_settings = config.CONF.get('task_report_settings', {})
             btn_selector = tr_settings.get('selectors', {}).get('new_bug_button_dom_attribute')
-            
+
             if btn_selector and browser_utils.is_element_present(driver, "name", btn_selector):
                 browser_utils.find_element(driver, "name", btn_selector).click()
             elif btn_selector:

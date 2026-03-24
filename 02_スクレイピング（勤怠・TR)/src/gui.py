@@ -10,7 +10,7 @@ class SelectionApp:
         self.root.geometry("500x550")
 
         # 戻り値を格納する変数
-        self.result = (None, None) # (school_type, environment_name)
+        self.result = (None, None, None) # (school_type, environment_name, keyword)
         self.is_submitted = False
 
         # 設定のロード
@@ -24,6 +24,7 @@ class SelectionApp:
         self.selected_mode = tk.StringVar(value="")
         self.selected_tr_type = tk.StringVar(value="")
         self.selected_env = tk.StringVar(value="")
+        self.search_keyword = tk.StringVar(value="TEST_SEARCH")
 
         # GUI構築
         self._create_widgets()
@@ -50,6 +51,15 @@ class SelectionApp:
             text=tr_mode.get('label', 'Task Report'),
             variable=self.selected_mode,
             value=tr_mode.get('value', 'tr'),
+            command=self._on_mode_change
+        ).pack(anchor="w", pady=2)
+
+        # 検索モード
+        ttk.Radiobutton(
+            mode_frame,
+            text="タスクレポート検索 (Search)",
+            variable=self.selected_mode,
+            value="search",
             command=self._on_mode_change
         ).pack(anchor="w", pady=2)
 
@@ -94,6 +104,14 @@ class SelectionApp:
                         default_idx = self.env_options.index("UAT2")
                     self.env_combo.current(default_idx)
 
+        # --- 検索設定エリア ---
+        self.search_frame = ttk.LabelFrame(self.root, text="3. 検索設定", padding=10)
+        self.search_frame.pack(fill="x", padx=10, pady=5)
+
+        ttk.Label(self.search_frame, text="キーワード:").pack(side="left")
+        self.keyword_entry = ttk.Entry(self.search_frame, textvariable=self.search_keyword, width=30, state="disabled")
+        self.keyword_entry.pack(side="left", padx=5)
+
         # --- アクションボタン ---
         btn_frame = ttk.Frame(self.root, padding=10)
         btn_frame.pack(fill="x", side="bottom")
@@ -119,19 +137,30 @@ class SelectionApp:
         print(f"Mode changed to: {mode}")
         
         if mode == 'tr':
-            # TRモード: 詳細エリア有効化
+            # TRモード: 詳細エリア有効化、検索エリア無効化
             for rb in self.tr_radios:
                 rb.configure(state='normal')
             self._on_tr_type_change()
-            self.edit_btn.configure(state='normal') # 編集ボタン有効化
+            self.edit_btn.configure(state='normal')
+            self.keyword_entry.configure(state='disabled')
 
-        else:
-            # 勤怠モードなど: 詳細エリア無効化
+        elif mode == 'search':
+            # 検索モード: 詳細エリア無効化、検索エリア有効化
             for rb in self.tr_radios:
                 rb.configure(state='disabled')
             if self.env_combo:
                 self.env_combo.configure(state='disabled')
-            self.edit_btn.configure(state='disabled') # 編集ボタン無効化
+            self.edit_btn.configure(state='disabled')
+            self.keyword_entry.configure(state='normal')
+
+        else:
+            # 勤怠モードなど: 詳細エリア・検索エリア無効化
+            for rb in self.tr_radios:
+                rb.configure(state='disabled')
+            if self.env_combo:
+                self.env_combo.configure(state='disabled')
+            self.edit_btn.configure(state='disabled')
+            self.keyword_entry.configure(state='disabled')
 
     def _on_tr_type_change(self):
         """TR種別変更時のUI制御"""
@@ -244,6 +273,8 @@ class SelectionApp:
         final_school_type = ""
         final_env_name = ""
 
+        final_keyword = ""
+
         if mode == 'cl':
             final_school_type = 'cl'
         elif mode == 'tr':
@@ -251,17 +282,23 @@ class SelectionApp:
             if not final_school_type:
                 messagebox.showwarning("警告", "TRの詳細種別を選択してください。")
                 return
-            
+
             selected_opt = next((opt for opt in self.tr_options if opt['key'] == final_school_type), None)
             if selected_opt and selected_opt.get('requires_environment'):
                 if self.env_combo:
                     final_env_name = self.env_combo.get()
-                
+
                 if not final_env_name:
                     messagebox.showwarning("警告", "対象環境を選択してください。")
                     return
+        elif mode == 'search':
+            final_school_type = 'search'
+            final_keyword = self.search_keyword.get().strip()
+            if not final_keyword:
+                messagebox.showwarning("警告", "検索キーワードを入力してください。")
+                return
 
-        self.result = (final_school_type, final_env_name)
+        self.result = (final_school_type, final_env_name, final_keyword)
         self.is_submitted = True
         self.root.destroy()
 
@@ -276,4 +313,4 @@ def get_user_input_gui():
     if app.is_submitted:
         return app.result
     else:
-        return None, None
+        return None, None, None
