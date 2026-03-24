@@ -107,8 +107,10 @@ def main():
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")
 
-                # 保存処理完了を待つ
+                # 保存後のページ遷移完了を確実に待つ
                 time.sleep(3)
+                browser_utils.wait_for_page_load(driver)
+                print(f"  → 保存完了・ページ遷移確認")
 
                 # スクリーンショット（保存後の画面を撮影）
                 screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
@@ -117,6 +119,7 @@ def main():
 
                 # 検索結果に戻る
                 browser_utils.navigate(driver, search_url)
+                print(f"  → 検索結果に戻りました")
 
             input(f"\n全{len(results)}件の確認が完了しました。Enterで終了...")
             return
