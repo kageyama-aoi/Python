@@ -48,7 +48,9 @@ def main():
 
         # 検索モード
         if user_select_school == 'search':
-            TARGET_STATUS = config.CONF.get('task_report_settings', {}).get('shimamura_search', {}).get('target_status', '')
+            shimamura_search_conf = config.CONF.get('task_report_settings', {}).get('shimamura_search', {})
+            TARGET_STATUS = shimamura_search_conf.get('target_status', '')
+            NEW_STATUS    = shimamura_search_conf.get('new_status', '')
             search_url = f"{target_url}?bugsearch={quote(search_keyword)}"
             print(f"DEBUG: Navigating to search URL -> {search_url}")
             browser_utils.navigate(driver, search_url)
@@ -89,7 +91,6 @@ def main():
 
                 # コメント欄の先頭にテンプレートを追記（日付プレースホルダを置換）
                 today = datetime.date.today()
-                shimamura_search_conf = config.CONF.get('task_report_settings', {}).get('shimamura_search', {})
                 comment_template = shimamura_search_conf.get('comment_template', '')
                 comment = (comment_template
                            .replace("[DATE_MD]", f"{today.month}/{today.day}")
@@ -100,6 +101,10 @@ def main():
                 # Owned By 隣のカレンダーアイコンをクリック
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")
+
+                # ステータスを変更
+                browser_utils.select_option(driver, "name", "status", NEW_STATUS)
+                print(f"  → ステータス変更完了: {NEW_STATUS}")
 
                 screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
                 browser_utils.save_screenshot(driver, screenshot_path)

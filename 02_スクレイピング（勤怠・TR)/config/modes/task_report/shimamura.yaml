@@ -2,6 +2,7 @@
 task_report_settings:
   shimamura_search:
     target_status: "22.Upload check"  # この値のみコメント更新対象とする
+    new_status: "merge_request"       # 処理後に変更するステータスのvalue値
     comment_template: |
       Please merge to schoolmng and send back to JP until [DATE_MD] 18:00.
       No need to upload the files.
