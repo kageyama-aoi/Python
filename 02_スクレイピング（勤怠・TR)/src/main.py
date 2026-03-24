@@ -103,6 +103,13 @@ def main():
                 browser_utils.select_option_by_text(driver, "css", "select[name='status']", NEW_STATUS)
                 print(f"  → ステータス変更完了: {NEW_STATUS}")
 
+                # セルフチェック：変更後の選択値を確認
+                actual_status = browser_utils.get_selected_option_text(driver, "css", "select[name='status']")
+                if actual_status == NEW_STATUS:
+                    print(f"  ✓ ステータス確認OK: {actual_status}")
+                else:
+                    print(f"  ✗ ステータス不一致 期待値='{NEW_STATUS}' 実際='{actual_status}'")
+
                 # Owned By 隣のカレンダーアイコンをクリック（保存・遷移）
                 browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
                 print(f"  → カレンダーアイコンクリック完了")

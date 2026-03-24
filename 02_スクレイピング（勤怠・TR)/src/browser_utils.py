@@ -199,6 +199,21 @@ def select_option_by_text(driver: webdriver.Remote, attribute: str, element: str
     Select(find_element(driver, attribute, element)).select_by_visible_text(visible_text)
 
 
+def get_selected_option_text(driver: webdriver.Remote, attribute: str, element: str) -> str:
+    """
+    セレクトボックスの現在選択中のオプション表示テキストを返します。
+
+    Args:
+        driver: Selenium WebDriverインスタンス
+        attribute (str): 要素検索に使用する属性タイプ
+        element (str): 要素検索に使用する値
+
+    Returns:
+        str: 現在選択中のオプションの表示テキスト
+    """
+    return Select(find_element(driver, attribute, element)).first_selected_option.text.strip()
+
+
 def click_element(driver: webdriver.Remote, attribute: str, element: str):
     """
     指定された要素をクリックします。
