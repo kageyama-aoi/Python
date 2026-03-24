@@ -6,7 +6,6 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 
 
@@ -160,7 +159,7 @@ def input_text(driver: webdriver.Remote, attribute: str, element: str, input_val
 def prepend_text(driver: webdriver.Remote, attribute: str, element: str, text: str):
     """
     指定された要素の先頭にテキストを追記します。
-    カーソルを先頭に移動してから入力するため、既存内容はそのまま保持されます。
+    JavaScriptで一括セットするため、長文でも高速に動作します。
 
     Args:
         driver: Selenium WebDriverインスタンス
@@ -169,8 +168,8 @@ def prepend_text(driver: webdriver.Remote, attribute: str, element: str, text: s
         text (str): 先頭に追記するテキスト
     """
     elem = find_element(driver, attribute, element)
-    elem.send_keys(Keys.CONTROL + Keys.HOME)
-    elem.send_keys(text)
+    current = elem.get_attribute("value") or ""
+    driver.execute_script("arguments[0].value = arguments[1];", elem, text + current)
 
 
 def select_option(driver: webdriver.Remote, attribute: str, element: str, input_value: str):

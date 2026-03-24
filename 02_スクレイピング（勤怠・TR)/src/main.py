@@ -87,9 +87,13 @@ def main():
                 print(f"  → 詳細ページへ遷移: {r['url']}")
                 browser_utils.navigate(driver, r['url'])
 
-                # コメント欄の先頭にテンプレートを追記
+                # コメント欄の先頭にテンプレートを追記（日付プレースホルダを置換）
+                today = datetime.date.today()
                 comment_template = config.CONF.get('task_report_settings', {}).get('search', {}).get('comment_template', '')
-                browser_utils.prepend_text(driver, "name", "comments", comment_template)
+                comment = (comment_template
+                           .replace("[DATE_MD]", f"{today.month}/{today.day}")
+                           .replace("[DATE_YYYYMMDD]", today.strftime("%Y%m%d")))
+                browser_utils.prepend_text(driver, "name", "comments", comment)
                 print(f"  → コメント追記完了")
 
                 # Owned By 隣のカレンダーアイコンをクリック

@@ -8,7 +8,7 @@ task_report_settings:
   search:
     target_status: "22.Upload check"  # この値のみコメント更新対象とする
     comment_template: |
-      Please merge to schoolmng and send back to JP until 1/23 18:00.
+      Please merge to schoolmng and send back to JP until [DATE_MD] 18:00.
       No need to upload the files.
       *Please write down all merged file pass on task report(not only folder name even for new folder)
 
@@ -21,7 +21,7 @@ task_report_settings:
       *After commit to new environment please check DIFF for merged file between developed repository and merged repository.
       EX: Merge schoolmng_dev->schoolmng then check DIFF for same file between schoolmng_dev and schoolmng
       Save DIFF evidence to Google Drive below
-      \philippines\01.Customers\Shimamura\07_merge_evidence\20240123\xxxxx\  xxxxx=TRNo
+      \philippines\01.Customers\Shimamura\07_merge_evidence\[DATE_YYYYMMDD]\xxxxx\  xxxxx=TRNo
       File name will be TRNo-MergeFrom-MergeTo
       EX:99999-schoolmng_dev-schoolmng.png
 
