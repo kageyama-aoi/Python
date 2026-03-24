@@ -8,7 +8,7 @@ import datetime
 import config
 import browser_utils
 import file_utils
-from form_handler import FormAutomationHandler
+from handler_factory import HandlerFactory
 from handlers import ShimamuraSearchHandler
 import gui
 
@@ -68,8 +68,7 @@ def main():
             'schools_type': user_select_school,
             'environment_name': environment_name
         }
-        form_handler = FormAutomationHandler(driver, context)
-        form_handler.fill_form()
+        HandlerFactory(driver, context).execute()
 
         # CrowdLogの場合、ファイルのダウンロード完了を待って移動
         if user_select_school == 'cl':

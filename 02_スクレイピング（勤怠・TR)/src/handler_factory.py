@@ -1,13 +1,13 @@
 """
-フォーム入力処理を管理するハンドラモジュール。
-src/handlers/ 配下のクラスに処理を委譲します。
+ハンドラファクトリモジュール。
+コンテキストに応じて適切なハンドラを選択し、実行します。
 """
 from handlers import CrowdLogHandler, TaskReportHandler
 
-class FormAutomationHandler:
+
+class HandlerFactory:
     """
-    フォーム自動入力の実行を担うクラス（ラッパー）。
-    コンテキストに応じて適切なハンドラを選択し、実行します。
+    school_type に応じて適切なハンドラを選択・実行するファクトリクラス。
     """
 
     def __init__(self, driver, context: dict):
@@ -25,14 +25,13 @@ class FormAutomationHandler:
         school_type に応じて適切なハンドラインスタンスを生成して返します。
         """
         school_type = self.context.get('schools_type')
-        
+
         if school_type == 'cl':
             return CrowdLogHandler(self.driver, self.context)
         else:
-            # cl以外は全てタスクレポートとして扱う
             return TaskReportHandler(self.driver, self.context)
 
-    def fill_form(self):
+    def execute(self):
         """
         選択されたハンドラの実行メソッドを呼び出します。
         """
