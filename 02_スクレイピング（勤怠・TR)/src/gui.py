@@ -54,10 +54,10 @@ class SelectionApp:
             command=self._on_mode_change
         ).pack(anchor="w", pady=2)
 
-        # 検索モード
+        # マージ依頼モード (Shimamura)
         ttk.Radiobutton(
             mode_frame,
-            text="タスクレポート検索 (Search)",
+            text="マージ依頼 (Shimamura)",
             variable=self.selected_mode,
             value="search",
             command=self._on_mode_change

@@ -48,7 +48,7 @@ def main():
 
         # 検索モード
         if user_select_school == 'search':
-            TARGET_STATUS = config.CONF.get('task_report_settings', {}).get('search', {}).get('target_status', '')
+            TARGET_STATUS = config.CONF.get('task_report_settings', {}).get('shimamura_search', {}).get('target_status', '')
             search_url = f"{target_url}?bugsearch={quote(search_keyword)}"
             print(f"DEBUG: Navigating to search URL -> {search_url}")
             browser_utils.navigate(driver, search_url)
@@ -89,7 +89,8 @@ def main():
 
                 # コメント欄の先頭にテンプレートを追記（日付プレースホルダを置換）
                 today = datetime.date.today()
-                comment_template = config.CONF.get('task_report_settings', {}).get('search', {}).get('comment_template', '')
+                shimamura_search_conf = config.CONF.get('task_report_settings', {}).get('shimamura_search', {})
+                comment_template = shimamura_search_conf.get('comment_template', '')
                 comment = (comment_template
                            .replace("[DATE_MD]", f"{today.month}/{today.day}")
                            .replace("[DATE_YYYYMMDD]", today.strftime("%Y%m%d")))

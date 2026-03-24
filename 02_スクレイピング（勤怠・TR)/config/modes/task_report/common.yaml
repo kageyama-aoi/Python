@@ -4,27 +4,6 @@ task_report_settings:
   # エントリーURL (main.pyで使用予定)
   entry_url: "https://taskreport.e-school.jp/bugfix.php"
 
-  # 検索モード設定
-  search:
-    target_status: "22.Upload check"  # この値のみコメント更新対象とする
-    comment_template: |
-      Please merge to schoolmng and send back to JP until [DATE_MD] 18:00.
-      No need to upload the files.
-      *Please write down all merged file pass on task report(not only folder name even for new folder)
-
-      If there is conflict, do not merge and return the task report to Tokyo with detail information.
-      Also please do not merge if need other task report which doesn't have merge request to merge together.
-
-      If merge successed set  task report status to 08.Merged/upload Rq.
-      otherwise set task report status to 94.MergeErr.
-
-      *After commit to new environment please check DIFF for merged file between developed repository and merged repository.
-      EX: Merge schoolmng_dev->schoolmng then check DIFF for same file between schoolmng_dev and schoolmng
-      Save DIFF evidence to Google Drive below
-      \philippines\01.Customers\Shimamura\07_merge_evidence\[DATE_YYYYMMDD]\xxxxx\  xxxxx=TRNo
-      File name will be TRNo-MergeFrom-MergeTo
-      EX:99999-schoolmng_dev-schoolmng.png
-
   # セレクタ定義
   selectors:
     # 既存ロジック用 (直接URL遷移するようになれば不要かもしれないが念のため)
