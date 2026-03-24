@@ -3,18 +3,16 @@
 ユーザー入力を受け付け、ブラウザを起動し、フォーム自動入力処理を実行します。
 """
 import os
-import re
-import time
 import datetime
 import tkinter as tk
 from tkinter import messagebox
-from urllib.parse import urljoin, quote
 from selenium import webdriver
 
 import config
 import browser_utils
 import file_utils
 from form_handler import FormAutomationHandler
+from handlers import ShimamuraSearchHandler
 import gui
 
 # ログファイル名の設定
@@ -49,87 +47,11 @@ def main():
 
         # 検索モード
         if user_select_school == 'search':
-            shimamura_search_conf = config.CONF.get('task_report_settings', {}).get('shimamura_search', {})
-            TARGET_STATUS = shimamura_search_conf.get('target_status', '')
-            NEW_STATUS    = shimamura_search_conf.get('new_status', '')
-            search_url = f"{target_url}?bugsearch={quote(search_keyword)}"
-            print(f"DEBUG: Navigating to search URL -> {search_url}")
-            browser_utils.navigate(driver, search_url)
-
-            # 検索結果行の情報を全件先に抽出
-            base_url = target_url.rsplit("/", 1)[0] + "/"
-            rows = browser_utils.find_elements(driver, "css", "tr[onclick*='idbug']")
-            print(f"DEBUG: Found {len(rows)} result row(s)")
-
-            results = []
-            for row in rows:
-                tds = browser_utils.find_child_elements(row, "tag", "td")
-                task_id = tds[0].text.strip() if tds else "?"
-                status  = tds[11].text.strip() if len(tds) > 11 else "?"
-                onclick = browser_utils.get_attribute(row, "onclick")
-                match = re.search(r"location\.href='([^']+)'", onclick)
-                detail_url = urljoin(base_url, match.group(1)) if match else None
-                results.append({"task_id": task_id, "status": status, "url": detail_url})
-
-            # Task ID / Status 一覧を表形式で出力
-            print("\n" + "="*50)
-            print(f"{'Task ID':<12} {'Status'}")
-            print("-"*50)
-            for r in results:
-                print(f"{r['task_id']:<12} {r['status']}")
-            print("="*50 + "\n")
-
-            # 各詳細ページへ遷移 → 条件チェック → 処理 → スクリーンショット → 検索結果に戻る
-            for i, r in enumerate(results, start=1):
-                print(f"[{i}/{len(results)}] Task ID: {r['task_id']} / Status: {r['status']}")
-
-                if r['status'] != TARGET_STATUS:
-                    print(f"  ⚠ WARNING: Status が '{TARGET_STATUS}' ではないためスキップします。")
-                    continue
-
-                print(f"  → 詳細ページへ遷移: {r['url']}")
-                browser_utils.navigate(driver, r['url'])
-
-                # コメント欄の先頭にテンプレートを追記（日付プレースホルダを置換）
-                today = datetime.date.today()
-                comment_template = shimamura_search_conf.get('comment_template', '')
-                comment = (comment_template
-                           .replace("[DATE_MD]", f"{today.month}/{today.day}")
-                           .replace("[DATE_YYYYMMDD]", today.strftime("%Y%m%d")))
-                browser_utils.prepend_text(driver, "name", "comments", comment)
-                print(f"  → コメント追記完了")
-
-                # ステータスを変更（CSSで<select>要素を明示指定、表示テキストで選択）
-                browser_utils.select_option_by_text(driver, "css", "select[name='status_edit']", NEW_STATUS)
-                print(f"  → ステータス変更完了: {NEW_STATUS}")
-
-                # セルフチェック：変更後の選択値を確認
-                actual_status = browser_utils.get_selected_option_text(driver, "css", "select[name='status_edit']")
-                if actual_status == NEW_STATUS:
-                    print(f"  ✓ ステータス確認OK: {actual_status}")
-                else:
-                    print(f"  ✗ ステータス不一致 期待値='{NEW_STATUS}' 実際='{actual_status}'")
-
-                # Owned By 隣のカレンダーアイコンをクリック（保存・遷移）
-                browser_utils.click_element_by_script(driver, "css", "img[onclick=\"setContent('a')\"]")
-                print(f"  → カレンダーアイコンクリック完了")
-
-                # 保存後のページ遷移完了を確実に待つ
-                time.sleep(3)
-                browser_utils.wait_for_page_load(driver)
-                print(f"  → 保存完了・ページ遷移確認")
-
-                # スクリーンショット（先頭にスクロールしてから撮影）
-                browser_utils.scroll_to_top(driver)
-                screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
-                browser_utils.save_screenshot(driver, screenshot_path)
-                print(f"  → Screenshot saved -> {screenshot_path}")
-
-                # 検索結果に戻る
-                browser_utils.navigate(driver, search_url)
-                print(f"  → 検索結果に戻りました")
-
-            input(f"\n全{len(results)}件の確認が完了しました。Enterで終了...")
+            handler = ShimamuraSearchHandler(driver, {
+                'search_keyword': search_keyword,
+                'target_url': target_url,
+            })
+            handler.execute()
             return
 
         # 初期遷移
