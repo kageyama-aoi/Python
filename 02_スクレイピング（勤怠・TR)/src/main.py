@@ -4,9 +4,6 @@
 """
 import os
 import datetime
-import tkinter as tk
-from tkinter import messagebox
-from selenium import webdriver
 
 import config
 import browser_utils
@@ -33,9 +30,7 @@ def main():
         return
 
     # ブラウザの初期化
-    driver = webdriver.Chrome()
-    driver.set_window_size(1000, 1000)
-    driver.implicitly_wait(10)
+    driver = browser_utils.create_driver()
 
     try:
         print(f"DEBUG: Selected School Type: {user_select_school}")
@@ -91,9 +86,7 @@ def main():
             msg = '下書きを作成しました！'
 
         # 完了通知
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showinfo('完了メッセージ', msg)
+        gui.show_completion_message(msg)
 
     except Exception as e:
         logger.error(f"An error occurred: {e}", exc_info=True)

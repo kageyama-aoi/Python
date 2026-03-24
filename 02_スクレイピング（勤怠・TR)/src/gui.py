@@ -314,3 +314,15 @@ def get_user_input_gui():
         return app.result
     else:
         return None, None, None
+
+
+def show_completion_message(msg: str):
+    """
+    処理完了をダイアログで通知します。
+
+    Args:
+        msg: 表示するメッセージ文字列
+    """
+    root = tk.Tk()
+    root.withdraw()
+    messagebox.showinfo('完了メッセージ', msg)

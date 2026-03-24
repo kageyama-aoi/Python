@@ -10,6 +10,28 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 # ---------------------------------------------------------------------------
+# ブラウザの初期化
+# ---------------------------------------------------------------------------
+
+def create_driver(width: int = 1000, height: int = 1000, implicit_wait: int = 10) -> webdriver.Chrome:
+    """
+    Chrome WebDriverを初期化して返します。
+
+    Args:
+        width: ウィンドウ幅（デフォルト1000）
+        height: ウィンドウ高さ（デフォルト1000）
+        implicit_wait: 暗黙的待機秒数（デフォルト10）
+
+    Returns:
+        webdriver.Chrome: 初期化済みのChromeドライバー
+    """
+    driver = webdriver.Chrome()
+    driver.set_window_size(width, height)
+    driver.implicitly_wait(implicit_wait)
+    return driver
+
+
+# ---------------------------------------------------------------------------
 # 要素の取得
 # ---------------------------------------------------------------------------
 
