@@ -100,11 +100,11 @@ def main():
                 print(f"  → コメント追記完了")
 
                 # ステータスを変更（CSSで<select>要素を明示指定、表示テキストで選択）
-                browser_utils.select_option_by_text(driver, "css", "select[name='status']", NEW_STATUS)
+                browser_utils.select_option_by_text(driver, "css", "select[name='status_edit']", NEW_STATUS)
                 print(f"  → ステータス変更完了: {NEW_STATUS}")
 
                 # セルフチェック：変更後の選択値を確認
-                actual_status = browser_utils.get_selected_option_text(driver, "css", "select[name='status']")
+                actual_status = browser_utils.get_selected_option_text(driver, "css", "select[name='status_edit']")
                 if actual_status == NEW_STATUS:
                     print(f"  ✓ ステータス確認OK: {actual_status}")
                 else:
@@ -119,7 +119,8 @@ def main():
                 browser_utils.wait_for_page_load(driver)
                 print(f"  → 保存完了・ページ遷移確認")
 
-                # スクリーンショット（保存後の画面を撮影）
+                # スクリーンショット（先頭にスクロールしてから撮影）
+                browser_utils.scroll_to_top(driver)
                 screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
                 browser_utils.save_screenshot(driver, screenshot_path)
                 print(f"  → Screenshot saved -> {screenshot_path}")
