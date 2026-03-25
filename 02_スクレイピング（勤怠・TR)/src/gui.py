@@ -54,15 +54,6 @@ class SelectionApp:
             command=self._on_mode_change
         ).pack(anchor="w", pady=2)
 
-        # マージ依頼モード (Shimamura)
-        ttk.Radiobutton(
-            mode_frame,
-            text="マージ依頼 (Shimamura)",
-            variable=self.selected_mode,
-            value="search",
-            command=self._on_mode_change
-        ).pack(anchor="w", pady=2)
-
         # --- TR詳細選択エリア ---
         self.tr_frame = ttk.LabelFrame(self.root, text="2. TR詳細設定", padding=10)
         self.tr_frame.pack(fill="both", expand=True, padx=10, pady=5)
@@ -104,12 +95,26 @@ class SelectionApp:
                         default_idx = self.env_options.index("UAT2")
                     self.env_combo.current(default_idx)
 
-        # --- 検索設定エリア ---
-        self.search_frame = ttk.LabelFrame(self.root, text="3. 検索設定", padding=10)
-        self.search_frame.pack(fill="x", padx=10, pady=5)
+        # --- マージ依頼 (Shimamura) ---
+        ttk.Separator(self.tr_frame, orient="horizontal").pack(fill="x", pady=8)
 
-        ttk.Label(self.search_frame, text="キーワード:").pack(side="left")
-        self.keyword_entry = ttk.Entry(self.search_frame, textvariable=self.search_keyword, width=30, state="disabled")
+        merge_frame = ttk.Frame(self.tr_frame)
+        merge_frame.pack(fill="x", pady=2)
+
+        merge_rb = ttk.Radiobutton(
+            merge_frame,
+            text="マージ依頼 (Shimamura)",
+            variable=self.selected_tr_type,
+            value="search",
+            command=self._on_tr_type_change
+        )
+        merge_rb.pack(anchor="w")
+        self.tr_radios.append(merge_rb)
+
+        keyword_inner_frame = ttk.Frame(merge_frame, padding=(25, 2, 0, 5))
+        keyword_inner_frame.pack(fill="x")
+        ttk.Label(keyword_inner_frame, text="キーワード:").pack(side="left")
+        self.keyword_entry = ttk.Entry(keyword_inner_frame, textvariable=self.search_keyword, width=25, state="disabled")
         self.keyword_entry.pack(side="left", padx=5)
 
         # --- アクションボタン ---
@@ -137,30 +142,19 @@ class SelectionApp:
         print(f"Mode changed to: {mode}")
         
         if mode == 'tr':
-            # TRモード: 詳細エリア有効化、検索エリア無効化
+            # TRモード: 詳細エリア有効化
             for rb in self.tr_radios:
                 rb.configure(state='normal')
             self._on_tr_type_change()
-            self.edit_btn.configure(state='normal')
-            self.keyword_entry.configure(state='disabled')
-
-        elif mode == 'search':
-            # 検索モード: 詳細エリア無効化、検索エリア有効化
-            for rb in self.tr_radios:
-                rb.configure(state='disabled')
-            if self.env_combo:
-                self.env_combo.configure(state='disabled')
-            self.edit_btn.configure(state='disabled')
-            self.keyword_entry.configure(state='normal')
 
         else:
-            # 勤怠モードなど: 詳細エリア・検索エリア無効化
+            # 勤怠モードなど: 詳細エリア全体を無効化
             for rb in self.tr_radios:
                 rb.configure(state='disabled')
             if self.env_combo:
                 self.env_combo.configure(state='disabled')
-            self.edit_btn.configure(state='disabled')
             self.keyword_entry.configure(state='disabled')
+            self.edit_btn.configure(state='disabled')
 
     def _on_tr_type_change(self):
         """TR種別変更時のUI制御"""
@@ -169,15 +163,24 @@ class SelectionApp:
 
         current_tr_key = self.selected_tr_type.get()
         print(f"TR type changed to: {current_tr_key}")
-        
-        selected_opt = next((opt for opt in self.tr_options if opt['key'] == current_tr_key), None)
-        
-        if selected_opt and selected_opt.get('requires_environment'):
-            if self.env_combo:
-                self.env_combo.configure(state='readonly')
-        else:
+
+        if current_tr_key == 'search':
+            # マージ依頼: キーワード有効、env無効、設定編集無効
+            self.keyword_entry.configure(state='normal')
             if self.env_combo:
                 self.env_combo.configure(state='disabled')
+            self.edit_btn.configure(state='disabled')
+        else:
+            # 通常TR: キーワード無効、設定編集有効
+            self.keyword_entry.configure(state='disabled')
+            self.edit_btn.configure(state='normal')
+            selected_opt = next((opt for opt in self.tr_options if opt['key'] == current_tr_key), None)
+            if selected_opt and selected_opt.get('requires_environment'):
+                if self.env_combo:
+                    self.env_combo.configure(state='readonly')
+            else:
+                if self.env_combo:
+                    self.env_combo.configure(state='disabled')
 
     def _open_config_editor(self):
         """設定編集ダイアログを開く"""
@@ -208,20 +211,20 @@ class SelectionApp:
                 messagebox.showwarning("警告", "TRの詳細種別を選択してください。")
                 return
 
-            selected_opt = next((opt for opt in self.tr_options if opt['key'] == final_school_type), None)
-            if selected_opt and selected_opt.get('requires_environment'):
-                if self.env_combo:
-                    final_env_name = self.env_combo.get()
-
-                if not final_env_name:
-                    messagebox.showwarning("警告", "対象環境を選択してください。")
+            if final_school_type == 'search':
+                final_keyword = self.search_keyword.get().strip()
+                if not final_keyword:
+                    messagebox.showwarning("警告", "検索キーワードを入力してください。")
                     return
-        elif mode == 'search':
-            final_school_type = 'search'
-            final_keyword = self.search_keyword.get().strip()
-            if not final_keyword:
-                messagebox.showwarning("警告", "検索キーワードを入力してください。")
-                return
+            else:
+                selected_opt = next((opt for opt in self.tr_options if opt['key'] == final_school_type), None)
+                if selected_opt and selected_opt.get('requires_environment'):
+                    if self.env_combo:
+                        final_env_name = self.env_combo.get()
+
+                    if not final_env_name:
+                        messagebox.showwarning("警告", "対象環境を選択してください。")
+                        return
 
         self.result = (final_school_type, final_env_name, final_keyword)
         self.is_submitted = True
