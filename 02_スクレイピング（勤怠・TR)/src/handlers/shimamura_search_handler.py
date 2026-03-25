@@ -3,6 +3,7 @@ Shimamura マージ依頼検索フローのハンドラ。
 検索結果を一覧表示し、対象ステータスの詳細ページへコメント追記・ステータス変更・スクリーンショット撮影を行う。
 """
 import re
+import csv
 import time
 import datetime
 from urllib.parse import urljoin, quote
@@ -52,6 +53,7 @@ class ShimamuraSearchHandler(BaseHandler):
         print(f"DEBUG: Found {len(rows)} result row(s)")
 
         results = []
+        debug_rows = []
         for row in rows:
             tds     = browser_utils.find_child_elements(row, "tag", "td")
             task_id = tds[0].text.strip() if tds else "?"
@@ -61,6 +63,17 @@ class ShimamuraSearchHandler(BaseHandler):
             match   = re.search(r"location\.href='([^']+)'", onclick)
             detail_url = urljoin(base_url, match.group(1)) if match else None
             results.append({"task_id": task_id, "title": title, "status": status, "url": detail_url})
+            debug_rows.append([td.text.strip() for td in tds])
+
+        # 全列デバッグ用CSV出力
+        debug_path = f"data/debug_columns_{datetime.date.today()}.csv"
+        with open(debug_path, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            max_cols = max((len(r) for r in debug_rows), default=0)
+            writer.writerow([f"tds[{i}]" for i in range(max_cols)])
+            writer.writerows(debug_rows)
+        print(f"DEBUG: 全列CSVを出力しました -> {debug_path}")
+
         return results
 
     def _print_results_table(self, results: list):
