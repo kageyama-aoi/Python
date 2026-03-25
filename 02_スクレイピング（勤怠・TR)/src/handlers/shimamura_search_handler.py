@@ -72,14 +72,24 @@ class ShimamuraSearchHandler(BaseHandler):
         print("=" * 70 + "\n")
 
     def _print_summary(self, summary: list):
-        print("\n" + "=" * 70)
-        print(" 処理結果サマリー")
-        print("=" * 70)
-        print(f"{'No':<4} {'Task ID':<12} {'Title':<30} {'結果'}")
-        print("-" * 70)
+        lines = [
+            "\n" + "=" * 70,
+            " 処理結果サマリー",
+            "=" * 70,
+            f"{'No':<4} {'Task ID':<12} {'Title':<30} {'結果'}",
+            "-" * 70,
+        ]
         for i, r in enumerate(summary, start=1):
-            print(f"{i:<4} {r['task_id']:<12} {r['title']:<30} {r['result']}")
-        print("=" * 70)
+            lines.append(f"{i:<4} {r['task_id']:<12} {r['title']:<30} {r['result']}")
+        lines.append("=" * 70)
+
+        output = "\n".join(lines)
+        print(output)
+
+        log_path = f"data/summary_{datetime.date.today()}.txt"
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(output + "\n")
+        print(f"  → サマリーを保存しました: {log_path}")
 
     def _process_row(self, i: int, total: int, r: dict,
                      target_status: str, new_status: str,
