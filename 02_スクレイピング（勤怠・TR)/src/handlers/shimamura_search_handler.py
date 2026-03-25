@@ -107,7 +107,14 @@ class ShimamuraSearchHandler(BaseHandler):
 
         time.sleep(3)
         browser_utils.wait_for_page_load(self.driver)
-        print("  → 保存完了・ページ遷移確認")
+        print("  → ページ遷移確認")
+
+        browser_utils.click_element_by_script(self.driver, "css", "input[name='send'][value='Update Task Report Information']")
+        print("  → 保存ボタンクリック完了")
+
+        time.sleep(3)
+        browser_utils.wait_for_page_load(self.driver)
+        print("  → 保存完了")
 
         browser_utils.scroll_to_top(self.driver)
         screenshot_path = f"data/detail_{i}_{datetime.date.today()}.png"
