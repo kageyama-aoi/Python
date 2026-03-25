@@ -33,9 +33,12 @@ class ShimamuraSearchHandler(BaseHandler):
         results = self._extract_results(target_url)
         self._print_results_table(results)
 
+        summary = []
         for i, r in enumerate(results, start=1):
-            self._process_row(i, len(results), r, target_status, new_status, comment_template, search_url)
+            result_label = self._process_row(i, len(results), r, target_status, new_status, comment_template, search_url)
+            summary.append({**r, 'result': result_label})
 
+        self._print_summary(summary)
         input(f"\n全{len(results)}件の確認が完了しました。Enterで終了...")
 
     # ------------------------------------------------------------------
@@ -52,29 +55,40 @@ class ShimamuraSearchHandler(BaseHandler):
         for row in rows:
             tds     = browser_utils.find_child_elements(row, "tag", "td")
             task_id = tds[0].text.strip() if tds else "?"
+            title   = tds[1].text.strip() if len(tds) > 1 else "?"
             status  = tds[11].text.strip() if len(tds) > 11 else "?"
             onclick = browser_utils.get_attribute(row, "onclick")
             match   = re.search(r"location\.href='([^']+)'", onclick)
             detail_url = urljoin(base_url, match.group(1)) if match else None
-            results.append({"task_id": task_id, "status": status, "url": detail_url})
+            results.append({"task_id": task_id, "title": title, "status": status, "url": detail_url})
         return results
 
     def _print_results_table(self, results: list):
-        print("\n" + "=" * 50)
-        print(f"{'Task ID':<12} {'Status'}")
-        print("-" * 50)
+        print("\n" + "=" * 70)
+        print(f"{'Task ID':<12} {'Title':<30} {'Status'}")
+        print("-" * 70)
         for r in results:
-            print(f"{r['task_id']:<12} {r['status']}")
-        print("=" * 50 + "\n")
+            print(f"{r['task_id']:<12} {r['title']:<30} {r['status']}")
+        print("=" * 70 + "\n")
+
+    def _print_summary(self, summary: list):
+        print("\n" + "=" * 70)
+        print(" 処理結果サマリー")
+        print("=" * 70)
+        print(f"{'No':<4} {'Task ID':<12} {'Title':<30} {'結果'}")
+        print("-" * 70)
+        for i, r in enumerate(summary, start=1):
+            print(f"{i:<4} {r['task_id']:<12} {r['title']:<30} {r['result']}")
+        print("=" * 70)
 
     def _process_row(self, i: int, total: int, r: dict,
                      target_status: str, new_status: str,
-                     comment_template: str, search_url: str):
+                     comment_template: str, search_url: str) -> str:
         print(f"[{i}/{total}] Task ID: {r['task_id']} / Status: {r['status']}")
 
         if r['status'] != target_status:
             print(f"  ⚠ WARNING: Status が '{target_status}' ではないためスキップします。")
-            return
+            return "⚠ スキップ"
 
         print(f"  → 詳細ページへ遷移: {r['url']}")
         browser_utils.navigate(self.driver, r['url'])
@@ -82,6 +96,7 @@ class ShimamuraSearchHandler(BaseHandler):
         self._prepend_comment(comment_template)
         self._change_status(new_status)
         self._save_and_screenshot(i, search_url)
+        return "✓ 処理済み"
 
     def _prepend_comment(self, comment_template: str):
         today   = datetime.date.today()
