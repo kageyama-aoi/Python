@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import config
-import gui_config_dialog
+from config import config
+from gui import gui_config_dialog
 
 class SelectionApp:
     def __init__(self, root):
@@ -37,7 +37,7 @@ class SelectionApp:
         # CrowdLog (勤怠)
         cl_mode = self.modes.get('crowdlog', {})
         ttk.Radiobutton(
-            mode_frame, 
+            mode_frame,
             text=cl_mode.get('label', 'CrowdLog'),
             variable=self.selected_mode,
             value=cl_mode.get('value', 'cl'),
@@ -57,10 +57,10 @@ class SelectionApp:
         # --- TR詳細選択エリア ---
         self.tr_frame = ttk.LabelFrame(self.root, text="2. TR詳細設定", padding=10)
         self.tr_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        
+
         # TR種別のリスト生成
         self.tr_radios = []
-        self.env_combo = None 
+        self.env_combo = None
 
         for opt in self.tr_options:
             item_frame = ttk.Frame(self.tr_frame)
@@ -79,13 +79,13 @@ class SelectionApp:
             if opt.get('requires_environment'):
                 env_inner_frame = ttk.Frame(item_frame, padding=(25, 2, 0, 5))
                 env_inner_frame.pack(fill="x")
-                
+
                 ttk.Label(env_inner_frame, text="対象環境:").pack(side="left")
-                
+
                 self.env_combo = ttk.Combobox(
-                    env_inner_frame, 
-                    values=self.env_options, 
-                    state="disabled", 
+                    env_inner_frame,
+                    values=self.env_options,
+                    state="disabled",
                     width=25
                 )
                 self.env_combo.pack(side="left", padx=5)
@@ -123,7 +123,7 @@ class SelectionApp:
 
         # 右から順に配置 (pack side=right)
         ttk.Button(btn_frame, text="終了", command=self.root.destroy).pack(side="right", padx=5)
-        
+
         # 実行ボタン
         self.run_btn = ttk.Button(btn_frame, text="実行", command=self._on_submit)
         self.run_btn.pack(side="right", padx=5)
@@ -140,7 +140,7 @@ class SelectionApp:
         """モード変更時のUI制御"""
         mode = self.selected_mode.get()
         print(f"Mode changed to: {mode}")
-        
+
         if mode == 'tr':
             # TRモード: 詳細エリア有効化
             for rb in self.tr_radios:
@@ -193,7 +193,7 @@ class SelectionApp:
     def _on_submit(self):
         """実行ボタン押下時の処理"""
         mode = self.selected_mode.get()
-        
+
         if not mode:
             messagebox.showwarning("警告", "モードを選択してください。")
             return
@@ -237,7 +237,7 @@ def get_user_input_gui():
     root = tk.Tk()
     app = SelectionApp(root)
     root.mainloop()
-    
+
     if app.is_submitted:
         return app.result
     else:

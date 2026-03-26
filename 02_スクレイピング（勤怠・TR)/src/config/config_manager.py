@@ -1,6 +1,7 @@
 import os
 from ruamel.yaml import YAML
-import config
+from config import config
+
 
 class ConfigManager:
     """
@@ -16,17 +17,17 @@ class ConfigManager:
     def get_config_file_path(self, mode_key):
         """
         指定されたモードキーに対応する設定ファイルのパスを返す。
-        src/config.py でロード時に保存されたメタデータを使用する。
+        src/config/config.py でロード時に保存されたメタデータを使用する。
         """
         return config.CONF.get('_meta', {}).get('files', {}).get(mode_key)
 
     def load_for_edit(self, mode_key):
         """
         編集用に設定ファイルの該当セクションを読み込む。
-        
+
         Args:
             mode_key (str): 's', 'y' などのモード識別子
-            
+
         Returns:
             tuple: (settings_dict, file_path)
             settings_dict は ruamel.yaml の CommentedMap オブジェクト（辞書互換）
@@ -43,14 +44,14 @@ class ConfigManager:
         defaults = data.get('school_specific_defaults', {})
         if not defaults:
             return None, file_path
-            
+
         target_data = defaults.get(mode_key)
         return target_data, file_path
 
     def save_setting(self, mode_key, new_values: dict):
         """
         変更された設定値をファイルに保存し、アプリの設定をリロードする。
-        
+
         Args:
             mode_key (str): モード識別子
             new_values (dict): 更新したいキーと値のペア
@@ -76,7 +77,7 @@ class ConfigManager:
         # ファイルに書き戻す
         with open(file_path, 'w', encoding='utf-8') as f:
             self.yaml.dump(data, f)
-            
+
         # メモリ上のConfigをリロードして最新化
         print(f"Reloading config after update for {mode_key}...")
         config.load_config()

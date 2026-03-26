@@ -1,8 +1,8 @@
 import datetime
 import calendar
 import time
-import config as conf
-import browser_utils
+from config import config as conf
+from scraping import browser_utils
 from .base_handler import BaseHandler
 
 class CrowdLogHandler(BaseHandler):
@@ -20,7 +20,7 @@ class CrowdLogHandler(BaseHandler):
         """
         cl_settings = self._get_settings()
         self._perform_login_if_needed(cl_settings)
-        
+
         # 入力データの構築
         merged_settings = conf.CONF['common_defaults'].copy()
         specific_settings = conf.CONF['school_specific_defaults'].get('cl', {})
@@ -35,7 +35,7 @@ class CrowdLogHandler(BaseHandler):
 
         # フィールド入力処理
         fields_def = cl_settings.get('fields', {})
-        
+
         for field_name, field_info in fields_def.items():
             value = merged_settings.get(field_name, "")
             browser_utils.input_text(self.driver, 'name', field_info['locator'], value)
@@ -55,21 +55,21 @@ class CrowdLogHandler(BaseHandler):
         """ログイン画面が表示されている場合、ログイン処理を実行します。"""
         selectors = cl_settings.get('selectors', {})
         email_selector = selectors.get('login_email')
-        
+
         if not email_selector: return
 
         if browser_utils.is_element_present(self.driver, 'name', email_selector):
             print("Login page detected. Performing login...")
-            
+
             email = conf.CONF['app']['login']['email']
             password = conf.CONF['app']['login']['password']
-            
+
             browser_utils.input_text(self.driver, 'name', selectors['login_email'], email)
             browser_utils.input_text(self.driver, 'name', selectors['login_password'], password)
-            
+
             login_btn_selector = selectors['login_button']
             browser_utils.click_element(self.driver, 'css', login_btn_selector)
-            
+
             time.sleep(3)
 
     def _click_download_button(self, cl_settings):
@@ -79,7 +79,7 @@ class CrowdLogHandler(BaseHandler):
 
         print("Clicking download button...")
         download_btn_selector = cl_settings.get('selectors', {}).get('download_button')
-        
+
         try:
             browser_utils.click_element(self.driver, 'css', download_btn_selector)
         except Exception as e:

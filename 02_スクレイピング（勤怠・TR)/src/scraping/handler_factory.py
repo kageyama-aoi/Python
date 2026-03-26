@@ -2,7 +2,7 @@
 ハンドラファクトリモジュール。
 コンテキストに応じて適切なハンドラを選択し、実行します。
 """
-from handlers import CrowdLogHandler, TaskReportHandler
+from scraping.handlers import CrowdLogHandler, TaskReportHandler
 
 
 class HandlerFactory:

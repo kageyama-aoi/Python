@@ -5,7 +5,7 @@ TR種別ごとのYAML設定をGUI上で編集・保存する機能を提供し�
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 
-from config_manager import ConfigManager
+from config.config_manager import ConfigManager
 
 
 def open_config_editor(parent: tk.Tk, current_mode: str):

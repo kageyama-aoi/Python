@@ -5,12 +5,12 @@
 import os
 import datetime
 
-import config
-import browser_utils
-import file_utils
-from handler_factory import HandlerFactory
-from handlers import ShimamuraSearchHandler
-import gui
+from config import config
+from scraping import browser_utils
+from utils import file_utils
+from scraping.handler_factory import HandlerFactory
+from scraping.handlers import ShimamuraSearchHandler
+from gui import gui
 
 # ログファイル名の設定
 log_folder = '{0}.log'.format(datetime.date.today())

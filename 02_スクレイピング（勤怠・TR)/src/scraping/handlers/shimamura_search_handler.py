@@ -8,8 +8,8 @@ import time
 import datetime
 from urllib.parse import urljoin, quote
 
-import config
-import browser_utils
+from config import config
+from scraping import browser_utils
 from .base_handler import BaseHandler
 
 

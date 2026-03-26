@@ -1,5 +1,5 @@
-import config as conf
-import browser_utils
+from config import config as conf
+from scraping import browser_utils
 from .base_handler import BaseHandler
 
 class TaskReportHandler(BaseHandler):
@@ -30,7 +30,7 @@ class TaskReportHandler(BaseHandler):
 
         for field_name, field_info in fields_def.items():
             current_value = merged_settings.get(field_name, "")
-            
+
             # 特殊ケース: 'tf' タイプの 'Comments' フィールド
             if school_type == 'tf' and field_name == 'Comments':
                 input_data[field_name] = {
@@ -51,7 +51,7 @@ class TaskReportHandler(BaseHandler):
             if not (school_type == 'tf' and key == 'Comments'):
                 if key in input_data and input_data[key]['value']:
                      input_data[key]['value'] = input_data[key]['value'].replace("[KANKYOUMEI]", environment_name)
-        
+
         # デバッグ用出力
         print(f"Input Data for {school_type}: {input_data}")
 

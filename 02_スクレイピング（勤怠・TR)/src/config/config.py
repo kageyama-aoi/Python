@@ -31,10 +31,10 @@ def load_config(config_path="config/main.yaml"):
     global CONF
     # 再読み込み時のために初期化
     CONF.clear()
-    
+
     # メタデータ格納用の辞書を初期化
     CONF['_meta'] = {'files': {}}
-    
+
     load_dotenv()
 
     try:
@@ -44,25 +44,25 @@ def load_config(config_path="config/main.yaml"):
 
         with open(config_path, "r", encoding="utf-8") as f:
             CONF.update(yaml.safe_load(f))
-        
+
         # Main Configに _meta が上書きされている場合は復元
         if '_meta' not in CONF: CONF['_meta'] = {'files': {}}
 
         # 2. Modes Configs の読み込み (config/modes/ 配下を再帰的に探索)
         config_dir = os.path.dirname(config_path)
         modes_dir = os.path.join(config_dir, "modes")
-        
+
         if os.path.exists(modes_dir):
             # modes/**/*.yaml を全て取得
             mode_files = glob.glob(os.path.join(modes_dir, "**", "*.yaml"), recursive=True)
-            
+
             for file_path in mode_files:
                 # print(f"Loading mode config: {file_path}") # Debug
                 with open(file_path, "r", encoding="utf-8") as f:
                     sub_conf = yaml.safe_load(f)
                     if sub_conf:
                         _deep_merge(CONF, sub_conf)
-                        
+
                         # school_specific_defaults のキーがどのファイルにあるか記録
                         if 'school_specific_defaults' in sub_conf:
                             for key in sub_conf['school_specific_defaults']:
@@ -98,12 +98,12 @@ def _render_templates():
     if 'templates' in CONF and 'tf' in CONF['templates'] and 'comment_template' in CONF['templates']['tf']:
         tf_config = CONF['templates']['tf']
         tf_template = tf_config['comment_template']
-        
+
         # 各プレースホルダーを置換
         tf_template = tf_template.replace("{{TF_DRIVE_URL}}", tf_config.get('drive_url', ''))
         tf_template = tf_template.replace("{{TF_DESIGN_DOC_FOLDER_PATH}}", tf_config.get('design_doc_folder_path', ''))
         tf_template = tf_template.replace("{{TF_SPEC_DOC_FILENAME}}", tf_config.get('spec_doc_filename', ''))
-        
+
         # レンダリング済み文字列として保存
         CONF['templates']['tf']['comment_template_rendered'] = tf_template
 
@@ -123,5 +123,5 @@ def setup_logger(log_file_path, logger_name=__name__):
     fh_formatter = Formatter('%(asctime)s - %(filename)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s')
     fh.setFormatter(fh_formatter)
     logger.addHandler(fh)
-    
+
     return logger
