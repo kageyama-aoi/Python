@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(tail:*)",
+      "Bash(gh issue:*)",
+      "Bash(sort -k2)",
+      "Bash(wc:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)",
+      "Skill(update-config)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)"
+    ]
+  }
+}
