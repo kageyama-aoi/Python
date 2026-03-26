@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from config import config
 from gui import gui_config_dialog
+from gui import gui_add_pattern_dialog
 
 class SelectionApp:
     def __init__(self, root):
@@ -133,6 +134,11 @@ class SelectionApp:
         self.edit_btn.pack(side="right", padx=5)
         self.edit_btn.configure(state='disabled') # 初期は無効
 
+        # パターン追加ボタン
+        self.add_pattern_btn = ttk.Button(btn_frame, text="＋ パターン追加", command=self._open_add_pattern_dialog)
+        self.add_pattern_btn.pack(side="right", padx=5)
+        self.add_pattern_btn.configure(state='disabled') # 初期は無効
+
         # 初期状態の設定
         self._on_mode_change()
 
@@ -145,6 +151,7 @@ class SelectionApp:
             # TRモード: 詳細エリア有効化
             for rb in self.tr_radios:
                 rb.configure(state='normal')
+            self.add_pattern_btn.configure(state='normal')
             self._on_tr_type_change()
 
         else:
@@ -155,6 +162,7 @@ class SelectionApp:
                 self.env_combo.configure(state='disabled')
             self.keyword_entry.configure(state='disabled')
             self.edit_btn.configure(state='disabled')
+            self.add_pattern_btn.configure(state='disabled')
 
     def _on_tr_type_change(self):
         """TR種別変更時のUI制御"""
@@ -189,6 +197,80 @@ class SelectionApp:
             messagebox.showwarning("警告", "編集するTR種別を選択してください。")
             return
         gui_config_dialog.open_config_editor(self.root, current_mode)
+
+    def _open_add_pattern_dialog(self):
+        """パターン追加ダイアログを開く"""
+        gui_add_pattern_dialog.open_add_pattern_dialog(self.root, self._refresh_tr_options)
+
+    def _refresh_tr_options(self):
+        """TRオプション一覧を再読み込みしてラジオボタンを再描画する"""
+        # config から最新の tr_options を取得
+        self.tr_options = config.CONF.get('menus', {}).get('tr_options', [])
+
+        # tr_frame 内の既存ウィジェットを全削除
+        for widget in self.tr_frame.winfo_children():
+            widget.destroy()
+
+        self.tr_radios = []
+        self.env_combo = None
+
+        for opt in self.tr_options:
+            item_frame = ttk.Frame(self.tr_frame)
+            item_frame.pack(fill="x", pady=2)
+
+            rb = ttk.Radiobutton(
+                item_frame,
+                text=opt['label'],
+                variable=self.selected_tr_type,
+                value=opt['key'],
+                command=self._on_tr_type_change
+            )
+            rb.pack(anchor="w")
+            self.tr_radios.append(rb)
+
+            if opt.get('requires_environment'):
+                env_inner_frame = ttk.Frame(item_frame, padding=(25, 2, 0, 5))
+                env_inner_frame.pack(fill="x")
+
+                ttk.Label(env_inner_frame, text="対象環境:").pack(side="left")
+
+                self.env_combo = ttk.Combobox(
+                    env_inner_frame,
+                    values=self.env_options,
+                    state="disabled",
+                    width=25
+                )
+                self.env_combo.pack(side="left", padx=5)
+                if self.env_options:
+                    default_idx = 0
+                    if "UAT2" in self.env_options:
+                        default_idx = self.env_options.index("UAT2")
+                    self.env_combo.current(default_idx)
+
+        # マージ依頼セクションを再追加
+        ttk.Separator(self.tr_frame, orient="horizontal").pack(fill="x", pady=8)
+
+        merge_frame = ttk.Frame(self.tr_frame)
+        merge_frame.pack(fill="x", pady=2)
+
+        merge_rb = ttk.Radiobutton(
+            merge_frame,
+            text="マージ依頼 (Shimamura)",
+            variable=self.selected_tr_type,
+            value="search",
+            command=self._on_tr_type_change
+        )
+        merge_rb.pack(anchor="w")
+        self.tr_radios.append(merge_rb)
+
+        keyword_inner_frame = ttk.Frame(merge_frame, padding=(25, 2, 0, 5))
+        keyword_inner_frame.pack(fill="x")
+        ttk.Label(keyword_inner_frame, text="キーワード:").pack(side="left")
+        self.keyword_entry = ttk.Entry(keyword_inner_frame, textvariable=self.search_keyword, width=25, state="disabled")
+        self.keyword_entry.pack(side="left", padx=5)
+
+        # 現在モードに合わせて有効/無効を再設定
+        self._on_mode_change()
 
     def _on_submit(self):
         """実行ボタン押下時の処理"""

@@ -1,0 +1,47 @@
+﻿実行日時: 2026-03-26 11:37:54
+============================================================
+
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-8.4.1, pluggy-1.6.0 -- C:\Users\kageyama\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\kageyama\Tools\Python\02_スクレイピング（勤怠・TR)
+collecting ... collected 36 items
+
+tests/test_config.py::Test辞書ディープマージ::test_トップレベルキーがマージされる PASSED [  2%]
+tests/test_config.py::Test辞書ディープマージ::test_ネスト辞書は上書きでなくマージされる PASSED [  5%]
+tests/test_config.py::Test辞書ディープマージ::test_dict以外の値は上書きされる PASSED [  8%]
+tests/test_config.py::Test辞書ディープマージ::test_baseにないキーが追加される PASSED [ 11%]
+tests/test_config.py::Test辞書ディープマージ::test_updateが空ならbaseは変化しない PASSED [ 13%]
+tests/test_config.py::Test設定ファイルの読み込み::test_main_yamlのトップレベルキーが読み込まれる PASSED [ 16%]
+tests/test_config.py::Test設定ファイルの読み込み::test_tr_optionsがリストとして読み込まれる PASSED [ 19%]
+tests/test_config.py::Test設定ファイルの読み込み::test_modesフォルダのYAMLがメインにマージされる PASSED [ 22%]
+tests/test_config.py::Test設定ファイルの読み込み::test_metaにYAMLファイルパスが記録される PASSED [ 25%]
+tests/test_config.py::Test設定ファイルの読み込み::test_存在しない設定ファイルはSystemExitになる PASSED [ 27%]
+tests/test_config.py::Test設定ファイルの読み込み::test_リロード時に古いデータが消える PASSED [ 30%]
+tests/test_config.py::Test設定ファイルの読み込み::test_environment_optionsがリストで読み込まれる PASSED [ 33%]
+tests/test_config.py::Test設定ファイルの読み込み::test_masters_schools_projectsが読み込まれる PASSED [ 36%]
+tests/test_config.py::Test環境変数による上書き::test_CROWDLOG_EMAILでメールアドレスが上書きされる PASSED [ 38%]
+tests/test_config.py::Test環境変数による上書き::test_CROWDLOG_PASSWORDでパスワードが上書きされる PASSED [ 41%]
+tests/test_config.py::Test環境変数による上書き::test_環境変数なしはYAMLの値が使われる PASSED [ 44%]
+tests/test_config.py::TestTframeテンプレートレンダリング::test_プレースホルダーが値に置換される PASSED [ 47%]
+tests/test_config.py::TestTframeテンプレートレンダリング::test_templates設定なしでもエラーにならない PASSED [ 50%]
+tests/test_config_manager.py::Testパターン新規追加::test_パターンYAMLファイルが作成される PASSED [ 52%]
+tests/test_config_manager.py::Testパターン新規追加::test_作成YAMLがschool_specific_defaults形式になっている PASSED [ 55%]
+tests/test_config_manager.py::Testパターン新規追加::test_空フィールドはYAMLに書き込まれない PASSED [ 58%]
+tests/test_config_manager.py::Testパターン新規追加::test_main_yamlのtr_optionsに新エントリが追記される PASSED [ 61%]
+tests/test_config_manager.py::Testパターン新規追加::test_labelがmain_yamlに正しく保存される PASSED [ 63%]
+tests/test_config_manager.py::Testパターン新規追加::test_requires_environment_trueがmain_yamlに保存される PASSED [ 66%]
+tests/test_config_manager.py::Testパターン新規追加::test_requires_environment_falseはmain_yamlに書き込まれない PASSED [ 69%]
+tests/test_config_manager.py::Testパターン新規追加::test_既存キーの重複追加はValueErrorになる PASSED [ 72%]
+tests/test_config_manager.py::Testパターン新規追加::test_追加後にconfig_CONFが最新化される PASSED [ 75%]
+tests/test_config_manager.py::Testパターン新規追加::test_追加後も既存のtr_optionsが消えない PASSED [ 77%]
+tests/test_config_manager.py::Test設定値の保存::test_指定フィールドの値がYAMLファイルに書き込まれる PASSED [ 80%]
+tests/test_config_manager.py::Test設定値の保存::test_指定外のキーは上書きされない PASSED [ 83%]
+tests/test_config_manager.py::Test設定値の保存::test_保存後にconfig_CONFが更新される PASSED [ 86%]
+tests/test_config_manager.py::Test設定値の保存::test_存在しないモードキーはエラーになる PASSED [ 88%]
+tests/test_config_manager.py::Test編集用設定読み込み::test_有効なキーで辞書が返る PASSED [ 91%]
+tests/test_config_manager.py::Test編集用設定読み込み::test_ファイルパスも合わせて返される PASSED [ 94%]
+tests/test_config_manager.py::Test編集用設定読み込み::test_存在しないキーはNoneが返る PASSED [ 97%]
+tests/test_config_manager.py::Test編集用設定読み込み::test_返された辞書に正しいフィールドが含まれる PASSED [100%]
+
+============================= 36 passed in 1.24s ==============================

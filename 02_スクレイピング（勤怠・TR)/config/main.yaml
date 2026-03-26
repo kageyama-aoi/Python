@@ -42,3 +42,15 @@ menus:
     - "UAT2"
     - "smbcpos_training"
     - "smbcpos_uat"
+
+# パターン追加ダイアログ用マスターデータ
+masters:
+  schools_projects:
+    shimamura:
+      - "SMMs001PH"
+      - "SMMN003PH"
+      - "TCNz007PH"
+    yamaha:
+      - "YMHs001PH"
+    tframe:
+      - "TCNz004PH"
