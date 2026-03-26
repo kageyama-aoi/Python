@@ -5,6 +5,7 @@ from src import config as cfg
 from src import processor
 from src import excel_writer
 from src import data_loader
+from src import selector
 from src.constants import SheetNames as SN
 
 def cleanup_old_files():
@@ -26,7 +27,19 @@ def main():
     settings = data_loader.load_config()
     target_project = settings.get(cfg.CONFIG_KEY_PROJECT, '')
     target_employee = settings.get(cfg.CONFIG_KEY_EMPLOYEE, '')
-    
+
+    # 未設定の場合はインタラクティブ選択
+    if not target_project or not target_employee:
+        target_project, target_employee = selector.select_target(
+            cfg.TIMESHEET_CSV_FILE,
+            default_project=target_project,
+            default_employee=target_employee,
+        )
+        # 選択結果を config.json に保存して次回のデフォルトとする
+        settings[cfg.CONFIG_KEY_PROJECT] = target_project
+        settings[cfg.CONFIG_KEY_EMPLOYEE] = target_employee
+        data_loader.save_config(settings)
+
     project_label = target_project if target_project else cfg.PROJECT_LABEL_DEFAULT
     employee_label = target_employee if target_employee else cfg.EMPLOYEE_LABEL_DEFAULT
     

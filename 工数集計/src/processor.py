@@ -3,11 +3,13 @@
 import pandas as pd
 from . import config as cfg
 from .constants import InputCols as IC, InternalCols as RC
+from .validator import validate_timesheet_columns
 
 def load_and_filter_data(file_path, target_project=None, target_employee=None):
     """CSVを読み込み、プロジェクトと社員でフィルタリングする"""
     df = pd.read_csv(file_path, encoding=cfg.ENCODING)
-    
+    validate_timesheet_columns(df)
+
     if target_project:
         df = df[df[IC.CLIENT_NAME] == target_project]
     

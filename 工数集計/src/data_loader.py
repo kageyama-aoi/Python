@@ -12,6 +12,12 @@ def load_config():
         print(f"エラー: config.json が見つかりません（{cfg.CONFIG_FILE}）。ファイルを作成してから再実行してください。")
         sys.exit(1)
 
+def save_config(settings):
+    """設定ファイルを保存する"""
+    with open(cfg.CONFIG_FILE, 'w', encoding='utf-8') as f:
+        json.dump(settings, f, ensure_ascii=False, indent=2)
+
+
 def load_bugs_csv(file_path):
     """バグ情報CSVを読み込む"""
     return pd.read_csv(file_path, encoding=cfg.ENCODING_UTF8)
