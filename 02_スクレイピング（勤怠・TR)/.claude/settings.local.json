@@ -1,20 +1,22 @@
 {
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(ls:*)",
-      "Bash(tail:*)",
-      "Bash(gh issue:*)",
-      "Bash(sort -k2)",
-      "Bash(wc:*)",
-      "Bash(head:*)",
       "Bash(cat:*)",
-      "Skill(update-config)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(sort -k2)",
+      "Bash(find:*)",
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git show:*)",
       "Bash(git branch:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(gh issue:*)",
+      "Skill(update-config)"
     ]
   }
 }
