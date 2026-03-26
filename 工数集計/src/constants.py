@@ -16,6 +16,14 @@ class InputCols:
     PROCESS_1_CODE = "工程１:管理コード"
     PROCESS_1_NAME = "工程１:名称"
 
+class SheetNames:
+    """Excelブック内のシート名定義"""
+    MONTHLY_SUMMARY = 'Monthly Summary'
+    PROCESSED = 'Processed Data'
+    DETAIL = 'Detailed Data'
+    TR = 'TR'
+
+
 class StyleConfig:
     """apply_custom_styles() で使用する列位置・グループ定義"""
     # ヘッダー色塗り範囲（1始まり）

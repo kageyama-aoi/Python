@@ -23,3 +23,7 @@ EMPLOYEE_LABEL_DEFAULT = "全社員"
 # Excel用カラーコード
 COLOR_RIGHT_GREEN = '009999'
 COLOR_RIGHT_BLUE = 'B8CCE4'
+
+# config.json のキー名
+CONFIG_KEY_PROJECT = 'target_project'
+CONFIG_KEY_EMPLOYEE = 'target_employee'

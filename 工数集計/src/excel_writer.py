@@ -6,6 +6,12 @@ from . import config as cfg
 from .constants import InputCols as IC, InternalCols as RC, StyleConfig as SC
 import sys
 
+
+def _handle_permission_error(path):
+    """PermissionError 発生時の共通メッセージ出力と終了処理"""
+    print(f"エラー: {path} にアクセスできませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
+    sys.exit(1)
+
 def save_initial_report(temp_file_path, sheet_data_list):
     """
     初期データをExcelに保存する
@@ -93,8 +99,7 @@ def _save_with_fixed_column_d(df, output_path, sheet_name):
             ws[f'D{row}'] = ws[f'D{row}'].value
         wb.save(output_path)
     except PermissionError:
-        print(f"エラー: {output_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
-        sys.exit(1)
+        _handle_permission_error(output_path)
 
 
 def add_formulas_and_save(df, output_path, sheet_name):
@@ -111,8 +116,8 @@ def extract_sheet_to_new_file(input_path, sheet_name, output_path):
     new_ws = new_wb.active
     
     if sheet_name not in wb.sheetnames:
-        return
-        
+        raise ValueError(f"シート '{sheet_name}' は '{input_path}' に存在しません。")
+
     ws = wb[sheet_name]
 
     for row in ws.iter_rows(values_only=True):
@@ -125,16 +130,14 @@ def extract_sheet_to_new_file(input_path, sheet_name, output_path):
     try:
         new_wb.save(output_path)
     except PermissionError:
-        print(f"エラー: {output_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
-        sys.exit(1)
+        _handle_permission_error(output_path)
 
 def apply_custom_styles(file_path):
     """Excelシートにスタイル（固定、背景色、列幅、グループ化）を適用する"""
     try:
         wb = openpyxl.load_workbook(file_path)
     except PermissionError:
-         print(f"エラー: {file_path} を開けませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください.")
-         sys.exit(1)
+        _handle_permission_error(file_path)
          
     sheet = wb.active
     
@@ -149,8 +152,8 @@ def apply_custom_styles(file_path):
     for i in SC.HEADER_GREEN_COLS:
         sheet.cell(row=1, column=i).fill = fill_green
 
-    # 特定列の背景色
-    for i in range(1, 200):
+    # 特定列の背景色（全データ行に適用）
+    for i in range(1, sheet.max_row + 1):
         sheet.cell(row=i, column=SC.FILL_BLUE_COL_1).fill = fill_blue
         sheet.cell(row=i, column=SC.FILL_BLUE_COL_2).fill = fill_blue
 
@@ -169,5 +172,4 @@ def apply_custom_styles(file_path):
     try:
         wb.save(file_path)
     except PermissionError:
-        print(f"エラー: {file_path} に書き込めませんでした。ファイルが開かれている可能性があります。閉じてから再実行してください。")
-        sys.exit(1)
+        _handle_permission_error(file_path)
