@@ -2,6 +2,7 @@ import pytest
 import openpyxl
 import pandas as pd
 from pathlib import Path
+from unittest.mock import patch
 from src.excel_writer import (
     save_initial_report,
     extract_sheet_to_new_file,
@@ -37,6 +38,14 @@ class TestSaveInitialReport:
         wb = openpyxl.load_workbook(path)
         assert "S1" in wb.sheetnames
         assert "S2" in wb.sheetnames
+
+    def test_permission_error_calls_handler(self, tmp_path, simple_df):
+        """PermissionError 発生時に _handle_permission_error が呼ばれる（RF-15）"""
+        path = tmp_path / "out.xlsx"
+        with patch("src.excel_writer._handle_permission_error") as mock_handler, \
+             patch("pandas.ExcelWriter", side_effect=PermissionError):
+            save_initial_report(path, [("Data", simple_df)])
+        mock_handler.assert_called_once_with(path)
 
 
 class TestExtractSheetToNewFile:

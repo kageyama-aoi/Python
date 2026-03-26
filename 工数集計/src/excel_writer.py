@@ -17,9 +17,12 @@ def save_initial_report(temp_file_path, sheet_data_list):
     初期データをExcelに保存する
     sheet_data_list: [(sheet_name, dataframe), ...]
     """
-    with pd.ExcelWriter(temp_file_path, engine='xlsxwriter') as writer:
-        for sheet_name, df in sheet_data_list:
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    try:
+        with pd.ExcelWriter(temp_file_path, engine='xlsxwriter') as writer:
+            for sheet_name, df in sheet_data_list:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+    except PermissionError:
+        _handle_permission_error(temp_file_path)
 
 def _insert_formula_columns(df):
     """集計用の補助列をDataFrameの先頭に挿入する"""

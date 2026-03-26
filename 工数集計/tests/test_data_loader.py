@@ -24,6 +24,18 @@ class TestLoadConfig:
         assert result == {}
 
 
+class TestLoadConfigErrors:
+
+    def test_missing_config_exits_with_message(self, tmp_path, capsys):
+        """config.json が存在しない場合に SystemExit とメッセージが出る（RF-16）"""
+        missing = tmp_path / "no_config.json"
+        with patch.object(cfg, 'CONFIG_FILE', missing):
+            with pytest.raises(SystemExit):
+                data_loader.load_config()
+        captured = capsys.readouterr()
+        assert "config.json" in captured.out
+
+
 class TestLoadBugsCsv:
 
     def test_load_bugs_csv(self, sample_bugs_csv):
