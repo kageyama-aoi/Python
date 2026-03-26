@@ -1,5 +1,4 @@
 import datetime
-import random
 import os
 import glob
 from src import config as cfg
@@ -9,8 +8,8 @@ from src import data_loader
 
 def cleanup_old_files():
     """過去の出力ファイルを削除する"""
-    files_to_delete = glob.glob('output_summary_*.xlsx')
-    files_to_delete.extend(glob.glob(str(cfg.OUTPUT_DIR / 'Summary_*.xlsx')))
+    files_to_delete = glob.glob(str(cfg.OUTPUT_DIR / 'temp_*.xlsx'))
+    files_to_delete.extend(glob.glob(str(cfg.OUTPUT_DIR / '工数集計結果_*.xlsx')))
     for file in files_to_delete:
         try:
             os.remove(file)
@@ -32,8 +31,7 @@ def main():
     
     # パス設定
     now = datetime.datetime.now()
-    random_number = random.randint(10000, 99999)
-    temp_file01 = cfg.OUTPUT_DIR / f'Debug_Summary_{project_label}_{employee_label}_{now:%Y%m%d_%H%M%S}_{random_number}.xlsx'
+    temp_file01 = cfg.OUTPUT_DIR / f'temp_summary_{project_label}_{employee_label}_{now:%Y%m%d_%H%M%S}.xlsx'
     temp_file02 = cfg.OUTPUT_DIR / 'temp_intermediate.xlsx'
     
     # 最終成果物のファイル名：工数集計結果_案件名_氏名_YYYYMMDD.xlsx
