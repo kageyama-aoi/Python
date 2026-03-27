@@ -13,24 +13,19 @@ https://www.notion.so/my-integrations にアクセスし、
 ※対象のNotionページにインテグレーションを「接続」する必要があります
 """
 
-import requests
-import json
 import re
 import time
+import requests
 from datetime import datetime
 
 # ===== 設定読み込み =====
 # ⚠️ config.py に TOKEN等を記載してください（AIに読み込ませないこと）
 try:
-    from config import NOTION_TOKEN, OUTPUT_FILE, DATABASE_ID, FILTER_ANKEN_IDS
+    from config import OUTPUT_FILE, DATABASE_ID, FILTER_ANKEN_IDS
 except ImportError:
     raise SystemExit("❌ config.py が見つかりません。config.py を作成してください。")
 
-HEADERS = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json",
-}
+from notion_client import HEADERS, extract_title
 
 
 def search_sql_pages():
@@ -87,7 +82,6 @@ def extract_relation_ids(page, prop_name):
     例: ["https://www.notion.so/1ce2b53c7886496f99a1fbf3603c25e3"]
         または [{"id": "1ce2b53c-..."}]
     """
-    import re
     try:
         props = page.get("properties", {})
         val = props.get(prop_name, {})
@@ -112,19 +106,6 @@ def extract_relation_ids(page, prop_name):
     except Exception:
         pass
     return []
-
-
-def extract_title(page):
-    """ページタイトルを抽出"""
-    try:
-        props = page.get("properties", {})
-        for key, val in props.items():
-            if val.get("type") == "title":
-                texts = val.get("title", [])
-                return "".join(t.get("plain_text", "") for t in texts)
-    except Exception:
-        pass
-    return "（タイトルなし）"
 
 
 def get_page_blocks(page_id):
@@ -269,49 +250,8 @@ def main():
     all_markdown.append(f"> ページ総数: {len(pages)}\n")
     all_markdown.append("\n---\n")
 
-    # テーブル関係のサマリーを先頭に追加
-    all_markdown.append("""## テーブル関係サマリー
-
-このデータベースの主要テーブルと関係性:
-
-### 生徒系
-- `contacts` : 受講生の本テーブル（氏名・銀行情報・学校IDなど）
-- `contacts_kouho` : 受講生候補テーブル（contactsとほぼ同構造、移動前の一時保管）
-  - 結合キー: `contacts.idnumber = contacts_kouho.idnumber`
-- `resource` : 学校マスタ
-  - 結合キー: `contacts.school_id = resource.id`（category='school'で絞り込み）
-
-### 料金・入出金系
-- `sms_fee` : 料金・契約情報
-  - 結合キー: `sms_fee.contact_id = contacts.id`
-- `sms_transaction` : 入出金明細
-  - 結合キー: `sms_transaction.fee_id = sms_fee.id`
-- `bankactions_history` : 口座振替の読込履歴
-  - フィールド: `input_type`, `claim_month`
-
-### コース・クラス系
-- `smsevent` : クラス（授業）マスタ
-  - 結合キー: `smsevent.code = クラスコード`
-- `shimacourse` : コースマスタ
-  - 結合キー: `shimacourse.course_cd = コースコード`
-- `event_shimacourse_contacts` : 生徒-コース紐づけ（中間テーブル）
-  - 結合キー: `contact_id`, `event_id`, `course_id`
-
-### 先生・報酬系
-- `person` : 先生テーブル（smsgroup='teacher'で絞り込み）
-- `branch` : 支店マスタ
-  - 結合キー: `person.branch_id = branch.id`
-- `sharei_total` : 謝礼・報酬明細
-  - 結合キー: `sharei_total.person_id = person.id`
-
-### 共通ルール
-- `deleted = '0'` : 論理削除フラグ（必ず付ける）
-- `smsgroup = 'student'` : 生徒の絞り込み
-- `smsgroup = 'teacher'` : 先生の絞り込み
-- idnumberの形式: `TK{日付8桁}{連番3桁}` 例: `TK20230810001`
-
----
-""")
+    # テーブル関係サマリーのプレースホルダー（/sql_export スキルが自動生成・更新する）
+    all_markdown.append("## テーブル関係サマリー\n\n---\n")
 
     for i, page in enumerate(pages, 1):
         page_id = page["id"]

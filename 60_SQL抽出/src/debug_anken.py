@@ -6,18 +6,7 @@ AIに読み込ませてOK（TOKEN含まない）
 
 import requests
 
-try:
-    from config import NOTION_TOKEN
-except ImportError:
-    raise SystemExit("❌ config.py が見つかりません")
-
-HEADERS = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json",
-}
-
-ANKEN_DATABASE_ID = "61d853d3fa614c878b22fa5cf9b6c0b1"
+from notion_client import HEADERS, ANKEN_DATABASE_ID
 
 print("=" * 60)
 print("  APIデバッグ")

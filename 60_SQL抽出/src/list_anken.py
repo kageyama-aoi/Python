@@ -14,23 +14,10 @@
   案件DBを直接クエリして一覧を取得しています。
 """
 
-import requests
 import time
+import requests
 
-# ===== 設定読み込み =====
-try:
-    from config import NOTION_TOKEN
-except ImportError:
-    raise SystemExit("❌ config.py が見つかりません。config.py を作成してください。")
-
-HEADERS = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json",
-}
-
-# 案件DBのデータソースID（ナレッジDBのスキーマから判明）
-ANKEN_DATABASE_ID = "61d853d3fa614c878b22fa5cf9b6c0b1"  # 案件DB（https://www.notion.so/61d853d3fa614c878b22fa5cf9b6c0b1）
+from notion_client import HEADERS, ANKEN_DATABASE_ID, extract_title
 
 
 def query_all_anken():
@@ -58,18 +45,6 @@ def query_all_anken():
         time.sleep(0.3)
 
     return all_pages
-
-
-def extract_title(page):
-    """ページタイトルを抽出"""
-    try:
-        props = page.get("properties", {})
-        for key, val in props.items():
-            if val.get("type") == "title":
-                return "".join(t.get("plain_text", "") for t in val.get("title", []))
-    except Exception:
-        pass
-    return "（タイトルなし）"
 
 
 def main():
