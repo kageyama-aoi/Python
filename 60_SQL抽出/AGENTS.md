@@ -28,6 +28,20 @@
 - テストファイルは `tests/test_notion_export.py`
 - 新しい純粋関数（APIを呼ばないロジック）を追加した場合は、対応するテストケースも追加すること
 
+## バグ発見時のフロー（必須）
+テスト実行中・開発中にバグを発見した場合は、以下の順序で対応すること：
+
+1. **Issue登録**（bug_report テンプレートを使用）
+   - 深刻度・発生箇所・再現手順・期待動作・実際の動作を記載
+   - 発見経緯（テストで検出 など）も必ず記載
+2. **修正・テスト再実行**
+   - 修正後に `python -m unittest discover tests -v` を再実行し全通過を確認
+3. **Issueクローズ**
+   - 修正コミットのハッシュを添えてクローズ
+4. **KNOWLEDGE.md に記録**
+   - 再発防止のため学びを `tests/test_notion_export.py` にテストとして残す
+   - `.spec/KNOWLEDGE.md` に教訓を追記する
+
 # Memory & Handoff Instructions
 
 ## 3ファイルの役割と哲学
