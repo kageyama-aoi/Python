@@ -3,6 +3,7 @@ config.py
 
 # 出力ファイル（必要に応じて）
 sql_knowledge.md
+old/
 
 # Python
 __pycache__/

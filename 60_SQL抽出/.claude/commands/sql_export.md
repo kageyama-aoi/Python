@@ -6,6 +6,24 @@
 
 ---
 
+### 0. 既存ファイルをバックアップ
+
+`sql_knowledge.md` が存在する場合、上書き前に `old/` フォルダへ退避する。
+
+```bash
+# sql_knowledge.md が存在すれば old/ に日時付きでコピー
+if [ -f sql_knowledge.md ]; then
+  mkdir -p old
+  TIMESTAMP=$(powershell -Command "Get-Date -Format 'yyyyMMdd_HHmm'")
+  cp sql_knowledge.md "old/sql_knowledge_${TIMESTAMP}.md"
+  echo "バックアップ完了: old/sql_knowledge_${TIMESTAMP}.md"
+fi
+```
+
+バックアップを確認してからステップ1に進む。
+
+---
+
 ### 1. SQL集を取得
 
 ```bash
