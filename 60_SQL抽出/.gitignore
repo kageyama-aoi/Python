@@ -1,0 +1,20 @@
+# 機密情報を含む設定ファイル（絶対にコミットしない）
+config.py
+
+# 出力ファイル（必要に応じて）
+sql_knowledge.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
