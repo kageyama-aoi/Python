@@ -9,8 +9,9 @@
 
 ## スクリプト構成
 - `notion_sql_export.py` : メインスクリプト。Notion API で SQL集ページを全件取得し `sql_knowledge.md` を生成する
-- `list_anken.py` : 案件DB からID一覧を取得するユーティリティ（`config.py` の `FILTER_ANKEN_IDS` 設定用）
-- `debug_anken.py` : Notion API の接続状態を確認するデバッグ用スクリプト
+- `list_anken_ids.py` : 案件DB からID一覧を取得するユーティリティ（`config.py` の `FILTER_ANKEN_IDS` 設定用）
+- `test_notion_connection.py` : Notion API の接続状態を確認するスクリプト
+- `notion_client.py` : 共通モジュール（HEADERS / extract_title 等）。直接実行しない
 - `config.py` : **AIに読み込ませないこと**（NOTION_TOKEN 等の機密情報を含む）
 
 ## 重要な制約・注意事項
