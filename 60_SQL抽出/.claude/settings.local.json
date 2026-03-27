@@ -18,7 +18,13 @@
       "Skill(update-config)",
       "Bash(find \"C:/Users/kageyama/Tools/Python/02_スクレイピング（勤怠・TR\\)/config\" -type f)",
       "Bash(cat \"C:\\\\Users\\\\kageyama\\\\Tools\\\\Python\\\\02_スクレイピング（勤怠・TR\\)\\\\src\\\\config\\\\config.py\")",
-      "Bash(ls \"C:\\\\Users\\\\kageyama\\\\Tools\\\\Python\\\\02_スクレイピング（勤怠・TR\\)\"/*.log)"
+      "Bash(ls \"C:\\\\Users\\\\kageyama\\\\Tools\\\\Python\\\\02_スクレイピング（勤怠・TR\\)\"/*.log)",
+      "Bash(date /t)",
+      "Bash(time /t)",
+      "Bash(powershell -Command \"Get-Date -Format 'yyyy-MM-dd-HHmm'\")",
+      "Bash(python src/notion_sql_export.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python src/notion_sql_export.py)",
+      "Bash(python -c \":*)"
     ],
     "defaultMode": "acceptEdits"
   }

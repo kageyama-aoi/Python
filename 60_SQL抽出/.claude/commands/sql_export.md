@@ -9,7 +9,7 @@
 ### 1. SQL集を取得
 
 ```bash
-python notion_sql_export.py
+python src/notion_sql_export.py
 ```
 
 `sql_knowledge.md` が生成されることを確認する。
