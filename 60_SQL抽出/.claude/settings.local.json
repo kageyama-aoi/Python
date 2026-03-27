@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(sort -k2)",
+      "Bash(find:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(gh issue:*)",
+      "Skill(update-config)",
+      "Bash(find \"C:/Users/kageyama/Tools/Python/02_スクレイピング（勤怠・TR\\)/config\" -type f)",
+      "Bash(cat \"C:\\\\Users\\\\kageyama\\\\Tools\\\\Python\\\\02_スクレイピング（勤怠・TR\\)\\\\src\\\\config\\\\config.py\")",
+      "Bash(ls \"C:\\\\Users\\\\kageyama\\\\Tools\\\\Python\\\\02_スクレイピング（勤怠・TR\\)\"/*.log)"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}
