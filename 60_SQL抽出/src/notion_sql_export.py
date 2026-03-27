@@ -88,7 +88,7 @@ def extract_relation_ids(page, prop_name):
         ids = []
 
         # relation型（標準APIレスポンス）
-        if val.get("type") == "relation":
+        if isinstance(val, dict) and val.get("type") == "relation":
             for r in val.get("relation", []):
                 raw = r.get("id", "")
                 ids.append(raw.replace("-", ""))

@@ -19,6 +19,15 @@
 - エラーが出たら止まって報告する（勝手に修正しない）
 - `sql_knowledge.md` は出力ファイルのため `.gitignore` で除外済み
 
+## テストルール
+- Pythonコードを変更した場合は必ず以下のコマンドでテストを実行し、全件通過を確認すること
+  ```bash
+  python -m unittest discover tests -v
+  ```
+- テストが失敗した場合はコミットせず、原因を調査・修正してから再実行すること
+- テストファイルは `tests/test_notion_export.py`
+- 新しい純粋関数（APIを呼ばないロジック）を追加した場合は、対応するテストケースも追加すること
+
 # Memory & Handoff Instructions
 
 ## 3ファイルの役割と哲学
