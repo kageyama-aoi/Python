@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from config import config
 from gui import gui_config_dialog
 from gui import gui_add_pattern_dialog
+from gui import webview_launcher
 
 class SelectionApp:
     def __init__(self, root):
@@ -138,6 +139,9 @@ class SelectionApp:
         self.add_pattern_btn = ttk.Button(btn_frame, text="＋ パターン追加", command=self._open_add_pattern_dialog)
         self.add_pattern_btn.pack(side="right", padx=5)
         self.add_pattern_btn.configure(state='disabled') # 初期は無効
+
+        # 工数入力ボタン（常時有効）
+        ttk.Button(btn_frame, text="工数入力", command=webview_launcher.open_crowdlog_input).pack(side="left", padx=5)
 
         # 初期状態の設定
         self._on_mode_change()

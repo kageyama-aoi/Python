@@ -33,7 +33,7 @@
 
 #### Phase 3: Python バックエンド実装
 - [x] T17: `data/drafts/` フォルダ作成・`.gitkeep` 配置、`.gitignore` に `data/drafts/*.json` を追加
-- [ ] T18: `src/gui/gui.py` に WebView 起動処理を追加（既存GUIから呼び出せる形で）
+- [x] T18: `src/gui/gui.py` に WebView 起動処理を追加（既存GUIから呼び出せる形で）
 - [ ] T19: GAS Webアプリの実装・デプロイ（カレンダーへの工数エントリ書き込み）
 - [ ] T20: `src/scraping/handlers/crowdlog_input_handler.py` を新規作成（GAS への HTTP POST処理）
 - [ ] T21: `config/main.yaml` の `crowdlog_settings` に GAS URL を追加
