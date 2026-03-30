@@ -9,6 +9,7 @@ Tkinter から subprocess で別プロセスとして起動する方式を検証
   2. ボタンを押すとpywebviewウィンドウが別プロセスで開くこと
   3. HTML内のボタンを押すとPythonメソッドが呼ばれること（コンソール出力）
 """
+import os
 import sys
 import subprocess
 import tkinter as tk
@@ -16,33 +17,47 @@ import tkinter as tk
 
 # ── pywebview プロセス側のエントリーポイント ──────────────────────────
 def run_webview():
+    import datetime
     import webview
 
-    HTML = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: sans-serif; padding: 2rem; }
-        button { padding: 8px 20px; font-size: 14px; cursor: pointer; }
-        #result { margin-top: 1rem; color: green; font-size: 14px; }
-      </style>
-    </head>
-    <body>
-      <h2>pywebview 疎通テスト</h2>
-      <p>ボタンを押してPythonメソッドを呼び出します。</p>
-      <button onclick="callPython()">Python に ping を送る</button>
-      <div id="result"></div>
-      <script>
-        async function callPython() {
-          const result = await window.pywebview.api.ping('こんにちは from JS');
-          document.getElementById('result').textContent = '応答: ' + result;
-        }
-      </script>
-    </body>
-    </html>
-    """
+    today = datetime.date.today().isoformat()  # 例: "2026-03-30"
+
+    html_path = os.path.join(os.path.dirname(__file__), "crowdlog_dur_input.html")
+    with open(html_path, encoding="utf-8") as f:
+        html_content = f.read()
+
+    # HTML フラグメントを最低限のページとして包む
+    HTML = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  :root {{
+    --font-sans: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #555;
+    --color-text-tertiary: #999;
+    --color-text-info: #1d6fa4;
+    --color-text-danger: #c0392b;
+    --color-background-primary: #fff;
+    --color-background-secondary: #f5f5f5;
+    --color-background-info: #e8f4fc;
+    --color-border-primary: #888;
+    --color-border-secondary: #ccc;
+    --color-border-tertiary: #e0e0e0;
+    --border-radius-md: 6px;
+    --border-radius-lg: 10px;
+  }}
+  body {{ margin: 0; background: var(--color-background-primary); }}
+</style>
+</head>
+<body>
+{html_content}
+<script>
+  // ページ読み込み完了後に今日の日付をセット
+  window.addEventListener('load', () => setDate('{today}'));
+</script>
+</body>
+</html>"""
 
     class Api:
         def ping(self, message):
@@ -51,10 +66,10 @@ def run_webview():
 
     api = Api()
     window = webview.create_window(
-        title="pywebview テスト（サブプロセス）",
+        title=f"工数入力 - {today}",
         html=HTML,
-        width=500,
-        height=350,
+        width=680,
+        height=700,
         js_api=api,
     )
     webview.start()

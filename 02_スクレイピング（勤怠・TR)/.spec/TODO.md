@@ -25,8 +25,8 @@
 - [x] T11: `pywebview` から Python メソッドを呼び出す最小サンプルで疎通確認
 
 #### Phase 2: HTML改修
-- [ ] T12: HTML の日付表示を動的化（起動時に今日の日付をPythonから渡す）
-- [ ] T13: 日付ナビ `‹` `›` の動作実装（前後1日移動）
+- [x] T12: HTML の日付表示を動的化（起動時に今日の日付をPythonから渡す）
+- [x] T13: 日付ナビ `‹` `›` の動作実装（前後1日移動）
 - [ ] T14: 「下書き保存」ボタン → `window.pywebview.api.save_draft(json)` 呼び出しに変更
 - [ ] T15: 「登録して同期 ↗」ボタン → `window.pywebview.api.submit(json)` 呼び出しに変更
 - [ ] T16: 起動時に下書きJSONが存在すれば `allRows` を復元する処理を追加
