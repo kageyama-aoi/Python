@@ -2,6 +2,9 @@ desktop.ini
 *.log
 *.png
 data/downloads/*.csv
+data/summary/*.txt
+data/screenshots/*.png
+data/drafts/*.json
 /build
 /src/__pycache__
 /.vscode/

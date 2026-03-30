@@ -276,6 +276,28 @@ function buildDurCell(row){
   return wrap;
 }
 
+/** Pythonから起動時に呼び出す: entries配列でallRowsを復元 */
+function loadDraft(entries) {
+  if (!entries || !entries.length) return;
+  allRows = entries.map(e => {
+    const timeParts = e.start ? e.start.split(':') : ['9','0'];
+    const startMin = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+    // セクションインデックスを開始時刻から逆引き
+    let secIdx = 0;
+    for (let i = 0; i < SECTIONS.length; i++) {
+      if (startMin >= SECTIONS[i].from && startMin < SECTIONS[i].to) { secIdx = i; break; }
+    }
+    return {
+      secIdx,
+      start:   startMin,
+      durMin:  e.duration_min || 60,
+      project: e.project || '',
+      task:    e.task || '',
+    };
+  });
+  renderInput();
+}
+
 function buildPayload() {
   return {
     date: formatDateISO(currentDate),

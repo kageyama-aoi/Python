@@ -16,11 +16,32 @@ import tkinter as tk
 
 
 # ── pywebview プロセス側のエントリーポイント ──────────────────────────
+DRAFTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "drafts")
+
+
+def draft_path(date_iso: str) -> str:
+    return os.path.join(DRAFTS_DIR, f"{date_iso}.json")
+
+
+def load_draft(date_iso: str) -> list:
+    """指定日付の下書きJSONを読み込む。なければ空リストを返す。"""
+    import json
+    path = draft_path(date_iso)
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("entries", [])
+    return []
+
+
 def run_webview():
+    import json
     import datetime
     import webview
 
     today = datetime.date.today().isoformat()  # 例: "2026-03-30"
+    draft_entries = load_draft(today)
+    draft_json = json.dumps(draft_entries, ensure_ascii=False)
 
     html_path = os.path.join(os.path.dirname(__file__), "crowdlog_dur_input.html")
     with open(html_path, encoding="utf-8") as f:
@@ -53,8 +74,10 @@ def run_webview():
 <body>
 {html_content}
 <script>
-  // ページ読み込み完了後に今日の日付をセット
-  window.addEventListener('load', () => setDate('{today}'));
+  window.addEventListener('load', () => {{
+    setDate('{today}');
+    loadDraft({draft_json});
+  }});
 </script>
 </body>
 </html>"""
@@ -65,12 +88,15 @@ def run_webview():
             return f"pong: {message}"
 
         def save_draft(self, payload):
-            import json
-            print(f"[Python] 下書き保存:\n{json.dumps(payload, ensure_ascii=False, indent=2)}", flush=True)
+            os.makedirs(DRAFTS_DIR, exist_ok=True)
+            date_iso = payload.get("date", today)
+            path = draft_path(date_iso)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            print(f"[Python] 下書き保存: {path}", flush=True)
             return "saved"
 
         def submit(self, payload):
-            import json
             print(f"[Python] 登録して同期:\n{json.dumps(payload, ensure_ascii=False, indent=2)}", flush=True)
             return "submitted"
 
