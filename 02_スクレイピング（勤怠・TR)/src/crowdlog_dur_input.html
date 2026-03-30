@@ -79,8 +79,8 @@
     <div class="footer">
       <span class="summary" id="summary"></span>
       <div class="btns">
-        <button class="btn btn-secondary">下書き保存</button>
-        <button class="btn btn-primary">登録して同期 ↗</button>
+        <button class="btn btn-secondary" onclick="onSaveDraft()">下書き保存</button>
+        <button class="btn btn-primary" onclick="onSubmit()">登録して同期 ↗</button>
       </div>
     </div>
   </div>
@@ -274,6 +274,39 @@ function buildDurCell(row){
   wrap.appendChild(sel);
   wrap.appendChild(inp);
   return wrap;
+}
+
+function buildPayload() {
+  return {
+    date: formatDateISO(currentDate),
+    entries: allRows.map(r => ({
+      start: fmt(r.start),
+      end:   r.durMin ? fmt(r.start + r.durMin) : null,
+      duration_min: r.durMin || 0,
+      project: r.project,
+      task:    r.task,
+    })),
+  };
+}
+
+async function onSaveDraft() {
+  if (!allRows.length) { alert('入力行がありません。'); return; }
+  const payload = buildPayload();
+  if (window.pywebview) {
+    await window.pywebview.api.save_draft(payload);
+  } else {
+    console.log('[下書き保存]', JSON.stringify(payload, null, 2));
+  }
+}
+
+async function onSubmit() {
+  if (!allRows.length) { alert('入力行がありません。'); return; }
+  const payload = buildPayload();
+  if (window.pywebview) {
+    await window.pywebview.api.submit(payload);
+  } else {
+    console.log('[登録して同期]', JSON.stringify(payload, null, 2));
+  }
 }
 
 function renderInput(){

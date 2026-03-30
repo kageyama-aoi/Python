@@ -64,6 +64,16 @@ def run_webview():
             print(f"[Python] ping受信: {message}", flush=True)
             return f"pong: {message}"
 
+        def save_draft(self, payload):
+            import json
+            print(f"[Python] 下書き保存:\n{json.dumps(payload, ensure_ascii=False, indent=2)}", flush=True)
+            return "saved"
+
+        def submit(self, payload):
+            import json
+            print(f"[Python] 登録して同期:\n{json.dumps(payload, ensure_ascii=False, indent=2)}", flush=True)
+            return "submitted"
+
     api = Api()
     window = webview.create_window(
         title=f"工数入力 - {today}",
