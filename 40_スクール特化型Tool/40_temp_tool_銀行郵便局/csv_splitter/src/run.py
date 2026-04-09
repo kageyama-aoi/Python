@@ -10,6 +10,10 @@ OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
 
 
+def _detect_delimiter(ext: str) -> str:
+    return "," if ext.lower() == ".csv" else "\t"
+
+
 def write_log(
     log_path: Path,
     status: str,
@@ -18,11 +22,13 @@ def write_log(
     input_path: Path,
     rows_per_file: int,
     encoding: str,
+    delimiter: str,
     has_header: bool,
     total_rows: int,
     output_summaries: list[tuple[str, int]],
     error_message: str = "",
 ) -> None:
+    delimiter_repr = "\\t" if delimiter == "\t" else delimiter
     lines = [
         "=== CSV Splitter Execution Log ===",
         f"status: {status}",
@@ -31,6 +37,7 @@ def write_log(
         f"input_file: {input_path}",
         f"rows_per_file: {rows_per_file}",
         f"encoding: {encoding}",
+        f"delimiter: {delimiter_repr}",
         f"has_header: {has_header}",
         f"data_record_count: {total_rows}",
         f"created_file_count: {len(output_summaries)}",
@@ -58,6 +65,9 @@ def split_csv(input_path: Path, config_path: Path) -> None:
     rows_per_file = config["rows_per_file"]
     encoding = config["encoding"]
     has_header = config.get("has_header", True)
+    ext = input_path.suffix
+    delimiter = config.get("delimiter") or _detect_delimiter(ext)
+    quoting = csv.QUOTE_ALL if delimiter == "," else csv.QUOTE_MINIMAL
 
     if not isinstance(rows_per_file, int) or rows_per_file <= 0:
         raise ValueError("rows_per_file は1以上の整数を指定してください")
@@ -72,7 +82,6 @@ def split_csv(input_path: Path, config_path: Path) -> None:
     LOG_DIR.mkdir(exist_ok=True)
 
     base_name = input_path.stem
-    ext = input_path.suffix
 
     file_index = 1
     total_rows = 0
@@ -85,7 +94,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
 
     try:
         with open(input_path, "r", encoding=encoding, newline="") as infile:
-            reader = csv.reader(infile)
+            reader = csv.reader(infile, delimiter=delimiter)
 
             header = None
             if has_header:
@@ -101,7 +110,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
                     output_file_name = output_path.name
 
                     outfile = open(output_path, "w", encoding=encoding, newline="")
-                    writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
+                    writer = csv.writer(outfile, delimiter=delimiter, quoting=quoting)
 
                     if has_header and header is not None:
                         writer.writerow(header)
@@ -142,6 +151,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
             input_path=input_path,
             rows_per_file=rows_per_file,
             encoding=encoding,
+            delimiter=delimiter,
             has_header=has_header,
             total_rows=total_rows,
             output_summaries=output_summaries,
