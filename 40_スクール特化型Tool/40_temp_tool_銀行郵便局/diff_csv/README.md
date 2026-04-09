@@ -6,10 +6,14 @@
 
 ## できること
 
-| スクリプト | 概要 |
+1回の実行で以下の4ファイルを `output/` に生成する。
+
+| 出力ファイル | 内容 |
 |---|---|
-| `compare_postcode.py` | 旧・新2ファイルの郵便番号を集合演算で比較し、差分を3つのCSVに出力する |
-| `enrich_postcode_issue_info.py` | 新ファイルの各行に「旧ファイルに既存か・今回新規か」の推定情報列を付与して出力する |
+| `postcode_only_in_<旧ファイル名>.csv` | 旧にあって新にない（廃止候補） |
+| `postcode_only_in_<新ファイル名>.csv` | 新にあって旧にない（新規追加） |
+| `postcode_in_both.csv` | 両方に存在（継続） |
+| `<新ファイル名>_with_issue_info.csv` | 新ファイルに発行推定情報を付与したもの |
 
 ---
 
@@ -25,57 +29,19 @@
 
 ---
 
-## ロジック詳細
-
-### `compare_postcode.py`
-
-```
-旧CSV (FILE_A)  →  postcodesのset_A
-新CSV (FILE_B)  →  postcodesのset_B
-
-出力:
-  only_in_A  = set_A - set_B   # 旧にあって新にない（廃止候補）
-  only_in_B  = set_B - set_A   # 新にあって旧にない（新規追加）
-  in_both    = set_A & set_B   # 両方に存在（継続）
-```
-
-- `postcode` 列をキーとして読み込み、重複は自動排除（set）
-- 出力は `output/` ディレクトリに3ファイル生成
-
-### `enrich_postcode_issue_info.py`
-
-```
-旧CSV → postcodesのset（旧）
-
-新CSV の全行をループ:
-  if postcode in 旧set:
-      issue_info = "already_exists_in_old_file"
-      issue_date_estimate = "<=2026-03-05"   # 旧ファイル取得日以前
-  else:
-      issue_info = "new_in_current_file"
-      issue_date_estimate = "2026-03-05"     # 新ファイル取得日で初観測
-
-→ 3列追加した新CSVを output/ に出力
-```
-
-- 公式な発行日は元データに存在しないため、あくまで**観測上の推定値**として付与
-- 元の全列はそのまま保持し、末尾に `issue_info` / `issue_date_estimate` / `issue_note` を追加
-
----
-
 ## ファイル構成
 
 ```
 diff_csv/
-├── compare_postcode.py             # 差分比較スクリプト
-├── enrich_postcode_issue_info.py   # 発行情報付与スクリプト
-├── 0305_1518_yubin.csv             # 旧ファイル（入力）
-├── 0305_1518_yubin_new.csv         # 新ファイル（入力）
-└── output/
-    ├── postcode_only_in_0305_1518_yubin.csv      # 旧のみ（廃止候補）
-    ├── postcode_only_in_0305_1518_yubin_new.csv  # 新のみ（新規追加）
-    ├── postcode_in_both.csv                      # 共通
-    └── 0305_1518_yubin_new_with_issue_info.csv   # エンリッチ済み新ファイル
+├── run.py              ← ここをダブルクリック or python run.py で実行
+├── README.md
+├── input/              ← 入力CSVをここに配置
+│   ├── 0305_1518_yubin.csv
+│   └── 0305_1518_yubin_new.csv
+├── output/             ← 実行後に結果が生成される
+└── src/
+    ├── postcode_diff.py  ← メイン処理（差分比較・エンリッチ）
+    └── utils.py          ← 共通関数（load_postcodes）
 ```
 
 ---
@@ -83,17 +49,44 @@ diff_csv/
 ## 実行方法
 
 ```bash
-# 差分比較（3ファイル出力）
-python compare_postcode.py
-
-# 発行情報付与（エンリッチ済みCSV出力）
-python enrich_postcode_issue_info.py
+python run.py
 ```
+
+または `run.py` をダブルクリック（Python関連付け済みの場合）。
 
 ### 前提条件
 
 - Python 3.9 以上（標準ライブラリのみ使用、追加インストール不要）
 - 入力CSVは UTF-8、1行目がヘッダー行、`postcode` 列が必須
+
+---
+
+## ロジック詳細
+
+### 差分比較（postcode_diff.py）
+
+```
+旧CSV → set_old
+新CSV → set_new
+
+only_in_old = set_old - set_new   # 廃止候補
+only_in_new = set_new - set_old   # 新規追加
+in_both     = set_old & set_new   # 継続
+```
+
+### 発行情報付与（postcode_diff.py）
+
+```
+新CSVの各行に対して：
+  if postcode in set_old:
+      issue_info = "already_exists_in_old_file"
+      issue_date_estimate = "<=取得日"
+  else:
+      issue_info = "new_in_current_file"
+      issue_date_estimate = "取得日"
+```
+
+公式な発行日は元データに存在しないため、あくまで**観測上の推定値**として付与する。
 
 ---
 
@@ -104,4 +97,4 @@ postcode,other_col,...
 1000001,東京都千代田区千代田,...
 ```
 
-`postcode` 列さえあれば他の列は自由。`enrich_postcode_issue_info.py` は他の列もそのまま出力に引き継ぐ。
+`postcode` 列さえあれば他の列は自由。エンリッチ出力は他の列もそのまま引き継ぐ。
