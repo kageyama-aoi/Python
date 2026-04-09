@@ -78,12 +78,10 @@ def split_csv(input_path: Path, config_path: Path) -> None:
     total_rows = 0
     current_file_records = 0
     output_summaries: list[tuple[str, int]] = []
-    output_file_name = ""
     status = "SUCCESS"
     error_message = ""
 
     outfile = None
-    writer = None
 
     try:
         with open(input_path, "r", encoding=encoding, newline="") as infile:
@@ -96,12 +94,11 @@ def split_csv(input_path: Path, config_path: Path) -> None:
             for row in reader:
                 if current_file_records == 0:
                     if outfile:
+                        output_summaries.append((output_file_name, prev_file_records))
                         outfile.close()
-                        output_summaries.append((output_file_name, current_file_records))
 
                     output_path = OUTPUT_DIR / f"{base_name}_split_{file_index:03}{ext}"
                     output_file_name = output_path.name
-                    current_file_records = 0
 
                     outfile = open(output_path, "w", encoding=encoding, newline="")
                     writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
@@ -117,11 +114,12 @@ def split_csv(input_path: Path, config_path: Path) -> None:
                 current_file_records += 1
 
                 if current_file_records >= rows_per_file:
+                    prev_file_records = current_file_records
                     current_file_records = 0
 
             if outfile:
-                outfile.close()
                 output_summaries.append((output_file_name, current_file_records))
+                outfile.close()
                 outfile = None
 
     except Exception as exc:
