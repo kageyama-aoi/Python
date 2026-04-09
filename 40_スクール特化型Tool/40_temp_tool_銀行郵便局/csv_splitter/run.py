@@ -1,0 +1,172 @@
+import csv
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).parent
+OUTPUT_DIR = BASE_DIR / "output"
+LOG_DIR = BASE_DIR / "logs"
+
+
+def write_log(
+    log_path: Path,
+    status: str,
+    started_at: datetime,
+    ended_at: datetime,
+    input_path: Path,
+    rows_per_file: int,
+    encoding: str,
+    has_header: bool,
+    total_rows: int,
+    output_summaries: list[tuple[str, int]],
+    error_message: str = "",
+) -> None:
+    lines = [
+        "=== CSV Splitter Execution Log ===",
+        f"status: {status}",
+        f"started_at: {started_at.isoformat(timespec='seconds')}",
+        f"ended_at: {ended_at.isoformat(timespec='seconds')}",
+        f"input_file: {input_path}",
+        f"rows_per_file: {rows_per_file}",
+        f"encoding: {encoding}",
+        f"has_header: {has_header}",
+        f"data_record_count: {total_rows}",
+        f"created_file_count: {len(output_summaries)}",
+        "created_files:",
+    ]
+
+    if output_summaries:
+        for file_name, record_count in output_summaries:
+            lines.append(f"- {file_name}: {record_count} records")
+    else:
+        lines.append("- (none)")
+
+    if error_message:
+        lines.append(f"error: {error_message}")
+
+    log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def split_csv(input_path: Path, config_path: Path) -> None:
+    started_at = datetime.now()
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    rows_per_file = config["rows_per_file"]
+    encoding = config["encoding"]
+    has_header = config.get("has_header", True)
+
+    if not isinstance(rows_per_file, int) or rows_per_file <= 0:
+        raise ValueError("rows_per_file は1以上の整数を指定してください")
+
+    if not isinstance(has_header, bool):
+        raise ValueError("has_header は true / false で指定してください")
+
+    if not input_path.exists():
+        raise FileNotFoundError(f"入力ファイルが見つかりません: {input_path}")
+
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    LOG_DIR.mkdir(exist_ok=True)
+
+    base_name = input_path.stem
+    ext = input_path.suffix
+
+    file_index = 1
+    total_rows = 0
+    current_file_records = 0
+    output_summaries: list[tuple[str, int]] = []
+    output_file_name = ""
+    status = "SUCCESS"
+    error_message = ""
+
+    outfile = None
+    writer = None
+
+    try:
+        with open(input_path, "r", encoding=encoding, newline="") as infile:
+            reader = csv.reader(infile)
+
+            header = None
+            if has_header:
+                header = next(reader, None)
+
+            for row in reader:
+                if current_file_records == 0:
+                    if outfile:
+                        outfile.close()
+                        output_summaries.append((output_file_name, current_file_records))
+
+                    output_path = OUTPUT_DIR / f"{base_name}_split_{file_index:03}{ext}"
+                    output_file_name = output_path.name
+                    current_file_records = 0
+
+                    outfile = open(output_path, "w", encoding=encoding, newline="")
+                    writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
+
+                    if has_header and header is not None:
+                        writer.writerow(header)
+
+                    file_index += 1
+
+                writer.writerow(row)
+
+                total_rows += 1
+                current_file_records += 1
+
+                if current_file_records >= rows_per_file:
+                    current_file_records = 0
+
+            if outfile:
+                outfile.close()
+                output_summaries.append((output_file_name, current_file_records))
+                outfile = None
+
+    except Exception as exc:
+        status = "ERROR"
+        error_message = str(exc)
+        raise
+
+    finally:
+        if outfile:
+            outfile.close()
+
+        ended_at = datetime.now()
+        log_path = LOG_DIR / f"split_log_{started_at:%Y%m%d_%H%M%S}.log"
+
+        write_log(
+            log_path=log_path,
+            status=status,
+            started_at=started_at,
+            ended_at=ended_at,
+            input_path=input_path,
+            rows_per_file=rows_per_file,
+            encoding=encoding,
+            has_header=has_header,
+            total_rows=total_rows,
+            output_summaries=output_summaries,
+            error_message=error_message,
+        )
+
+    print("=================================")
+    print("CSV分割 完了")
+    print(f"入力ファイル : {input_path}")
+    print(f"ヘッダー有無 : {'あり' if has_header else 'なし'}")
+    print(f"総データ件数 : {total_rows}")
+    print(f"出力ファイル数 : {len(output_summaries)}")
+    print(f"出力フォルダ : {OUTPUT_DIR}")
+    print(f"ログファイル : {log_path}")
+    print("=================================")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("使い方: python run.py <入力CSVファイルパス> [config.json]")
+        sys.exit(1)
+
+    input_path = Path(sys.argv[1])
+    config_path = Path(sys.argv[2]) if len(sys.argv) >= 3 else BASE_DIR / "config.json"
+
+    split_csv(input_path, config_path)
