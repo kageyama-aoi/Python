@@ -6,7 +6,8 @@
 
 ```text
 csv_splitter/
-├ run.py
+├ src/
+│  └ run.py
 ├ config.json
 ├ README.md
 ├ output/
@@ -45,13 +46,13 @@ csv_splitter/
 2. 実行
 
 ```bash
-python run.py <入力CSVファイルパス>
+python src/run.py <入力CSVファイルパス>
 ```
 
 `config.json` のパスを変更する場合は第2引数で指定できます。
 
 ```bash
-python run.py /path/to/input.csv /path/to/config.json
+python src/run.py /path/to/input.csv /path/to/config.json
 ```
 
 ## 出力
