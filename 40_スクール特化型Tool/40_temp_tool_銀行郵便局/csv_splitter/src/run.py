@@ -69,7 +69,7 @@ def write_log(
     log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def split_csv(input_path: Path, config_path: Path) -> None:
+def split_csv(input_path: Path, config_path: Path) -> tuple[int, list[tuple[str, int]], Path]:
     started_at = datetime.now()
 
     with open(config_path, "r", encoding="utf-8") as f:
