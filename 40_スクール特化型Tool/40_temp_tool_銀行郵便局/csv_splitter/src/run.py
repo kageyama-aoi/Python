@@ -174,15 +174,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
             error_message=error_message,
         )
 
-    print("=================================")
-    print("CSV分割 完了")
-    print(f"入力ファイル : {input_path}")
-    print(f"ヘッダー有無 : {'あり' if has_header else 'なし'}")
-    print(f"総データ件数 : {total_rows}")
-    print(f"出力ファイル数 : {len(output_summaries)}")
-    print(f"出力フォルダ : {OUTPUT_DIR}")
-    print(f"ログファイル : {log_path}")
-    print("=================================")
+    return total_rows, output_summaries, log_path
 
 
 if __name__ == "__main__":
@@ -193,4 +185,12 @@ if __name__ == "__main__":
     input_path = Path(sys.argv[1])
     config_path = Path(sys.argv[2]) if len(sys.argv) >= 3 else BASE_DIR / "config.json"
 
-    split_csv(input_path, config_path)
+    _total, _summaries, _log = split_csv(input_path, config_path)
+    print("=================================")
+    print("CSV分割 完了")
+    print(f"入力ファイル : {input_path}")
+    print(f"総データ件数 : {_total}")
+    print(f"出力ファイル数 : {len(_summaries)}")
+    print(f"出力フォルダ : {OUTPUT_DIR}")
+    print(f"ログファイル : {_log}")
+    print("=================================")

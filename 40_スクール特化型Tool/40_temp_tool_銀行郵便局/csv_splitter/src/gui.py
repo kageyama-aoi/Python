@@ -10,7 +10,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).parent))
-from run import _detect_delimiter, split_csv
+from run import OUTPUT_DIR, _detect_delimiter, split_csv
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = BASE_DIR / "config.json"
@@ -329,6 +329,9 @@ class App(tk.Tk):
         self._log_queue.put(header)
 
         error_msg = ""
+        total_rows = 0
+        output_summaries: list = []
+        log_path = None
         try:
             with open(tmp_config, "w", encoding="utf-8") as f:
                 json.dump(cfg, f, ensure_ascii=False)
@@ -336,7 +339,7 @@ class App(tk.Tk):
             orig_stdout = sys.stdout
             sys.stdout = QueueStream(self._log_queue)
             try:
-                split_csv(input_path, tmp_config)
+                total_rows, output_summaries, log_path = split_csv(input_path, tmp_config)
             finally:
                 sys.stdout = orig_stdout
         except Exception as e:
@@ -354,12 +357,19 @@ class App(tk.Tk):
 
             footer = (
                 "━" * 50 + "\n"
-                f"  終了時刻  : {ended_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
-                f"  経過時間  : {elapsed_str}\n"
-                f"  ステータス: {status}\n"
+                f"  終了時刻    : {ended_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"  経過時間    : {elapsed_str}\n"
+                f"  ステータス  : {status}\n"
             )
-            if error_msg:
-                footer += f"  エラー    : {error_msg}\n"
+            if not error_msg:
+                footer += (
+                    f"  総データ件数: {total_rows:,} 行\n"
+                    f"  出力ファイル: {len(output_summaries)} 件\n"
+                    f"  出力フォルダ: {OUTPUT_DIR}\n"
+                    f"  ログファイル: {log_path}\n"
+                )
+            else:
+                footer += f"  エラー      : {error_msg}\n"
             footer += "━" * 50 + "\n"
 
             self._log_queue.put(footer)
