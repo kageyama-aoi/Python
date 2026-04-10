@@ -4,6 +4,7 @@ import queue
 import sys
 import threading
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
@@ -156,7 +157,7 @@ class App(tk.Tk):
 
         _save_config(cfg)
         self._btn_run.configure(state="disabled")
-        self._log_append("=== 処理開始 ===\n")
+        self._log_append("")
 
         threading.Thread(
             target=self._run_worker,
@@ -166,6 +167,22 @@ class App(tk.Tk):
 
     def _run_worker(self, input_path: Path, cfg: dict) -> None:
         tmp_config = BASE_DIR / ".tmp_gui_config.json"
+        started_at = datetime.now()
+        delim_disp = repr(cfg.get("delimiter")) if cfg.get("delimiter") else "自動検出"
+
+        header = (
+            "━" * 50 + "\n"
+            f"  開始時刻  : {started_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"  ファイル  : {input_path}\n"
+            f"  分割行数  : {cfg['rows_per_file']:,} 行\n"
+            f"  エンコード: {cfg['encoding']}\n"
+            f"  デリミタ  : {delim_disp}\n"
+            f"  ヘッダー  : {'あり' if cfg['has_header'] else 'なし'}\n"
+            "━" * 50 + "\n"
+        )
+        self._log_queue.put(header)
+
+        error_msg = ""
         try:
             with open(tmp_config, "w", encoding="utf-8") as f:
                 json.dump(cfg, f, ensure_ascii=False)
@@ -177,10 +194,29 @@ class App(tk.Tk):
             finally:
                 sys.stdout = orig_stdout
         except Exception as e:
+            error_msg = str(e)
             self._log_queue.put(f"[ERROR] {e}\n")
         finally:
             if tmp_config.exists():
                 tmp_config.unlink()
+
+            ended_at = datetime.now()
+            elapsed = ended_at - started_at
+            total_sec = int(elapsed.total_seconds())
+            elapsed_str = f"{total_sec // 60}分{total_sec % 60}秒" if total_sec >= 60 else f"{total_sec}秒"
+            status = "ERROR" if error_msg else "SUCCESS"
+
+            footer = (
+                "━" * 50 + "\n"
+                f"  終了時刻  : {ended_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"  経過時間  : {elapsed_str}\n"
+                f"  ステータス: {status}\n"
+            )
+            if error_msg:
+                footer += f"  エラー    : {error_msg}\n"
+            footer += "━" * 50 + "\n"
+
+            self._log_queue.put(footer)
             self._log_queue.put(None)  # 完了シグナル
 
     # ------------------------------------------------------------------
@@ -198,7 +234,6 @@ class App(tk.Tk):
             while True:
                 item = self._log_queue.get_nowait()
                 if item is None:
-                    self._log_append("=== 完了 ===\n")
                     self._btn_run.configure(state="normal")
                 else:
                     self._log_append(item)
