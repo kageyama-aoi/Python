@@ -1,3 +1,4 @@
+import csv
 import io
 import json
 import queue
@@ -9,13 +10,82 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).parent))
-from run import split_csv
+from run import _detect_delimiter, split_csv
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = BASE_DIR / "config.json"
 
 ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
 
+_SENTINEL_SPLIT_DONE = object()
+_SENTINEL_ANALYZE_DONE = object()
+
+
+# ------------------------------------------------------------------
+# ファイル解析ヘルパー
+# ------------------------------------------------------------------
+
+def _detect_encoding_from_file(path: Path) -> str:
+    with open(path, "rb") as f:
+        raw = f.read(4)
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return "utf-8-sig"
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return "utf-16"
+    for enc in ("utf-8", "shift_jis", "cp932"):
+        try:
+            with open(path, "r", encoding=enc, errors="strict") as f:
+                f.read(65536)
+            return enc
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return "不明"
+
+
+def _count_rows(path: Path) -> int:
+    count = 0
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            count += chunk.count(b"\n")
+    return count
+
+
+def _fmt_size(n: int) -> str:
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024:
+            return f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} TB"
+
+
+def _read_first_row(path: Path, enc: str, delim: str) -> tuple[int, str]:
+    try:
+        with open(path, "r", encoding=enc, newline="") as f:
+            reader = csv.reader(f, delimiter=delim)
+            row = next(reader, [])
+        col_count = len(row)
+        preview = ", ".join(str(v) for v in row[:8])
+        if len(row) > 8:
+            preview += f" ... (+{len(row) - 8}列)"
+        return col_count, preview
+    except Exception:
+        return 0, "(読み取り失敗)"
+
+
+def _suggest_rows(total_rows: int) -> str:
+    if total_rows <= 0:
+        return "不明"
+    per_file = max(1000, total_rows // 10)
+    if per_file >= 10000:
+        per_file = round(per_file / 10000) * 10000
+    elif per_file >= 1000:
+        per_file = round(per_file / 1000) * 1000
+    return f"{per_file:,} 行（全体を約10ファイルに分割）"
+
+
+# ------------------------------------------------------------------
+# Queue stream
+# ------------------------------------------------------------------
 
 def _load_config() -> dict:
     if CONFIG_PATH.exists():
@@ -44,6 +114,10 @@ class QueueStream(io.TextIOBase):
         pass
 
 
+# ------------------------------------------------------------------
+# App
+# ------------------------------------------------------------------
+
 class App(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -67,8 +141,10 @@ class App(tk.Tk):
         frm_file.grid(row=0, column=0, columnspan=2, sticky="ew", **pad)
 
         self._var_file = tk.StringVar()
-        ttk.Entry(frm_file, textvariable=self._var_file, width=50).grid(row=0, column=0, padx=6, pady=4)
-        ttk.Button(frm_file, text="参照...", command=self._browse_file).grid(row=0, column=1, padx=6, pady=4)
+        ttk.Entry(frm_file, textvariable=self._var_file, width=46).grid(row=0, column=0, padx=6, pady=4)
+        ttk.Button(frm_file, text="参照...", command=self._browse_file).grid(row=0, column=1, padx=(0, 4), pady=4)
+        self._btn_analyze = ttk.Button(frm_file, text="解析", command=self._analyze)
+        self._btn_analyze.grid(row=0, column=2, padx=(0, 6), pady=4)
 
         # --- 設定 ---
         frm_cfg = ttk.LabelFrame(self, text="設定")
@@ -140,6 +216,75 @@ class App(tk.Tk):
             self._var_file.set(path)
 
     # ------------------------------------------------------------------
+    # ファイル解析
+    # ------------------------------------------------------------------
+
+    def _analyze(self) -> None:
+        file_str = self._var_file.get().strip()
+        if not file_str:
+            messagebox.showwarning("入力エラー", "入力ファイルを選択してください。")
+            return
+
+        self._btn_analyze.configure(state="disabled")
+        self._btn_run.configure(state="disabled")
+        self._log_append("解析中...\n")
+
+        threading.Thread(
+            target=self._analyze_worker,
+            args=(Path(file_str),),
+            daemon=True,
+        ).start()
+
+    def _analyze_worker(self, path: Path) -> None:
+        try:
+            size_str = _fmt_size(path.stat().st_size)
+            detected_enc = _detect_encoding_from_file(path)
+            detected_delim = _detect_delimiter(path, detected_enc if detected_enc != "不明" else "utf-8", path.suffix)
+            total_rows = _count_rows(path)
+            col_count, header_preview = _read_first_row(
+                path,
+                detected_enc if detected_enc != "不明" else "utf-8",
+                detected_delim,
+            )
+
+            delim_disp = {",": "カンマ (,)", "\t": "タブ (\\t)", ";": "セミコロン (;)"}.get(
+                detected_delim, repr(detected_delim)
+            )
+            suggested = _suggest_rows(total_rows)
+
+            result = (
+                "━" * 50 + "\n"
+                "  ファイル解析結果\n"
+                "━" * 50 + "\n"
+                f"  ファイルサイズ : {size_str}\n"
+                f"  総行数         : {total_rows:,} 行\n"
+                f"  検出エンコード : {detected_enc}\n"
+                f"  検出デリミタ   : {delim_disp}\n"
+                f"  カラム数       : {col_count}\n"
+                f"  先頭行         : {header_preview}\n"
+                f"  推奨分割行数   : {suggested}\n"
+                "━" * 50 + "\n"
+            )
+            self._log_queue.put(result)
+
+            # フォームへ自動反映（メインスレッドで実行）
+            self.after(0, lambda enc=detected_enc, delim=detected_delim: self._apply_analysis(enc, delim))
+
+        except Exception as e:
+            self._log_queue.put(f"[解析エラー] {e}\n")
+            self._log_queue.put(_SENTINEL_ANALYZE_DONE)
+        else:
+            self._log_queue.put(_SENTINEL_ANALYZE_DONE)
+
+    def _apply_analysis(self, enc: str, delim: str) -> None:
+        if enc in ENCODINGS:
+            self._var_enc.set(enc)
+        # カンマ・タブは「自動検出」に任せるのが自然なのでフォームには反映しない
+        # 明示的に設定したい場合のみ書き込む（セミコロン等）
+        if delim not in (",", "\t"):
+            self._var_delim.set(delim)
+
+    # ------------------------------------------------------------------
     # 実行
     # ------------------------------------------------------------------
 
@@ -157,6 +302,7 @@ class App(tk.Tk):
 
         _save_config(cfg)
         self._btn_run.configure(state="disabled")
+        self._btn_analyze.configure(state="disabled")
         self._log_append("")
 
         threading.Thread(
@@ -217,7 +363,7 @@ class App(tk.Tk):
             footer += "━" * 50 + "\n"
 
             self._log_queue.put(footer)
-            self._log_queue.put(None)  # 完了シグナル
+            self._log_queue.put(_SENTINEL_SPLIT_DONE)
 
     # ------------------------------------------------------------------
     # ログ
@@ -233,7 +379,11 @@ class App(tk.Tk):
         try:
             while True:
                 item = self._log_queue.get_nowait()
-                if item is None:
+                if item is _SENTINEL_SPLIT_DONE:
+                    self._btn_run.configure(state="normal")
+                    self._btn_analyze.configure(state="normal")
+                elif item is _SENTINEL_ANALYZE_DONE:
+                    self._btn_analyze.configure(state="normal")
                     self._btn_run.configure(state="normal")
                 else:
                     self._log_append(item)
