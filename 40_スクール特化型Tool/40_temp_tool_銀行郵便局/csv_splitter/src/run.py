@@ -99,6 +99,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
     file_index = 1
     total_rows = 0
     current_file_records = 0
+    prev_file_records = 0
     output_summaries: list[tuple[str, int]] = []
     status = "SUCCESS"
     error_message = ""
@@ -143,7 +144,10 @@ def split_csv(input_path: Path, config_path: Path) -> None:
                     current_file_records = 0
 
             if outfile:
-                output_summaries.append((output_file_name, current_file_records))
+                # current_file_records が 0 の場合は最終ファイルがちょうど満杯で
+                # リセット済みのため、prev_file_records を使う
+                final_count = prev_file_records if current_file_records == 0 else current_file_records
+                output_summaries.append((output_file_name, final_count))
                 outfile.close()
                 outfile = None
 
