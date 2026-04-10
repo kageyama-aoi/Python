@@ -10,7 +10,20 @@ OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
 
 
-def _detect_delimiter(ext: str) -> str:
+def _detect_delimiter(path: Path, encoding: str, ext: str) -> str:
+    candidates = {",": 0, "\t": 0, ";": 0}
+    try:
+        with open(path, "r", encoding=encoding, newline="") as f:
+            for i, line in enumerate(f):
+                if i >= 20:
+                    break
+                for delim in candidates:
+                    candidates[delim] += line.count(delim)
+    except Exception:
+        pass
+    best = max(candidates, key=lambda d: candidates[d])
+    if candidates[best] > 0:
+        return best
     return "," if ext.lower() == ".csv" else "\t"
 
 
@@ -66,7 +79,7 @@ def split_csv(input_path: Path, config_path: Path) -> None:
     encoding = config["encoding"]
     has_header = config.get("has_header", True)
     ext = input_path.suffix
-    delimiter = config.get("delimiter") or _detect_delimiter(ext)
+    delimiter = config.get("delimiter") or _detect_delimiter(input_path, encoding, ext)
     quoting = csv.QUOTE_ALL if delimiter == "," else csv.QUOTE_MINIMAL
 
     if not isinstance(rows_per_file, int) or rows_per_file <= 0:
@@ -121,6 +134,9 @@ def split_csv(input_path: Path, config_path: Path) -> None:
 
                 total_rows += 1
                 current_file_records += 1
+
+                if total_rows % 10_000 == 0:
+                    print(f"  処理中: {total_rows:,} 行 ...", flush=True)
 
                 if current_file_records >= rows_per_file:
                     prev_file_records = current_file_records
