@@ -10,10 +10,11 @@ from scraping import browser_utils
 from utils import file_utils
 from scraping.handler_factory import HandlerFactory
 from scraping.handlers import ShimamuraSearchHandler
+from scraping.handlers.crowdlog_handler import UserCancelledError
 from gui import gui
 
 # ログファイル名の設定
-log_folder = '{0}.log'.format(datetime.date.today())
+log_folder = 'logs/app/{0}.log'.format(datetime.date.today())
 
 
 def main():
@@ -87,6 +88,8 @@ def main():
         # 完了通知
         gui.show_completion_message(msg)
 
+    except UserCancelledError:
+        print("操作がキャンセルされました。")
     except Exception as e:
         logger.error(f"An error occurred: {e}", exc_info=True)
         raise e

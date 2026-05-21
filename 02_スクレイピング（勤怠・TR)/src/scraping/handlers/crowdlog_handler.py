@@ -1,9 +1,14 @@
-import datetime
-import calendar
 import time
 from config import config as conf
 from scraping import browser_utils
+from gui.gui_date_range_dialog import ask_date_range
 from .base_handler import BaseHandler
+
+
+class UserCancelledError(Exception):
+    """ユーザーが日付選択をキャンセルした場合に発生する例外。"""
+    pass
+
 
 class CrowdLogHandler(BaseHandler):
     """
@@ -11,13 +16,16 @@ class CrowdLogHandler(BaseHandler):
     """
 
     def _get_settings(self):
-        """CrowdLog用の設定を取得するヘルパー"""
         return conf.CONF.get('crowdlog_settings', {})
 
     def execute(self):
         """
-        ログインチェック、日付入力、ダウンロード実行を行います。
+        日付区間選択 → ログインチェック → 日付入力 → ダウンロード実行を行います。
         """
+        start_date, end_date = ask_date_range()
+        if start_date is None:
+            raise UserCancelledError("日付選択がキャンセルされました。")
+
         cl_settings = self._get_settings()
         self._perform_login_if_needed(cl_settings)
 
@@ -26,30 +34,20 @@ class CrowdLogHandler(BaseHandler):
         specific_settings = conf.CONF['school_specific_defaults'].get('cl', {})
         merged_settings.update(specific_settings)
 
-        # 動的な日付の置換
-        first_day, last_day = self._get_dynamic_dates()
+        # ダイアログで選んだ日付を反映
         if 'StartDate' in merged_settings:
-            merged_settings['StartDate'] = merged_settings['StartDate'].replace("{{DYNAMIC_START_DATE}}", first_day)
+            merged_settings['StartDate'] = merged_settings['StartDate'].replace("{{DYNAMIC_START_DATE}}", start_date)
         if 'EndDate' in merged_settings:
-            merged_settings['EndDate'] = merged_settings['EndDate'].replace("{{DYNAMIC_END_DATE}}", last_day)
+            merged_settings['EndDate'] = merged_settings['EndDate'].replace("{{DYNAMIC_END_DATE}}", end_date)
 
         # フィールド入力処理
         fields_def = cl_settings.get('fields', {})
-
         for field_name, field_info in fields_def.items():
             value = merged_settings.get(field_name, "")
             browser_utils.input_text(self.driver, 'name', field_info['locator'], value)
 
         # ダウンロードボタン押下処理
         self._click_download_button(cl_settings)
-
-    def _get_dynamic_dates(self):
-        """今月の初日と末日を計算して返します。"""
-        today = datetime.date.today()
-        first_day = today.replace(day=1)
-        last_day_num = calendar.monthrange(today.year, today.month)[1]
-        last_day = today.replace(day=last_day_num)
-        return first_day.strftime("%Y-%m-%d"), last_day.strftime("%Y-%m-%d")
 
     def _perform_login_if_needed(self, cl_settings):
         """ログイン画面が表示されている場合、ログイン処理を実行します。"""
