@@ -178,6 +178,22 @@ def input_text(driver: webdriver.Remote, attribute: str, element: str, input_val
     find_element(driver, attribute, element).send_keys(input_value)
 
 
+def clear_and_input_text(driver: webdriver.Remote, attribute: str, element: str, input_value: str):
+    """
+    指定された要素を clear してからテキストを入力します。
+    フィールドに既存値がある場合でも確実に上書きできます。
+
+    Args:
+        driver: Selenium WebDriverインスタンス
+        attribute (str): 要素検索に使用する属性タイプ
+        element (str): 要素検索に使用する値
+        input_value (str): 入力するテキスト
+    """
+    elem = find_element(driver, attribute, element)
+    elem.clear()
+    elem.send_keys(input_value)
+
+
 def prepend_text(driver: webdriver.Remote, attribute: str, element: str, text: str):
     """
     指定された要素の先頭にテキストを追記します。

@@ -26,6 +26,8 @@ class CrowdLogHandler(BaseHandler):
         if start_date is None:
             raise UserCancelledError("日付選択がキャンセルされました。")
 
+        print(f"[DATE] {start_date} ~ {end_date}")
+
         cl_settings = self._get_settings()
         self._perform_login_if_needed(cl_settings)
 
@@ -40,11 +42,11 @@ class CrowdLogHandler(BaseHandler):
         if 'EndDate' in merged_settings:
             merged_settings['EndDate'] = merged_settings['EndDate'].replace("{{DYNAMIC_END_DATE}}", end_date)
 
-        # フィールド入力処理
+        # フィールド入力処理（既存値を clear してから send_keys）
         fields_def = cl_settings.get('fields', {})
         for field_name, field_info in fields_def.items():
             value = merged_settings.get(field_name, "")
-            browser_utils.input_text(self.driver, 'name', field_info['locator'], value)
+            browser_utils.clear_and_input_text(self.driver, 'name', field_info['locator'], value)
 
         # ダウンロードボタン押下処理
         self._click_download_button(cl_settings)
