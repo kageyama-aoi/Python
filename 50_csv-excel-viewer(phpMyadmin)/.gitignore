@@ -1,0 +1,9 @@
+# 入力・サンプルデータ（個人情報を含む可能性あり）
+csv/
+*.csv
+
+# 生成済みExcel
+*.xlsx
+
+# Windows設定ファイル
+desktop.ini
