@@ -3,7 +3,7 @@
 $datetime = Get-Date -Format "yyyyMMdd_HHmmss"
 $filename = "error_$datetime.txt"
 
-Set-Location "C:\Users\kageyama\Tools\Python\70_工数集計"
+Set-Location "C:\Users\kageyama\Tools\Python\11_工数集計"
 
 $logPath = Join-Path "error_log" $filename
 
