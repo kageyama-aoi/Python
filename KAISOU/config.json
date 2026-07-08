@@ -1,8 +1,0 @@
-{
-  "past_root_dir": "G:\\マイドライブ\\作業フォルダ\\WORK",
-  "root_dir": "G:\\マイドライブ",
-  "output_base_dir": "C:\\Users\\kageyama\\Tools\\KAISOU",
-  "output_filename": "drive_structure.xlsx",
-  "excluded_extensions": [".log", ".tmp", ".bak", ".DS_Store", "desktop.ini"],
-  "excluded_folder_names": ["OLD", "old", "backup", "アーカイブ", "不要"]
-}

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_excel_writer.py -v)",
+      "Bash(python -m pytest tests/test_excel_writer.py::TestExtractSheetToNewFile -v)",
+      "Bash(python -m pytest tests/test_excel_writer.py::TestSaveInitialReport::test_permission_error_calls_handler tests/test_data_loader.py::TestLoadConfigErrors -v)",
+      "Bash(powershell -Command \"\\(Get-Item ''.agent/handoff/HANDOFF.md''\\).LastWriteTime.ToString\\(''yyyy-MM-dd-HHmm''\\)\")",
+      "Bash(python -m pytest tests/test_validator.py tests/test_selector.py -v)"
+    ]
+  }
+}
