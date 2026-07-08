@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(gh label:*)",
+      "Bash(find:*)",
+      "Read(//c/Users/kageyama/Tools/Python/40_スクール特化型Tool/.github/**)",
+      "Read(//c/Users/kageyama/Tools/Python/.github/ISSUE_TEMPLATE/**)",
+      "Bash(gh issue:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

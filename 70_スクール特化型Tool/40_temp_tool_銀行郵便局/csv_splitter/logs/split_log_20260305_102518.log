@@ -1,0 +1,14 @@
+=== CSV Splitter Execution Log ===
+status: SUCCESS
+started_at: 2026-03-05T10:25:18
+ended_at: 2026-03-05T10:25:21
+input_file: G:\.shortcut-targets-by-id\1zn8aWqqs4R3t1zaPqJ-EbyXnDecmJKAZ\001.Customers(AN)\1477_島村楽器\80_サポート業務\UAT902_郵便情報データ(作業後削除)\x-ken-all202601\temp_tool\csv_splitter\input\x-ken-all_utf8.csv
+rows_per_file: 45000
+encoding: utf-8
+has_header: False
+data_record_count: 127639
+created_file_count: 3
+created_files:
+- x-ken-all_utf8_split_001.csv: 45000 records
+- x-ken-all_utf8_split_002.csv: 45000 records
+- x-ken-all_utf8_split_003.csv: 37639 records

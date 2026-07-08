@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/kageyama/Tools/Python/**)",
+      "Bash(gh issue create --title '[TASK] csv_splitter: run.py化 & 引数渡し設計へリファクタ' --body ':*)",
+      "Bash(gh issue:*)",
+      "Bash(python:*)",
+      "Bash(cat output/*.csv)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(xargs -I{} cat logs/{})",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
+    ]
+  }
+}
