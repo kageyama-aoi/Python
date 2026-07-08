@@ -1,6 +1,0 @@
-desktop.ini
-*.log
-/build
-/src/__pycache__
-/.vscode/
-logs/batch_error_logs/*.log
