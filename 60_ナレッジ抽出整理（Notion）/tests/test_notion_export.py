@@ -8,7 +8,7 @@
   - get_page_properties   (notion_sql_export.py)
 
 実行方法:
-  cd 60_SQL抽出
+  cd 60_ナレッジ抽出整理（Notion）
   python -m pytest tests/ -v
   または
   python -m unittest discover tests
