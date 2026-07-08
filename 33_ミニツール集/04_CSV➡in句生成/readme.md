@@ -19,6 +19,8 @@ TARGET_COLUMN_INDEX = 1        # MODE='index' の場合のみ使用
 python create_in.py
 ```
 
+または `run.bat` をダブルクリックする。
+
 3. コンソールに`IN (...)`文字列が表示され、`generated_in_clause_{タイムスタンプ}.txt`にも保存される
 
 ## 対応入力形式

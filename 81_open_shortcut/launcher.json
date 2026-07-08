@@ -1,0 +1,11 @@
+{
+  "name": "open_shortcut",
+  "description": "設定ファイルに基づいてディレクトリやURLを開くボタンを動的に生成するTkinter GUIアプリ",
+  "actions": [
+    {
+      "label": "起動",
+      "kind": "gui",
+      "entry": "run.bat"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Markdown to HTML 出力",
+  "description": "MarkdownをHTMLに変換して閲覧・管理するツール。一括ビルドとポータルサーバーの2つの使い方がある",
+  "actions": [
+    {
+      "label": "ポータル起動",
+      "kind": "server",
+      "entry": "run_portal.bat",
+      "url": "http://127.0.0.1:5000/",
+      "note": "5000番が使用中の場合5001〜5010の空きポートが自動選択される。起動スクリプトが実際のURLをコンソールに出力しブラウザを自動で開く"
+    },
+    {
+      "label": "一括ビルド",
+      "kind": "generator",
+      "entry": "run_build.bat",
+      "open_after": "html/index.html"
+    }
+  ]
+}

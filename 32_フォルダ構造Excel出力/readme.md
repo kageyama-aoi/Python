@@ -32,7 +32,7 @@ pip install pandas xlsxwriter
 
 1. `config.json` の `root_dir` に、スキャンしたいフォルダの絶対パスを指定する。
    - 未編集のデフォルト値 `"."` はこのツール自身のフォルダをスキャンする動作確認用。
-2. `run_drive_structure.bat` をダブルクリックして実行する。
+2. `run.bat` をダブルクリックして実行する。
    - `output_base_dir` が相対パスの場合、このツールのフォルダ基準（`config.json`と同じ場所）で解決される。デフォルトは `output/`。
 3. `output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。
 
@@ -52,7 +52,7 @@ pip install pandas xlsxwriter
 
 | ファイル/フォルダ | 説明 |
 | --- | --- |
-| `run_drive_structure.bat` | 実行用バッチファイル（内部で `generate_drive_structure.py` を呼び出す） |
+| `run.bat` | 実行用バッチファイル（内部で `generate_drive_structure.py` を呼び出す） |
 | `generate_drive_structure.py` | スキャンとExcel出力を行うスクリプト本体 |
 | `config.json` | スキャン対象・出力先・除外条件を指定する設定ファイル |
 | `output/` | 出力Excelファイルの格納先（初回実行時に自動生成） |

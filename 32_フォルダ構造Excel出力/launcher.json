@@ -1,0 +1,12 @@
+{
+  "name": "フォルダ構造Excel出力",
+  "description": "指定ディレクトリ以下のフォルダ・ファイル構造をスキャンし、階層構造付きのExcelファイルに出力する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "generator",
+      "entry": "run.bat",
+      "open_after": "output/*.xlsx"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "CSV➡IN句生成",
+  "description": "CSV/テキストから特定列の値を取り出し、SQLのIN句文字列を生成する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "cli",
+      "entry": "run.bat"
+    }
+  ]
+}
