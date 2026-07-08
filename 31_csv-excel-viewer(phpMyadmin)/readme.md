@@ -12,7 +12,7 @@ CSVファイルを読み込み、見やすく整形されたExcelファイル（
 ## フォルダ構成
 
 ```
-50_csv-excel-viewer(phpMyadmin)/
+31_csv-excel-viewer(phpMyadmin)/
     csv_table_viewer.py
     csv/
         table1.csv
