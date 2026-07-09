@@ -54,14 +54,23 @@ def find_tools():
     return tools
 
 
-def run_fire_and_forget(tool_dir: Path, entry: str):
-    """GUI/CLI/サーバー系: 起動したら結果を待たない。
+def _cmd_c_line(entry_path: Path) -> str:
+    """`cmd /c` に渡すコマンドラインを組み立てる。
 
     entryは絶対パスで渡す。日本語を含むフォルダ名では、相対パス+cwd指定の
     組み合わせだと cmd.exe が "run.bat" を見つけられないことがあるため。
+    さらにパスに括弧 () を含む場合（例: "31_csv-excel-viewer(phpMyadmin)"）、
+    単純に `cmd /c <path>` と渡すと cmd.exe が "(" 以降を別コマンドとして
+    誤認識し「内部コマンドまたは外部コマンドとして認識されていません」と
+    失敗する。`cmd /c ""<path>""` の二重引用符で囲むことでこれを回避する。
     """
+    return f'cmd /c ""{entry_path}""'
+
+
+def run_fire_and_forget(tool_dir: Path, entry: str):
+    """GUI/CLI/サーバー系: 起動したら結果を待たない。"""
     subprocess.Popen(
-        ["cmd", "/c", str(tool_dir / entry)],
+        _cmd_c_line(tool_dir / entry),
         cwd=str(tool_dir),
         creationflags=subprocess.CREATE_NEW_CONSOLE,
     )
@@ -79,7 +88,7 @@ def run_generator(
     def worker():
         widget.after(0, lambda: status_var.set("実行中..."))
         try:
-            subprocess.run(["cmd", "/c", str(tool_dir / entry)], cwd=str(tool_dir))
+            subprocess.run(_cmd_c_line(tool_dir / entry), cwd=str(tool_dir))
         finally:
             widget.after(0, lambda: status_var.set(""))
 
