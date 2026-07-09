@@ -1,160 +1,21 @@
 from pathlib import Path
-import re
 import subprocess
 import os
-from datetime import datetime
 from html import escape
 
 from flask import Flask, jsonify, redirect, request, send_file, send_from_directory
 
-MD_DIR = Path("md")
-HTML_DIR = Path("html")
-FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.S)
-
-
-def parse_front_matter(text: str) -> tuple[dict, str]:
-    m = FRONT_MATTER_RE.match(text)
-    if not m:
-        return {}, text
-
-    fm_text = m.group(1)
-    body = text[m.end():]
-
-    data: dict[str, object] = {}
-    current_key = None
-
-    for raw_line in fm_text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        if line.startswith("- ") and current_key:
-            data.setdefault(current_key, [])
-            if isinstance(data[current_key], list):
-                data[current_key].append(line[2:].strip())
-            continue
-
-        if ":" in line:
-            key, value = line.split(":", 1)
-            key = key.strip()
-            value = value.strip()
-            current_key = key
-
-            if value == "":
-                data[key] = []
-                continue
-
-            if value.startswith("[") and value.endswith("]"):
-                inner = value[1:-1].strip()
-                items = [v.strip() for v in inner.split(",") if v.strip()]
-                data[key] = items
-            else:
-                data[key] = value
-            continue
-
-    return data, body
-
-
-def build_front_matter(category: str, tags: list[str]) -> str:
-    lines = ["---", f"category: {category}", "tags:"]
-    for t in tags:
-        lines.append(f"  - {t}")
-    lines.append("---")
-    return "\n".join(lines) + "\n"
-
-
-def update_md_file(md_path: Path, category: str, tags: list[str]) -> None:
-    text = md_path.read_text(encoding="utf-8")
-    _, body = parse_front_matter(text)
-    fm = build_front_matter(category, tags)
-    md_path.write_text(fm + "\n" + body.lstrip("\n"), encoding="utf-8")
-
-
-def normalize_tags(raw_tags: object) -> list[str]:
-    if isinstance(raw_tags, str):
-        tag = raw_tags.strip()
-        return [tag] if tag else []
-    if not isinstance(raw_tags, list):
-        return []
-    result: list[str] = []
-    for t in raw_tags:
-        tag = str(t).strip()
-        if tag and tag not in result:
-            result.append(tag)
-    return result
-
-
-def resolve_md_path(file_name: str) -> Path | None:
-    md_path = (MD_DIR / file_name).resolve()
-    if md_path.parent != MD_DIR.resolve() or not md_path.exists() or md_path.suffix != ".md":
-        return None
-    return md_path
-
-
-def sanitize_file_stem(title: str) -> str:
-    stem = re.sub(r"[\\/:*?\"<>|]", " ", title)
-    stem = re.sub(r"\s+", " ", stem).strip()
-    stem = stem.replace(".", "_")
-    if not stem:
-        return "untitled"
-    return stem[:60]
-
-
-def normalize_md_filename(raw_name: str) -> str | None:
-    name = (raw_name or "").strip()
-    if not name:
-        return None
-    name = re.sub(r"[\\/:*?\"<>|]", " ", name)
-    name = Path(name).name.strip()
-    if not name:
-        return None
-    if not name.lower().endswith(".md"):
-        name = f"{name}.md"
-    stem = Path(name).stem.strip()
-    stem = re.sub(r"\s+", " ", stem)
-    if not stem:
-        return None
-    return f"{stem}.md"
-
-
-def parse_csv_tags(raw_text: str) -> list[str]:
-    tags: list[str] = []
-    for part in raw_text.split(","):
-        tag = part.strip()
-        if tag and tag not in tags:
-            tags.append(tag)
-    return tags
-
-
-def make_unique_md_path(base_stem: str) -> Path:
-    date_prefix = datetime.now().strftime("%Y%m%d")
-    candidate = MD_DIR / f"{date_prefix}_{base_stem}.md"
-    if not candidate.exists():
-        return candidate
-    idx = 2
-    while True:
-        alt = MD_DIR / f"{date_prefix}_{base_stem}_{idx}.md"
-        if not alt.exists():
-            return alt
-        idx += 1
-
-
-def collect_meta_options() -> tuple[list[str], list[str]]:
-    categories: set[str] = set()
-    tags: set[str] = set()
-    for md_path in sorted(MD_DIR.glob("*.md")):
-        text = md_path.read_text(encoding="utf-8")
-        fm, _ = parse_front_matter(text)
-        category = str(fm.get("category") or "").strip()
-        if category:
-            categories.add(category)
-        for t in normalize_tags(fm.get("tags") or []):
-            if t:
-                tags.add(t)
-    sorted_categories = sorted(categories, key=lambda x: x.lower())
-    sorted_tags = sorted(tags, key=lambda x: x.lower())
-    return sorted_categories, sorted_tags
-
+from frontmatter import normalize_tags, parse_csv_tags, parse_front_matter
+from md_store import (
+    HTML_DIR,
+    MD_DIR,
+    collect_meta_options,
+    make_unique_md_path,
+    normalize_md_filename,
+    resolve_md_path,
+    sanitize_file_stem,
+    update_md_file,
+)
 
 app = Flask(__name__)
 

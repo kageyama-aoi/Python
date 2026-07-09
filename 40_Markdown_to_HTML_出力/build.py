@@ -2,9 +2,10 @@ from pathlib import Path
 import re
 import sys
 
+from frontmatter import parse_front_matter
+from md_store import HTML_DIR, MD_DIR
+
 # ---------- 設定 ----------
-MD_DIR = Path("md")
-HTML_DIR = Path("html")
 DEFAULT_CATEGORY_NAME = "未分類"
 CATEGORY_ORDER_FILE = MD_DIR / "_categories.txt"
 
@@ -90,59 +91,8 @@ def os_access_writable(path: Path) -> bool:
     except Exception:
         return False
 
-# ---------- Front Matter 解析 ----------
-FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.S)
+# ---------- HTML 加工 ----------
 IMG_TAG_RE = re.compile(r"<img\b([^>]*?)(/?)>", re.I)
-
-def parse_front_matter(text: str) -> tuple[dict, str]:
-    """
-    最低限の YAML フロントマターを解析して本文と分離する。
-    対応: key: value / key: [a, b] / key:
-         - a
-         - b
-    """
-    m = FRONT_MATTER_RE.match(text)
-    if not m:
-        return {}, text
-
-    fm_text = m.group(1)
-    body = text[m.end():]
-
-    data: dict[str, object] = {}
-    current_key = None
-
-    for raw_line in fm_text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        if line.startswith("- ") and current_key:
-            data.setdefault(current_key, [])
-            if isinstance(data[current_key], list):
-                data[current_key].append(line[2:].strip())
-            continue
-
-        if ":" in line:
-            key, value = line.split(":", 1)
-            key = key.strip()
-            value = value.strip()
-            current_key = key
-
-            if value == "":
-                # 以降の "- " リストを待つ
-                data[key] = []
-                continue
-
-            # [a, b] 形式
-            if value.startswith("[") and value.endswith("]"):
-                inner = value[1:-1].strip()
-                items = [v.strip() for v in inner.split(",") if v.strip()]
-                data[key] = items
-            else:
-                data[key] = value
-            continue
-
-    return data, body
 
 def add_default_img_width_attr(html: str, width: int = 1000) -> str:
     """

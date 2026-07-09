@@ -213,7 +213,7 @@ tags: [手順, 申請, 社内]
 
 ## 注意点
 
-- `md` / `html` ディレクトリ名は変更しない（`build.py` で固定参照）
+- `md` / `html` ディレクトリ名は変更しない（`md_store.py` で固定参照）
 - `html/` は書き込み権限が必要
 - `build.py` は書き込み確認のため一時ファイル `.write_test` を作成
 - `app.py` は `md` 直下の `*.md` を対象（サブディレクトリは対象外）
@@ -221,7 +221,7 @@ tags: [手順, 申請, 社内]
 ## メンテナンス
 
 1. Front Matter運用を変更する場合  
-`build.py` の `parse_front_matter` と `index.html` 生成ロジックを合わせて更新する。
+`frontmatter.py` の `parse_front_matter`（app.py / build.py 共通）と `index.html` 生成ロジックを合わせて更新する。
 
 2. 強調クラスを追加・変更する場合  
 `html/style.css` と、このREADMEの「強調用CSSクラス」を同時に更新する。
