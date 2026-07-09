@@ -89,6 +89,18 @@ def run_generator(
         widget.after(0, lambda: status_var.set("実行中..."))
         try:
             subprocess.run(_cmd_c_line(tool_dir / entry), cwd=str(tool_dir))
+        except Exception as exc:
+            # 注意: run.bat が pause を含む場合、Python側の異常終了(exit code != 0)は
+            # pause自体の終了コード(0)に上書きされるため、ここでは検知できない。
+            # ここで捕捉できるのは subprocess.run 自体が例外を送出するケース
+            # （cmd.exe が見つからない等）に限られる。
+            widget.after(
+                0,
+                lambda: messagebox.showerror(
+                    "実行エラー", f"{entry} の実行中にエラーが発生しました:\n{exc}"
+                ),
+            )
+            return
         finally:
             widget.after(0, lambda: status_var.set(""))
 
