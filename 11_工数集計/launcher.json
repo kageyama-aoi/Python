@@ -1,0 +1,12 @@
+{
+  "name": "工数集計",
+  "description": "タイムシートCSVから工数集計Excelレポートを生成する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "cli",
+      "entry": "run.bat",
+      "note": "config.jsonの取引先/社員のどちらかが空だと対話選択が必要になるため、新規コンソールで起動する。出力はoutput/フォルダを確認"
+    }
+  ]
+}

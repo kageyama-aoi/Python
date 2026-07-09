@@ -1,0 +1,12 @@
+{
+  "name": "ファイル整理ツール",
+  "description": "指定ディレクトリ内のファイルを拡張子ごとのサブディレクトリへ振り分ける",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "cli",
+      "entry": "run.bat",
+      "note": "config.iniのTargetDirectoryを対象に実際にファイルを移動する。実行前に対象パスを確認すること"
+    }
+  ]
+}

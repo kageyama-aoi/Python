@@ -1,0 +1,13 @@
+{
+  "name": "PDF結合CLI",
+  "description": "inputs.txtに記載されたPDFを順番どおりに1つへ結合する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "generator",
+      "entry": "run.bat",
+      "open_after": "output/merged.pdf",
+      "note": "実行前に inputs.txt を結合したいPDFのパス一覧に書き換えておくこと"
+    }
+  ]
+}

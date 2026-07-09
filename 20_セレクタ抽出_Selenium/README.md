@@ -2,7 +2,7 @@
 
 Webページの要素をクリックするだけで、その要素のセレクタ情報（ID, Class, XPathなど）を簡単に取得できるツールです。WebスクレイピングやE2Eテストのセレクタ選定作業を効率化することを目的としています。
 
-> **技術スタック**: Python + Selenium + Tkinter GUI。**Seleniumベース**のスクレイピングプロジェクト（`02_スクレイピング（勤怠・TR)`など）向け。Playwrightベースのプロジェクトでは代わりに [`03_セレクタ抽出(20260207)/pw-inspector`](../03_セレクタ抽出(20260207)/pw-inspector/README.md) を使ってください。
+> **技術スタック**: Python + Selenium + Tkinter GUI。**Seleniumベース**のスクレイピングプロジェクト（`10_スクレイピング（勤怠・TR)`など）向け。Playwrightベースのプロジェクトでは代わりに [`21_セレクタ抽出_Playwright/pw-inspector`](../21_セレクタ抽出_Playwright/pw-inspector/README.md) を使ってください。
 
 ## 主な機能
 
@@ -39,7 +39,7 @@ Webページの要素をクリックするだけで、その要素のセレク�
 
 ## 使い方
 
-1.  **`run_selector_tool.bat`** をダブルクリックしてツールを起動します。
+1.  **`run.bat`** をダブルクリックしてツールを起動します。
     *(MacやLinuxの場合は、ターミナルで `python main.py` を実行してください)*
 
 2.  表示されたウィンドウで以下の操作を行います。
@@ -67,7 +67,7 @@ Webページの要素をクリックするだけで、その要素のセレク�
 │   └── injector.js       # ブラウザに注入されるJavaScript
 ├── browser_driver.py     # Seleniumによるブラウザ制御ロジック
 ├── main.py               # TkinterによるGUIアプリケーション
-├── run_selector_tool.bat # (Windows用) ツール起動バッチファイル
+├── run.bat               # (Windows用) ツール起動バッチファイル
 ├── requirements.txt      # 依存ライブラリ一覧
 └── README.md             # このファイル
 ```

@@ -1,0 +1,12 @@
+{
+  "name": "Data Flow Portal",
+  "description": "イベント単位のデータフロー（DB更新の前後比較）CSVを静的HTMLの横表として可視化する",
+  "actions": [
+    {
+      "label": "ポータル生成",
+      "kind": "generator",
+      "entry": "run.bat",
+      "open_after": "data/output/portal/index.html"
+    }
+  ]
+}

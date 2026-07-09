@@ -1,0 +1,11 @@
+{
+  "name": "show_tree",
+  "description": "指定フォルダのディレクトリ構成をツリー表示する",
+  "actions": [
+    {
+      "label": "実行（このフォルダ以下を表示）",
+      "kind": "cli",
+      "entry": "run.bat"
+    }
+  ]
+}

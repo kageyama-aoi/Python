@@ -1,0 +1,11 @@
+{
+  "name": "セレクタ抽出（Selenium）",
+  "description": "Webページの要素をクリックしてID/Class/XPathなどのセレクタ情報を取得する",
+  "actions": [
+    {
+      "label": "起動",
+      "kind": "gui",
+      "entry": "run.bat"
+    }
+  ]
+}

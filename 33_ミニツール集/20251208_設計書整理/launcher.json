@@ -1,0 +1,12 @@
+{
+  "name": "設計書整理ツール",
+  "description": "日付サフィックス付きファイルを整理し、各ベース名ごとに最新N件だけ残してoldへ退避する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "cli",
+      "entry": "run.bat",
+      "note": "config.iniのdry_runがtrueの間は移動せず対象一覧のみ表示する"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "勤怠・TR自動化ツール",
+  "description": "Web上のタスクレポート入力とCrowdLog（勤怠）の工数実績ダウンロードを自動化する",
+  "actions": [
+    {
+      "label": "起動",
+      "kind": "gui",
+      "entry": "run.bat",
+      "note": ".env にログイン情報の設定が必要"
+    }
+  ]
+}

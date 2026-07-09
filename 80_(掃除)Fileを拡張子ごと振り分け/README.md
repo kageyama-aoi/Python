@@ -16,12 +16,12 @@
    - デフォルトでは `C:\Users\kageyama\OneDrive\Desktop` に設定されています。
 
 2. **スクリプトの実行**
-   - `run_organizer.bat` をダブルクリックして実行します。
+   - `run.bat` をダブルクリックして実行します。
 
 ## ファイル構成
 
 - `organize_files.py`: ファイル整理処理のメインスクリプトです。
 - `config.ini`: 整理対象のディレクトリなどを設定するファイルです。
-- `run_organizer.bat`: `organize_files.py` を実行するためのバッチファイルです。
+- `run.bat`: `organize_files.py` を実行するためのバッチファイルです。
 - `README.md`: このファイルです。
 

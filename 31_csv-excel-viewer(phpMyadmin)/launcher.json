@@ -1,0 +1,12 @@
+{
+  "name": "CSV Table Viewer",
+  "description": "csv/フォルダ内の全CSVを読み込み、見やすく整形されたExcel（view.xlsx）を生成する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "generator",
+      "entry": "run.bat",
+      "open_after": "view.xlsx"
+    }
+  ]
+}

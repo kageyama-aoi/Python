@@ -1,0 +1,12 @@
+{
+  "name": "ナレッジ抽出整理（Notion）",
+  "description": "Notion上のSQL集ページを検索し、sql_knowledge.mdとしてエクスポートする",
+  "actions": [
+    {
+      "label": "SQL集エクスポート",
+      "kind": "cli",
+      "entry": "run.bat",
+      "note": "src/config.py（Notion Token設定・gitignore対象）が必要"
+    }
+  ]
+}
