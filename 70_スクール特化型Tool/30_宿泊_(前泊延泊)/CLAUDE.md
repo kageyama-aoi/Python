@@ -19,30 +19,24 @@ start timeline-builder.html
 
 ```
 30_宿泊_(前泊延泊)/
-├── timeline-builder.html   ← メイン（現在は全コードを内包）
+├── timeline-builder.html   ← エントリーポイント（HTML骨格と読み込みのみ）
 ├── assets/
 │   ├── css/
-│   │   └── styles.css      ← Phase5で分離予定
+│   │   └── styles.css      ← CSS変数ベースのダークテーマ（--bg, --surface, --c0〜--c7 等）
 │   └── js/
-│       ├── date-utils.js   ← Phase5で分離予定
-│       ├── plan-logic.js   ← Phase5で分離予定
-│       ├── render.js       ← Phase5で分離予定
-│       ├── sidebar.js      ← Phase5で分離予定
-│       ├── csv.js          ← Phase5で分離予定
-│       └── app.js          ← Phase5で分離予定
+│       ├── date-utils.js   ← 'M/D'文字列の日付計算（YEAR, addDays, getAllDates, clamp）
+│       ├── plan-logic.js   ← 標準プラン算出・computePlanDates()
+│       ├── render.js       ← チャート描画（renderDateHeader/LectureRow/PlanRow/Legend + render）
+│       ├── sidebar.js      ← プランリストUI・updatePlans()による再描画一元化
+│       ├── csv.js          ← CSVエクスポート
+│       └── app.js          ← 初期化・フォーム・イベント配線
 ├── CLAUDE.md
 └── 指示文.txt
 ```
 
 ## アーキテクチャ
 
-現在は単一ファイル構成。`timeline-builder.html` の内部は3ブロックに分かれる。
-
-| ブロック | 内容 |
-|---|---|
-| `<style>` | CSS変数ベースのダークテーマ（`--bg`, `--surface`, `--c0`〜`--c7` 等） |
-| `<body>` | ヘッダー・ドロワーサイドバー・チャートエリア |
-| `<script>` | 全ロジック（状態管理 → 日付計算 → 描画） |
+HTML/CSS/JS分離構成（Issue #12〜#17 のリファクタリングで移行済み）。`timeline-builder.html` は骨格のみで、ロジックは `assets/js/` の6ファイルに責務ごとに分かれる。`<script src>` は依存順（date-utils → plan-logic → render → sidebar → csv → app）に読み込まれ、モジュールシステムは使わずグローバル関数で連携する。
 
 ### 状態
 
