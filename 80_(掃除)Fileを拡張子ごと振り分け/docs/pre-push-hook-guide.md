@@ -8,7 +8,7 @@ def test_this_will_always_fail():
 
 ## pre-push スクリプト全文
 
-`C:\Users\kageyama\Tools\Python\07_(掃除)Fileを拡張子ごと振り分け\.git\hooks\pre-push` に以下の内容でファイルを作成してください。
+`C:\Users\kageyama\Tools\Python\80_(掃除)Fileを拡張子ごと振り分け\.git\hooks\pre-push` に以下の内容でファイルを作成してください。
 
 ```bash
 #!/bin/sh
@@ -82,7 +82,7 @@ fi
 Running pytest tests before pushing...
 ============================= test session starts ==============================
 platform win32 -- Python 3.x.x, pytest-x.x.x, pluggy-x.x.x
-rootdir: C:\Users\kageyama\Tools\Python\07_(掃除)Fileを拡張子ごと振り分け
+rootdir: C:\Users\kageyama\Tools\Python\80_(掃除)Fileを拡張子ごと振り分け
 collected 1 item
 
 test_failing.py F                                                        [100%]

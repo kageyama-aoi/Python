@@ -1,4 +1,4 @@
-# Project: 60_ナレッジ抽出整理（Notion）
+# Project: 50_ナレッジ抽出整理（Notion）
 
 Notion上に蓄積されたナレッジ（SQL集・サポートMTG議事録・メール対応・Notion API・テスト知見など）を抽出し、NotebookLM等で参照しやすいMarkdownナレッジ集として整理するプロジェクトです。
 
