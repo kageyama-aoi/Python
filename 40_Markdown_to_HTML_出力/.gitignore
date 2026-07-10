@@ -8,3 +8,20 @@ __pycache__/
 
 # Build permission check temp file
 html/.write_test
+
+# 本命MDの誤コミット防止（Issue #6）
+# md/ 配下はサンプルのみ追跡許可。新規サンプルを追加する場合はここへ例外行を追記する。
+md/*.md
+!md/picture_dummy.md
+!md/ダミー.md
+!md/SSL証明書.md
+!md/SSL証明書 - コピー.md
+
+# md/ から生成される html/ も同様に除外（一覧・サンプルのみ追跡許可）
+html/*.html
+!html/index.html
+!html/picture_dummy.html
+!html/ダミー.html
+!html/SSL証明書.html
+!html/SSL証明書 - コピー.html
+!html/20260218_SSL証明書.html
