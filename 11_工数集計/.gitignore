@@ -21,3 +21,6 @@ output/工数集計結果_*
 # Intermediate Files
 output/temp_intermediate.xlsx
 input/old/
+
+# ローカル作業用の一時CSV（先頭アンダースコア付き）
+input/_*.csv
