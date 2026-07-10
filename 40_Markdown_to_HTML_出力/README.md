@@ -14,13 +14,18 @@
 3. ツールキットを別ディレクトリへ配布する
 9. 終了
 
+起動しない・画面が開かないなど動作がおかしいときは、`health_check.bat` を実行してください。
+Python・依存モジュール・ディレクトリ構成・主要ルート疎通を1コマンドで診断します（詳細は「自己診断」参照）。
+
 ## 構成
 
 - `build.py`: Markdown -> HTML 変換本体
 - `start_here.bat` / `scripts/start_here.ps1`: 番号メニュー付きの実行入口
 - `deploy_toolkit.bat` / `scripts/deploy_toolkit.ps1`: 本体ツールを別ディレクトリへコピー配布
-- `md/`: 入力 Markdown（`*.md`）
-- `html/`: 出力先（各HTML、`index.html`、`style.css`）
+- `health_check.bat` / `scripts/health_check.ps1`: 環境の自己診断（Python・依存・ディレクトリ・ルート疎通）
+- `md/`: 入力 Markdown（`*.md`）。サンプル以外はgit管理外（誤コミット防止）
+- `html/`: 出力先（各HTML、`index.html`、`style.css`）。生成HTMLもサンプル以外はgit管理外
+- `tests/`: スモークテスト（`python -m pytest tests` で主要ルートの200確認）
 - `scripts/`: 実行ラッパー・補助スクリプト群（`*.ps1`）
 - `scripts/run_build.ps1` / `run_build.bat`: ビルド実行ラッパー
 - `scripts/run_portal.ps1` / `run_portal.bat`: ローカル運用ポータル起動（`app.py` を起動しブラウザで開く）
@@ -54,6 +59,9 @@ deploy_toolkit.bat "..\案件A\kb_toolkit"
 - `-Force`: 既存ファイルも上書き
 
 この配布スクリプトは `scripts/toolkit_manifest.json` に書かれたファイルだけをコピーするため、`md/*.md` 本命ファイルや `notes/` は配布対象に入りません。
+`md/` `html/` `picture/` の空ディレクトリは `.gitkeep` ごと配置されるため、初回起動時のディレクトリ欠落は起きません。
+
+配布後は、配布先で `health_check.bat` を実行して環境（Python・依存モジュール）を確認してから `start_here.bat` を使ってください。
 
 ## 基本の使い方（ビルド）
 
@@ -91,9 +99,11 @@ run_build.bat
 python app.py
 ```
 - `http://127.0.0.1:5000/` で `md/*.md` の `category` / `tags` を一括編集
+  - ポートは環境変数 `PORT` で変更可能（未指定時は `5000`）
 - 同画面上のリンクから以下へ遷移可能
-  - `http://127.0.0.1:5000/kb`（`html/index.html`）
+  - `http://127.0.0.1:5000/kb/`（`html/index.html` の閲覧。未ビルド時は案内ページを表示）
   - `http://127.0.0.1:5000/import`（プレーンテキスト取込）
+- 更新系API（保存・一括適用）の実行結果は、起動したコンソールに運用ログとして出力される（件数・失敗ファイルなど）
 - `category` は既存値から候補選択でき、自由入力も可能
 - `tags` はチップ形式で編集（クリック削除）
 - `tags` は既存タグ候補のプルダウン追加 + 自由入力追加（Enter対応）
@@ -121,7 +131,7 @@ python app.py
 run_portal.bat
 ```
 - `app.py` を起動し、`http://127.0.0.1:5000/` を自動で開く
-- `5000` が使用中の場合は `5001` 以降の空きポートを自動選択して開く
+- `5000` が使用中の場合は `5001`〜`5010` の空きポートを自動選択して開く（実際のURLは起動時のコンソール表示を確認）
 
 4. Markdown保存補助（`support_tool/`）
 - `support_tool/md_saver_min.html`
@@ -166,6 +176,36 @@ run_portal.bat
 - ステージ済み差分（`git diff --staged`）を取得し、`codex exec -` に渡す補助スクリプト
 - 実行には `codex` コマンドが必要
 - プロンプトは `scripts/commit_prompt.md` -> `commit_prompt.md` -> `docs/COMMIT_MESSAGE_INSTRUCTIONS.md` の順で自動検出
+
+## 自己診断（health_check）
+
+環境トラブル（起動しない・モジュール不足・ディレクトリ欠落）の切り分けは、以下の1コマンドで行えます。
+
+```bat
+health_check.bat
+```
+
+または:
+
+```powershell
+.\scripts\health_check.ps1
+```
+
+診断項目:
+- Python が PATH にあるか
+- `markdown` / `flask` が import できるか
+- `md/` `html/` `picture/` ディレクトリが存在するか
+- `app.py` の主要ルート（`/`, `/import`, `/kb/`）が応答するか（サーバー起動不要のインプロセス検査）
+
+結果は `[OK]` / `[WARN]` / `[NG]` で表示され、`[NG]` には対処方法（`->` 行）が併記されます。
+
+## テスト
+
+主要ルートの破壊を検知するスモークテストがあります。改修後は以下で確認してください。
+
+```powershell
+python -m pytest tests
+```
 
 ## 依存関係
 
@@ -217,6 +257,8 @@ tags: [手順, 申請, 社内]
 - `html/` は書き込み権限が必要
 - `build.py` は書き込み確認のため一時ファイル `.write_test` を作成
 - `app.py` は `md` 直下の `*.md` を対象（サブディレクトリは対象外）
+- `md/*.md` と `html/*.html` は `.gitignore` で除外済み（本命データの誤コミット防止）。
+  サンプルとして追跡したいファイルは `.gitignore` に `!md/ファイル名.md` 形式の例外行を追記する
 
 ## メンテナンス
 
