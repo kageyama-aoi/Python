@@ -1,0 +1,13 @@
+{
+  "name": "SQL IN句生成",
+  "description": "ユーザー一覧CSVからActiveユーザーを抽出（指定ユーザー除外）し、SQLのIN句テキストを生成する",
+  "actions": [
+    {
+      "label": "実行",
+      "kind": "generator",
+      "entry": "run.bat",
+      "open_after": "data/output/in_clause.txt",
+      "note": "起動するとCSV選択ダイアログが開く（run.batへのドラッグ&ドロップでも指定可）。抽出条件は config/main.yaml で変更可"
+    }
+  ]
+}

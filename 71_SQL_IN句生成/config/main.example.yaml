@@ -1,0 +1,29 @@
+app_name: "71_SQL_IN句生成"
+version: "0.1.0"
+log_level: "INFO"
+
+# ⚠️ このファイルは設定のテンプレートです。
+#    コピーして config/main.yaml を作り、実際の値（除外ユーザー等）はそちらに書くこと。
+#    main.yaml は git 管理外（実データ・業務IDを公開リポジトリに載せないため）。
+
+# 入力CSV（起動時にダイアログで選択。run.batへのドラッグ&ドロップでも指定可）
+input:
+  dialog_initial_dir: "data/input"   # ファイル選択ダイアログの初期フォルダ
+  encoding: "utf-8"
+
+# 抽出条件
+filter:
+  # 対象とする列名
+  user_column: "user_name"
+  status_column: "status"
+  # この値の行だけを対象にする（status列がないCSVではスキップされる）
+  status_value: "Active"
+  # 除外するユーザー名（実際のIDは main.yaml 側に書く）
+  exclude_users:
+    - "admin"
+
+# 出力
+output:
+  txt_path: "data/output/in_clause.txt"   # SQLツールにそのままコピペする用
+  csv_path: "data/output/in_clause.csv"   # Excelで開く用（1セルに全文）
+  csv_header: "in_clause_result"
