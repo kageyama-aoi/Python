@@ -1,0 +1,15 @@
+{
+  "name": "pw-inspector",
+  "version": "1.0.0",
+  "description": "Playwright Element Inspector - Auto selector extraction tool",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "playwright": "^1.40.0",
+    "ws": "^8.14.2"
+  }
+}

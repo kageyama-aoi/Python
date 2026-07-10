@@ -1,8 +1,8 @@
-# 03_セレクタ抽出(20260207)
+# 21_セレクタ抽出_Playwright
 
 Webページ上の要素をAlt+クリックで自動キャプチャし、Playwright自動化スクリプト向けのセレクタコード（`getByRole`/`getByLabel`など）を生成・保存するツール「pw-inspector」を格納しています。
 
-> **技術スタック**: Node.js/Express + **Playwrightベース**。現時点でPython直下にPlaywrightを使った現役プロジェクトはありませんが、将来Playwrightで自動化する際の準備として保持しています。Seleniumベースのプロジェクト（`02_スクレイピング（勤怠・TR)`など）向けには代わりに [`100_scraper_selector_tool`](../100_scraper_selector_tool/README.md) を使ってください。
+> **技術スタック**: Node.js/Express + **Playwrightベース**。現時点でPython直下にPlaywrightを使った現役プロジェクトはありませんが、将来Playwrightで自動化する際の準備として保持しています。Seleniumベースのプロジェクト（`10_スクレイピング（勤怠・TR)`など）向けには代わりに [`20_セレクタ抽出_Selenium`](../20_セレクタ抽出_Selenium/README.md) を使ってください。
 
 ## 中身
 

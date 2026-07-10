@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PW Inspector</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0e;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: #2a2d38;
+    --border2: #353a4a;
+    --accent: #ff6b35;
+    --green: #39d98a;
+    --red: #ff4c6e;
+    --yellow: #ffd166;
+    --blue: #4fc3f7;
+    --purple: #bb86fc;
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #5a5f72;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .logo { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--accent); letter-spacing: 2px; flex-shrink: 0; }
+  .url-bar { flex: 1; display: flex; gap: 6px; }
+  .url-bar input { flex: 1; background: var(--bg); border: 1px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 5px 10px; border-radius: 4px; outline: none; }
+  .url-bar input:focus { border-color: var(--accent); }
+  .btn { padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: var(--sans); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #ff7d4d; }
+  .btn-secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-secondary:hover { color: var(--text); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-export { background: rgba(57,217,138,0.1); color: var(--green); border: 1px solid rgba(57,217,138,0.3); }
+  .btn-export:hover { background: rgba(57,217,138,0.2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: background 0.3s; }
+  .status-dot.online { background: var(--green); box-shadow: 0 0 5px var(--green); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* 左パネル */
+  .panel-left { width: 240px; display: flex; flex-direction: column; border-right: 1px solid var(--border); flex-shrink: 0; }
+  .panel-header { display: flex; align-items: center; padding: 7px 12px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+  .panel-header .count-badge { margin-left: auto; background: var(--surface2); border: 1px solid var(--border2); color: var(--text3); font-size: 10px; padding: 1px 6px; border-radius: 10px; font-family: var(--mono); }
+
+  #log-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .log-item { padding: 7px 9px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; background: var(--surface2); transition: all 0.12s; }
+  .log-item:hover { border-color: var(--border2); }
+  .log-item.active { border-color: var(--accent); background: rgba(255,107,53,0.05); }
+  .log-key { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-tag { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+  .log-sub { font-size: 10px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* エクスポートパネル */
+  .export-panel { border-top: 1px solid var(--border); padding: 10px; flex-shrink: 0; }
+  .export-title { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
+  .export-path { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text2); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; outline: none; }
+  .export-path:focus { border-color: var(--accent); }
+  .export-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+  .export-btns .btn { flex: 1; font-size: 11px; padding: 4px 6px; text-align: center; }
+
+  /* 検証パネル */
+  .check-panel { border-top: 1px solid var(--border); padding: 10px; flex-shrink: 0; }
+  .check-row { display: flex; gap: 6px; }
+  .check-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 11px; padding: 4px 8px; border-radius: 4px; outline: none; min-width: 0; }
+  .check-input:focus { border-color: var(--accent); }
+  .check-result { margin-top: 5px; font-family: var(--mono); font-size: 11px; min-height: 16px; }
+
+  /* 右パネル */
+  .panel-right { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #result-area { flex: 1; overflow-y: auto; padding: 14px; }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; color: var(--text3); }
+  .empty-icon { font-size: 40px; opacity: 0.25; }
+  .empty-state h3 { font-size: 13px; color: var(--text3); }
+  .empty-state p { font-size: 12px; color: var(--text3); font-family: var(--mono); text-align: center; line-height: 2; }
+  .kbd { background: var(--surface2); border: 1px solid var(--border2); border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 11px; color: var(--accent); }
+
+  /* 要素カード */
+  .element-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 10px; }
+  .card-header { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .tag-chip { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 3px; background: rgba(79,195,247,0.1); color: var(--blue); border: 1px solid rgba(79,195,247,0.2); flex-shrink: 0; }
+  .card-time { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-left: auto; }
+
+  /* キー名・メモ編集 */
+  .key-edit-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .key-label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+  .key-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); color: var(--accent); font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 3px; outline: none; }
+  .key-input:focus { border-color: var(--accent); }
+  .memo-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); color: var(--text2); font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 3px; outline: none; }
+  .memo-input:focus { border-color: var(--border); }
+  .key-save-btn { font-size: 10px; padding: 3px 8px; border-radius: 3px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text3); cursor: pointer; font-family: var(--mono); transition: all 0.15s; flex-shrink: 0; }
+  .key-save-btn:hover { border-color: var(--green); color: var(--green); }
+  .key-save-btn.saved { background: var(--green); color: #000; border-color: var(--green); }
+  .del-btn { font-size: 10px; padding: 3px 8px; border-radius: 3px; background: transparent; border: 1px solid var(--border2); color: var(--text3); cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .del-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* 属性グリッド */
+  .attrs-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
+  .attr-item { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 4px 8px; }
+  .attr-key { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .attr-val { font-family: var(--mono); font-size: 11px; color: var(--text); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* セレクタリスト */
+  .section-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 6px 0 5px; }
+  .selector-row { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); margin-bottom: 5px; position: relative; }
+  .selector-row.best { border-color: var(--accent); background: rgba(255,107,53,0.04); }
+  .selector-row.unique-ok { border-left: 3px solid var(--green); }
+  .selector-row.unique-warn { border-left: 3px solid var(--yellow); }
+  .selector-row.unique-err { border-left: 3px solid var(--red); }
+  .best-badge { position: absolute; top: -7px; right: 8px; font-size: 9px; background: var(--accent); color: #fff; padding: 1px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px; }
+  .priority-num { font-family: var(--mono); font-size: 10px; color: var(--text3); width: 16px; text-align: center; flex-shrink: 0; }
+  .type-badge { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; font-family: var(--mono); min-width: 60px; text-align: center; }
+  .type-role    { background: rgba(57,217,138,0.1); color: var(--green); border: 1px solid rgba(57,217,138,0.2); }
+  .type-label   { background: rgba(79,195,247,0.1); color: var(--blue); border: 1px solid rgba(79,195,247,0.2); }
+  .type-placeholder { background: rgba(79,195,247,0.1); color: var(--blue); border: 1px solid rgba(79,195,247,0.2); }
+  .type-text    { background: rgba(255,209,102,0.1); color: var(--yellow); border: 1px solid rgba(255,209,102,0.2); }
+  .type-testid  { background: rgba(187,134,252,0.1); color: var(--purple); border: 1px solid rgba(187,134,252,0.2); }
+  .type-id      { background: rgba(255,149,0,0.1); color: #ff9500; border: 1px solid rgba(255,149,0,0.2); }
+  .type-aria    { background: rgba(255,76,110,0.1); color: var(--red); border: 1px solid rgba(255,76,110,0.2); }
+  .type-name    { background: rgba(255,149,0,0.1); color: #ff9500; border: 1px solid rgba(255,149,0,0.2); }
+  .type-class   { background: rgba(90,95,114,0.2); color: var(--text2); border: 1px solid var(--border); }
+  .type-xpath   { background: transparent; color: var(--text3); border: 1px solid var(--border); }
+  .selector-code { flex: 1; font-family: var(--mono); font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; padding: 1px 4px; border-radius: 2px; transition: background 0.12s; }
+  .selector-code:hover { background: var(--surface2); }
+  .count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 3px; flex-shrink: 0; min-width: 32px; text-align: center; }
+  .count-ok   { background: rgba(57,217,138,0.1); color: var(--green); }
+  .count-warn { background: rgba(255,209,102,0.1); color: var(--yellow); }
+  .count-err  { background: rgba(255,76,110,0.1); color: var(--red); }
+  .copy-btn { background: transparent; border: 1px solid var(--border2); color: var(--text3); font-size: 10px; padding: 2px 7px; border-radius: 3px; cursor: pointer; font-family: var(--mono); transition: all 0.12s; flex-shrink: 0; }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { background: var(--green); border-color: var(--green); color: #000; }
+
+  /* 推奨セレクタ大バナー */
+  .best-banner { background: var(--surface); border: 1px solid var(--accent); border-radius: 5px; margin-top: 14px; }
+  .best-banner-header { display: flex; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border); }
+  .best-banner-label { font-size: 10px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+  .best-banner-code { padding: 10px 12px; font-family: var(--mono); font-size: 13px; color: var(--green); cursor: pointer; border-radius: 0 0 4px 4px; }
+  .best-banner-code:hover { background: var(--bg); }
+
+  /* ステータスバー */
+  #statusbar { display: flex; align-items: center; gap: 12px; padding: 4px 14px; background: var(--surface); border-top: 1px solid var(--border); font-size: 10px; color: var(--text3); font-family: var(--mono); flex-shrink: 0; }
+  #statusbar .msg { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  #toast { position: fixed; bottom: 36px; right: 16px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 11px; padding: 7px 14px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 9999; }
+  #toast.show { opacity: 1; }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PW/INSP</div>
+  <div class="url-bar">
+    <input type="text" id="url-input" placeholder="https://example.com">
+    <button class="btn btn-primary" id="btn-launch">起動</button>
+    <button class="btn btn-secondary" id="btn-reload" disabled>再読込</button>
+    <button class="btn btn-danger" id="btn-close" disabled>終了</button>
+  </div>
+  <div class="status-dot" id="status-dot"></div>
+</header>
+
+<div class="main">
+  <div class="panel-left">
+    <div class="panel-header">
+      キャプチャ
+      <span class="count-badge" id="log-count">0</span>
+    </div>
+    <div id="log-list"></div>
+
+    <!-- エクスポート -->
+    <div class="export-panel">
+      <div class="export-title">エクスポート</div>
+      <input type="text" class="export-path" id="export-path" placeholder="保存先パス（空白でデフォルト）">
+      <div class="export-btns">
+        <button class="btn btn-export" id="btn-save-json" title=".json 保存">JSON</button>
+        <button class="btn btn-export" id="btn-save-js" title=".js 保存">JS</button>
+        <button class="btn btn-export" id="btn-save-both">両方</button>
+        <button class="btn btn-secondary" id="btn-dl-json" title="ブラウザからDL">↓JSON</button>
+        <button class="btn btn-secondary" id="btn-dl-js" title="ブラウザからDL">↓JS</button>
+      </div>
+    </div>
+
+    <!-- セレクタ検証 -->
+    <div class="check-panel">
+      <div class="export-title">セレクタ検証</div>
+      <div class="check-row">
+        <input type="text" class="check-input" id="manual-selector" placeholder="#id .class [attr]">
+        <button class="btn btn-secondary" id="btn-check">確認</button>
+      </div>
+      <div class="check-result" id="check-result"></div>
+    </div>
+  </div>
+
+  <div class="panel-right">
+    <div class="panel-header">
+      セレクタ候補
+      <span id="current-url" style="margin-left:8px;font-size:10px;color:var(--text3);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    </div>
+    <div id="result-area">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3>要素をキャプチャしてください</h3>
+        <p>
+          ブラウザを起動して<br>
+          <span class="kbd">Alt</span> + クリック か <span class="kbd">Ctrl</span> + クリック
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="statusbar">
+  <span class="msg" id="status-text">待機中</span>
+  <span id="ws-status">WS: 未接続</span>
+</div>
+<div id="toast"></div>
+
+<script>
+let ws = null;
+let captures = [];
+let activeIdx = 0;
+
+const $ = id => document.getElementById(id);
+const urlInput = $('url-input');
+const btnLaunch = $('btn-launch');
+const btnReload = $('btn-reload');
+const btnClose = $('btn-close');
+const statusDot = $('status-dot');
+const logList = $('log-list');
+const logCount = $('log-count');
+const resultArea = $('result-area');
+const currentUrlEl = $('current-url');
+const statusText = $('status-text');
+const wsStatus = $('ws-status');
+const manualSel = $('manual-selector');
+const checkResult = $('check-result');
+const exportPath = $('export-path');
+
+// WebSocket
+function connectWS() {
+  ws = new WebSocket('ws://' + location.host);
+  ws.onopen = () => { wsStatus.textContent = 'WS: 接続済'; wsStatus.style.color = 'var(--green)'; };
+  ws.onclose = () => { wsStatus.textContent = 'WS: 切断'; wsStatus.style.color = 'var(--red)'; setTimeout(connectWS, 2000); };
+  ws.onmessage = e => handleMsg(JSON.parse(e.data));
+}
+
+function handleMsg(data) {
+  if (data.type === 'element_captured') {
+    captures.unshift(data);
+    activeIdx = 0;
+    renderLogList();
+    showCapture(0);
+    logCount.textContent = data.sessionElementCount || captures.length;
+  } else if (data.type === 'status') {
+    setStatus(data.message);
+  } else if (data.type === 'navigation') {
+    currentUrlEl.textContent = data.url;
+    setStatus('移動: ' + data.url);
+  } else if (data.type === 'session_updated') {
+    logCount.textContent = data.elementCount;
+  } else if (data.type === 'session_reset') {
+    captures = [];
+    logCount.textContent = '0';
+    renderLogList();
+    resultArea.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div><h3>セッションをリセットしました</h3></div>';
+  }
+}
+
+function renderLogList() {
+  logList.innerHTML = '';
+  captures.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'log-item' + (i === activeIdx ? ' active' : '');
+    const time = new Date(c.timestamp).toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    div.innerHTML =
+      '<div class="log-key">' + escHtml(c.sessionKey || '?') + '</div>' +
+      '<div class="log-tag">&lt;' + escHtml(c.info.tagName) + '&gt; · ' + time + '</div>' +
+      '<div class="log-sub">' + escHtml(c.info.innerText || c.info.placeholder || c.info.id || '-') + '</div>';
+    div.onclick = () => { activeIdx = i; renderLogList(); showCapture(i); };
+    logList.appendChild(div);
+  });
+}
+
+function showCapture(idx) {
+  const data = captures[idx];
+  if (!data) return;
+  const info = data.info;
+  const candidates = data.candidates;
+  const best = data.bestSelector;
+  const key = data.sessionKey || '';
+  currentUrlEl.textContent = data.currentUrl || '';
+
+  const time = new Date(data.timestamp).toLocaleTimeString('ja-JP');
+
+  let html = '<div class="element-card">';
+  html += '<div class="card-header">';
+  html += '<span class="tag-chip">&lt;' + escHtml(info.tagName) + '&gt;</span>';
+  html += '<span style="font-size:11px;color:var(--text2);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 8px">' + escHtml(info.innerText || info.placeholder || info.id || '') + '</span>';
+  html += '<span class="card-time">' + time + '</span>';
+  html += '</div>';
+
+  // キー名・メモ編集行
+  html += '<div class="key-edit-row">';
+  html += '<span class="key-label">key</span>';
+  html += '<input class="key-input" id="key-input-' + idx + '" value="' + escHtml(key) + '" placeholder="変数名">';
+  html += '<span class="key-label" style="margin-left:6px">memo</span>';
+  html += '<input class="memo-input" id="memo-input-' + idx + '" value="" placeholder="説明メモ">';
+  html += '<button class="key-save-btn" onclick="saveKeyMemo(' + idx + ')">保存</button>';
+  html += '<button class="del-btn" onclick="deleteElement(\'' + escAttr(key) + '\', ' + idx + ')">削除</button>';
+  html += '</div>';
+
+  // 属性
+  const attrItems = [
+    ['id', info.id], ['role', info.role], ['aria', info.ariaLabel],
+    ['label', info.labelText], ['placeholder', info.placeholder],
+    ['name', info.name], ['type', info.type],
+    ...Object.entries(info.testAttrs || {}),
+  ].filter(([, v]) => v);
+  if (attrItems.length) {
+    html += '<div class="attrs-grid">';
+    attrItems.forEach(([k, v]) => {
+      html += '<div class="attr-item"><div class="attr-key">' + escHtml(k) + '</div><div class="attr-val" title="' + escHtml(v) + '">' + escHtml(v) + '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // セレクタ候補
+  html += '<div class="section-label">セレクタ候補（優先度順）</div>';
+  candidates.forEach(c => {
+    const isBest = best && c.selector === best.selector;
+    const countCls = c.count === 1 ? 'count-ok' : c.count === 0 ? 'count-err' : 'count-warn';
+    const rowCls = c.count === 1 ? 'unique-ok' : c.count === 0 ? 'unique-err' : 'unique-warn';
+    html += '<div class="selector-row ' + rowCls + (isBest ? ' best' : '') + '">';
+    if (isBest) html += '<span class="best-badge">BEST</span>';
+    html += '<span class="priority-num">' + c.priority + '</span>';
+    html += '<span class="type-badge type-' + c.type + '">' + c.type + '</span>';
+    html += '<span class="selector-code" onclick="copyText(\'' + escAttr(c.playwrightCode) + '\')" title="' + escHtml(c.playwrightCode) + '">' + escHtml(c.playwrightCode) + '</span>';
+    html += '<span class="count-badge ' + countCls + '">' + (c.error ? 'ERR' : c.count) + '</span>';
+    html += '<button class="copy-btn" onclick="copyText(\'' + escAttr(c.playwrightCode) + '\', this)">copy</button>';
+    html += '</div>';
+  });
+
+  // 推奨バナー
+  if (best) {
+    html += '<div class="best-banner">';
+    html += '<div class="best-banner-header"><span class="best-banner-label">推奨セレクタ</span><button class="copy-btn" style="margin-left:auto" onclick="copyText(\'' + escAttr(best.playwrightCode) + '\', this)">copy</button></div>';
+    html += '<div class="best-banner-code" onclick="copyText(\'' + escAttr(best.playwrightCode) + '\')">' + escHtml(best.playwrightCode) + '</div>';
+    html += '</div>';
+  }
+
+  resultArea.innerHTML = html;
+
+  // メモの現在値をセッションから取得して反映
+  fetchSession().then(session => {
+    if (session && session.elements && key && session.elements[key]) {
+      const memoEl = document.getElementById('memo-input-' + idx);
+      if (memoEl) memoEl.value = session.elements[key].memo || '';
+    }
+  });
+}
+
+async function saveKeyMemo(idx) {
+  const data = captures[idx];
+  if (!data) return;
+  const oldKey = data.sessionKey;
+  const newKey = document.getElementById('key-input-' + idx)?.value?.trim();
+  const memo = document.getElementById('memo-input-' + idx)?.value || '';
+
+  const r = await fetch('/api/update-element', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oldKey, newKey, memo }),
+  });
+  const d = await r.json();
+  if (d.error) { showToast('エラー: ' + d.error); return; }
+  if (newKey && newKey !== oldKey) {
+    data.sessionKey = newKey;
+    renderLogList();
+    showCapture(idx);
+  }
+  const btn = document.querySelector('.key-save-btn');
+  if (btn) { btn.classList.add('saved'); setTimeout(() => btn.classList.remove('saved'), 1500); }
+  showToast('保存しました');
+}
+
+async function deleteElement(key, idx) {
+  if (!confirm('「' + key + '」を削除しますか？')) return;
+  await fetch('/api/element/' + encodeURIComponent(key), { method: 'DELETE' });
+  captures.splice(idx, 1);
+  activeIdx = Math.min(activeIdx, captures.length - 1);
+  logCount.textContent = captures.length;
+  renderLogList();
+  if (captures.length > 0) showCapture(activeIdx);
+  else resultArea.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div><h3>要素を削除しました</h3></div>';
+}
+
+async function fetchSession() {
+  const r = await fetch('/api/session');
+  const d = await r.json();
+  return d.session;
+}
+
+// エクスポート
+$('btn-save-json').addEventListener('click', () => exportSave('json'));
+$('btn-save-js').addEventListener('click', () => exportSave('js'));
+$('btn-save-both').addEventListener('click', () => exportSave('both'));
+
+async function exportSave(format) {
+  const outputDir = exportPath.value.trim() || null;
+  const r = await fetch('/api/export/save', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ outputDir, format }),
+  });
+  const d = await r.json();
+  if (d.error) { showToast('エラー: ' + d.error); return; }
+  showToast('保存完了: ' + d.files.join(', '));
+}
+
+$('btn-dl-json').addEventListener('click', () => { window.location.href = '/api/export/json'; });
+$('btn-dl-js').addEventListener('click', () => { window.location.href = '/api/export/js'; });
+
+// ブラウザ操作
+btnLaunch.addEventListener('click', async () => {
+  const url = urlInput.value.trim() || 'about:blank';
+  setStatus('起動中...');
+  btnLaunch.disabled = true;
+  try {
+    const r = await fetch('/api/launch', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, headless: false }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      statusDot.className = 'status-dot online';
+      btnReload.disabled = false; btnClose.disabled = false;
+      currentUrlEl.textContent = d.url;
+      setStatus('起動完了');
+    } else throw new Error(d.error);
+  } catch (e) { setStatus('エラー: ' + e.message, true); }
+  btnLaunch.disabled = false;
+});
+
+btnReload.addEventListener('click', async () => {
+  await fetch('/api/launch', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: urlInput.value || 'about:blank', headless: false }),
+  });
+});
+
+btnClose.addEventListener('click', async () => {
+  await fetch('/api/close', { method: 'POST' });
+  statusDot.className = 'status-dot';
+  btnReload.disabled = true; btnClose.disabled = true;
+});
+
+// セレクタ検証
+$('btn-check').addEventListener('click', checkSel);
+manualSel.addEventListener('keydown', e => { if (e.key === 'Enter') checkSel(); });
+
+async function checkSel() {
+  const sel = manualSel.value.trim();
+  if (!sel) return;
+  const r = await fetch('/api/check-selector', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ selector: sel }),
+  });
+  const d = await r.json();
+  if (d.error) { checkResult.innerHTML = '<span style="color:var(--red)">エラー: ' + escHtml(d.error) + '</span>'; return; }
+  if (d.count === 0) checkResult.innerHTML = '<span style="color:var(--red)">0件（見つかりません）</span>';
+  else if (d.count === 1) checkResult.innerHTML = '<span style="color:var(--green)">✓ 1件（ユニーク）</span>';
+  else checkResult.innerHTML = '<span style="color:var(--yellow)">⚠ ' + d.count + '件（重複）</span>';
+}
+
+// utilities
+function copyText(code, btn) {
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('コピーしました');
+    if (btn) { btn.textContent = '✓'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500); }
+  });
+}
+function setStatus(msg, err) { statusText.textContent = msg; statusText.style.color = err ? 'var(--red)' : 'var(--text3)'; }
+function showToast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+connectWS();
+fetch('/api/status').then(r => r.json()).then(d => {
+  if (d.browserOpen) {
+    statusDot.className = 'status-dot online';
+    btnReload.disabled = false; btnClose.disabled = false;
+    currentUrlEl.textContent = d.currentUrl || '';
+    logCount.textContent = d.elementCount || '0';
+  }
+});
+</script>
+</body>
+</html>
