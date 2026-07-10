@@ -1,0 +1,3 @@
+C:\path\to\pdf\第1章.pdf
+C:\path\to\pdf\第2章.pdf
+C:\path\to\pdf\付録.pdf

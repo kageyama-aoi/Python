@@ -137,7 +137,7 @@ class TestDirectoryOpenerApp(unittest.TestCase):
         """「URLを開く」ボタンが正しくwebbrowser.open_new_tabを呼び出すかテストする。"""
         button_name = "各種リンク"
         button_display_text = f"🌐 {button_name}"
-        expected_url = "https://docs.google.com/spreadsheets/d/1TfI1uucI9zAlgTnCESs4gsvt_EoAQYQzbY219zMowRA/edit?gid=0#gid=0"
+        expected_url = "https://example.com/links"
 
         button = self.find_button_recursively(self.app.page_container, button_display_text)
         self.assertIsNotNone(button, f"ボタン '{button_display_text}' が見つかりません。")
@@ -150,7 +150,7 @@ class TestDirectoryOpenerApp(unittest.TestCase):
     def test_show_page_button_click(self):
         """「ページ切り替え」ボタンが正しくページを切り替えるかテストする。"""
         button_display_text = "→ テストメニューへ"
-        target_page_name = "tframe"
+        target_page_name = "sub_menu"
 
         button = self.find_button_recursively(self.app.page_container, button_display_text)
         self.assertIsNotNone(button, f"ボタン '{button_display_text}' が見つかりません。")

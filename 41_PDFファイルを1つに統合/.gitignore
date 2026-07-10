@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 output/
+
+# 実ファイルパスを列挙するローカル入力（inputs.example.txt を元に各自作成）
+inputs.txt

@@ -55,11 +55,11 @@ pip install pandas openpyxl xlsxwriter
 ```json
 {
     "notes": {
-      "project_patterns": ["社内ダミー", "島村楽器", ""],
-      "employee_patterns": ["景山 朋美", "佐藤花子", "全社員"]
+      "project_patterns": ["社内ダミー", "サンプル商事", ""],
+      "employee_patterns": ["山田 太郎", "佐藤花子", "全社員"]
     },
     "target_project": "社内ダミー",
-    "target_employee": "景山 朋美"
+    "target_employee": "山田 太郎"
 }
 ```
 
@@ -77,7 +77,7 @@ pip install pandas openpyxl xlsxwriter
 ### 4. 結果の確認
 
 - 正常に処理が完了すると、`output` フォルダに結果のExcelファイルが生成されます。
-  - 例: `temp2_社内ダミー_景山 朋美_aggregate_results.xlsx`
+  - 例: `temp2_社内ダミー_山田 太郎_aggregate_results.xlsx`
 - 処理中にエラーが発生した場合は、`error_log` フォルダにエラー内容が記載されたテキストファイルが生成されます。
 
 ## 各ファイルの説明

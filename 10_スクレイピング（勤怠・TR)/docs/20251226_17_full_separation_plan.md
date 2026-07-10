@@ -46,7 +46,7 @@ crowdlog_settings:
 新規作成し、TR全般で使う設定をまとめる。
 ```yaml
 task_report_settings:
-  entry_url: "https://taskreport.e-school.jp/bugfix.php"
+  entry_url: "https://example.com/bugfix.php"
   
   # "new_bug_button" は直接URL遷移するなら不要になる可能性が高いが、
   # 残すならここに記述。

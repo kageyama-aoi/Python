@@ -12,7 +12,7 @@ JS_DIR = os.path.join(BASE_DIR, "js")
 JS_FILE = os.path.join(JS_DIR, "injector.js")
 
 # デフォルト値
-DEFAULT_URL = "https://newculture.e-school.jp/beta/index.php"
+DEFAULT_URL = "https://example.com/index.php"
 DEFAULT_MODE = "popup"
 
 # メッセージ

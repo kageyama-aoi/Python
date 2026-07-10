@@ -64,9 +64,9 @@
                     "icon": null
                 },
                 {
-                    "name": "My Documents",
+                    "name": "Documents",
                     "action": "open_directory",
-                    "path": "C:\\Users\\kageyama\\Documents",
+                    "path": "%USERPROFILE%\\Documents",
                     "icon": "2025-07-02_17h53_40.png"
                 },
                 {

@@ -12,6 +12,7 @@
 2. 入力リストを作成（例: `inputs.txt`）
    - 1 行に 1 つの PDF パス
    - 空行、`#` から始まる行は無視
+   - `inputs.txt` は実ファイルパスを含むためgit管理外。`inputs.example.txt` をコピーして作成する
 3. 実行
    - `python merge_pdfs_from_list.py -l inputs.txt -o output\merged.pdf`
 

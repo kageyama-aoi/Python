@@ -1,1 +1,4 @@
 node_modules/
+
+# 抽出結果（対象サイトのURL・実データを含む生成物）
+selectors/

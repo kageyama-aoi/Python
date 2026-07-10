@@ -110,7 +110,7 @@ def test_show_page_button_click(self):
     """「ページ切り替え」ボタンが正しくページを切り替えるかテストする。"""
     # Arrange
     button_display_text = "→ テストメニューへ"
-    target_page_name = "test_tframe"
+    target_page_name = "test_sub_menu"
 
     # Act
     button = self.find_button_recursively(self.app.page_container, button_display_text)
@@ -146,11 +146,11 @@ def test_show_page_button_click(self):
     ```python
     # (メソッド内)
     # Arrange
-    self.app.show_page("test_shimamura") # まず目的のページに移動
+    self.app.show_page("test_customer") # まず目的のページに移動
     button_name = "testサイト"
     button_display_text = f"⚙️ {button_name}"
     # このテストでは、パラメータ入力欄は空のままボタンを押すことを想定
-    expected_url = "https://tcns.shimamura.co.jp/"
+    expected_url = "https://example.com/"
     ```
 
 3.  **実行 (Act)**

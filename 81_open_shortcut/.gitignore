@@ -25,3 +25,6 @@ build/
 
 # Gemini CLI agent temporary files
 .gemini/
+
+# 実パス・業務リンクを含むローカル設定（config.example.json を元に各自作成）
+data/config.json

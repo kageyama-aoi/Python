@@ -7,6 +7,7 @@ data/screenshots/*.png
 data/drafts/*.json
 /build
 /src/__pycache__
-/.vscode/
+.vscode/
+config/old/
 logs/batch_error_logs/*.log
 .env
