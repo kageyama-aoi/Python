@@ -13,7 +13,8 @@ input:
 
 # 抽出条件
 filter:
-  # 対象とする列名
+  # 対象とする列名（入力にこの列がない場合は起動時に選択ダイアログが出る。
+  # 空にすると毎回ダイアログで選択。コマンドライン第2引数でも指定可）
   user_column: "user_name"
   status_column: "status"
   # この値の行だけを対象にする（status列がないCSVではスキップされる）
@@ -27,3 +28,5 @@ output:
   txt_path: "data/output/in_clause.txt"   # SQLツールにそのままコピペする用
   csv_path: "data/output/in_clause.csv"   # Excelで開く用（1セルに全文）
   csv_header: "in_clause_result"
+  # true にすると "IN ('a', 'b')" 形式で出力（旧 04_CSV➡in句生成 と同じ形式）
+  include_in_prefix: false
