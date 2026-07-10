@@ -18,16 +18,22 @@ launcher.json の形式:
     }
   ]
 }
+
+favorites.json（このファイルと同じ場所に自動生成、gitignore対象）:
+お気に入り登録したツールの相対パス一覧。ユーザーのローカル環境固有の状態。
 """
 import json
 import os
+import re
 import subprocess
 import threading
 import tkinter as tk
+from collections import defaultdict
 from pathlib import Path
 from tkinter import messagebox, ttk
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+FAVORITES_FILE = Path(__file__).resolve().parent / "favorites.json"
 
 KIND_LABELS = {
     "gui": "GUI",
@@ -35,6 +41,21 @@ KIND_LABELS = {
     "server": "サーバー",
     "generator": "生成",
 }
+
+# ディレクトリ番号帯とカテゴリ名の対応（過去のリネームコミットの命名を踏襲）
+CATEGORY_LABELS = {
+    "10": "業務自動化",
+    "20": "セレクタ抽出支援",
+    "30": "データ変換",
+    "40": "ドキュメント生成",
+    "50": "ナレッジ管理",
+    "60": "データ可視化",
+    "70": "スクール特化業務",
+    "80": "雑務ユーティリティ",
+    "90": "ひな形",
+}
+
+_CATEGORY_PREFIX_RE = re.compile(r"^(\d)\d_")
 
 
 def find_tools():
@@ -52,6 +73,39 @@ def find_tools():
         tools.append(data)
     tools.sort(key=lambda t: str(t["_dir"]))
     return tools
+
+
+def get_category_key(tool_dir: Path) -> str:
+    """ツールの所属カテゴリキー（10刻みで"10"など）を返す。該当なしは"99"。"""
+    rel = tool_dir.relative_to(ROOT_DIR)
+    m = _CATEGORY_PREFIX_RE.match(rel.parts[0])
+    return (m.group(1) + "0") if m else "99"
+
+
+def get_category_label(key: str) -> str:
+    """カテゴリキーから表示用ラベル（例: "業務自動化（10番台）"）を返す。"""
+    if key == "99":
+        return "その他"
+    return f"{CATEGORY_LABELS.get(key, key + '番台')}（{key}番台）"
+
+
+def load_favorites() -> set:
+    """お気に入り登録済みツールの相対パス集合を読み込む。"""
+    if not FAVORITES_FILE.exists():
+        return set()
+    try:
+        with open(FAVORITES_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    except (json.JSONDecodeError, OSError):
+        return set()
+
+
+def save_favorites(favorites: set):
+    try:
+        with open(FAVORITES_FILE, "w", encoding="utf-8") as f:
+            json.dump(sorted(favorites), f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass
 
 
 def _cmd_c_line(entry_path: Path) -> str:
@@ -126,12 +180,68 @@ def run_generator(
     threading.Thread(target=worker, daemon=True).start()
 
 
+class CollapsibleSection(ttk.Frame):
+    """クリックで開閉できるセクション。見出しをクリックすると中身の表示/非表示を切り替える。"""
+
+    def __init__(self, parent, title, expanded=True):
+        super().__init__(parent)
+        self._expanded = expanded
+        self._title = title
+
+        header = ttk.Frame(self)
+        header.pack(fill="x")
+
+        self.toggle_label = ttk.Label(header, text=self._arrow(), width=2, cursor="hand2")
+        self.toggle_label.pack(side="left")
+        self.title_label = ttk.Label(
+            header, text=title, font=("", 10, "bold"), cursor="hand2"
+        )
+        self.title_label.pack(side="left", padx=(2, 0))
+
+        self.toggle_label.bind("<Button-1>", lambda e: self.toggle())
+        self.title_label.bind("<Button-1>", lambda e: self.toggle())
+
+        self.body = ttk.Frame(self)
+        if expanded:
+            self.body.pack(fill="x", padx=(18, 0), pady=(2, 0))
+
+    def _arrow(self):
+        return "▼" if self._expanded else "▶"
+
+    def toggle(self):
+        self.set_expanded(not self._expanded)
+
+    def set_expanded(self, expanded: bool):
+        self._expanded = expanded
+        self.toggle_label.config(text=self._arrow())
+        if expanded:
+            self.body.pack(fill="x", padx=(18, 0), pady=(2, 0))
+        else:
+            self.body.pack_forget()
+
+
 class LauncherApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Python ツールランチャー")
-        self.geometry("760x560")
+        self.geometry("820x640")
+        self.minsize(600, 400)
 
+        self.favorites = load_favorites()
+
+        # ── 検索バー（固定・スクロールしない） ──
+        search_bar = ttk.Frame(self)
+        search_bar.pack(fill="x", padx=10, pady=(8, 4))
+        ttk.Label(search_bar, text="検索:").pack(side="left")
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", lambda *_: self.apply_filter())
+        search_entry = ttk.Entry(search_bar, textvariable=self.search_var)
+        search_entry.pack(side="left", fill="x", expand=True, padx=(6, 6))
+        ttk.Button(
+            search_bar, text="クリア", command=lambda: self.search_var.set("")
+        ).pack(side="left")
+
+        # ── スクロール可能な本体 ──
         canvas = tk.Canvas(self, highlightthickness=0)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.body = ttk.Frame(canvas)
@@ -145,9 +255,23 @@ class LauncherApp(tk.Tk):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
+        canvas.bind_all(
+            "<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units")
+        )
+
+        # フィルタ対象の登録簿。(検索用テキスト, ツールのFrame, 所属セクション) のタプルを
+        # 登録順（=表示したい順）に保持する。
+        self._entries = []
+        self._sections = []
+
         self.build_tool_list()
 
     def build_tool_list(self):
+        for w in self.body.winfo_children():
+            w.destroy()
+        self._entries = []
+        self._sections = []
+
         tools = find_tools()
         if not tools:
             ttk.Label(
@@ -155,26 +279,72 @@ class LauncherApp(tk.Tk):
             ).pack(padx=16, pady=16)
             return
 
+        fav_tools = [
+            t for t in tools if str(t["_dir"].relative_to(ROOT_DIR)) in self.favorites
+        ]
+        if fav_tools:
+            fav_section = CollapsibleSection(
+                self.body, f"★ お気に入り（{len(fav_tools)}）", expanded=True
+            )
+            fav_section.pack(fill="x", padx=6, pady=(6, 2))
+            self._sections.append(fav_section)
+            for tool in fav_tools:
+                self.add_tool_frame(fav_section.body, tool, fav_section)
+
+        grouped = defaultdict(list)
         for tool in tools:
-            frame = ttk.LabelFrame(self.body, text=tool.get("name", tool["_dir"].name))
-            frame.pack(fill="x", padx=10, pady=6)
+            grouped[get_category_key(tool["_dir"])].append(tool)
 
-            desc = tool.get("description", "")
-            if desc:
-                ttk.Label(frame, text=desc, wraplength=680, justify="left").pack(
-                    anchor="w", padx=8, pady=(4, 2)
-                )
+        for key in sorted(grouped.keys()):
+            cat_tools = grouped[key]
+            section = CollapsibleSection(
+                self.body, f"{get_category_label(key)}（{len(cat_tools)}）", expanded=True
+            )
+            section.pack(fill="x", padx=6, pady=2)
+            self._sections.append(section)
+            for tool in cat_tools:
+                self.add_tool_frame(section.body, tool, section)
 
-            rel_dir = tool["_dir"].relative_to(ROOT_DIR)
-            ttk.Label(frame, text=str(rel_dir), foreground="gray").pack(
-                anchor="w", padx=8, pady=(0, 4)
+        self.apply_filter()
+
+    def add_tool_frame(self, parent, tool, section):
+        name = tool.get("name", tool["_dir"].name)
+        desc = tool.get("description", "")
+        rel_dir = tool["_dir"].relative_to(ROOT_DIR)
+        rel_str = str(rel_dir)
+
+        frame = ttk.LabelFrame(parent, text=name)
+        frame.pack(fill="x", padx=4, pady=4)
+
+        header_row = ttk.Frame(frame)
+        header_row.pack(fill="x", padx=6, pady=(2, 0))
+
+        is_fav = rel_str in self.favorites
+        ttk.Button(
+            header_row,
+            text="★" if is_fav else "☆",
+            width=3,
+            command=lambda: self.toggle_favorite(rel_str),
+        ).pack(side="right")
+
+        if desc:
+            ttk.Label(frame, text=desc, wraplength=660, justify="left").pack(
+                anchor="w", padx=8, pady=(4, 2)
             )
 
-            btn_row = ttk.Frame(frame)
-            btn_row.pack(anchor="w", padx=8, pady=(0, 8))
+        ttk.Label(frame, text=rel_str, foreground="gray").pack(
+            anchor="w", padx=8, pady=(0, 4)
+        )
 
-            for action in tool.get("actions", []):
-                self.add_action_button(btn_row, tool["_dir"], action)
+        btn_row = ttk.Frame(frame)
+        btn_row.pack(anchor="w", padx=8, pady=(0, 8))
+
+        for action in tool.get("actions", []):
+            self.add_action_button(btn_row, tool["_dir"], action)
+
+        category_label = get_category_label(get_category_key(tool["_dir"]))
+        search_text = " ".join([name, desc, rel_str, category_label]).lower()
+        self._entries.append((search_text, frame, section))
 
     def add_action_button(self, parent, tool_dir: Path, action: dict):
         kind = action.get("kind", "")
@@ -195,6 +365,42 @@ class LauncherApp(tk.Tk):
         btn.pack(side="left", padx=(0, 6))
 
         ttk.Label(parent, textvariable=status_var, foreground="blue").pack(side="left")
+
+    def toggle_favorite(self, rel_str: str):
+        if rel_str in self.favorites:
+            self.favorites.discard(rel_str)
+        else:
+            self.favorites.add(rel_str)
+        save_favorites(self.favorites)
+        self.build_tool_list()
+
+    def apply_filter(self):
+        """検索クエリに応じてツール・セクションの表示/非表示を切り替える。
+
+        pack_forget() したウィジェットを再度 pack() すると、その時点で
+        「最後に追加された扱い」になり表示順が崩れるため、対象を毎回
+        forget してから登録順（self._entries / self._sections の順）で
+        packし直すことで順序を保つ。
+        """
+        query = self.search_var.get().strip().lower()
+
+        by_section = defaultdict(list)
+        for search_text, frame, section in self._entries:
+            by_section[id(section)].append((search_text, frame))
+
+        for section in self._sections:
+            section.pack_forget()
+            items = by_section.get(id(section), [])
+            any_match = False
+            for search_text, frame in items:
+                frame.pack_forget()
+                if (not query) or (query in search_text):
+                    frame.pack(fill="x", padx=4, pady=4)
+                    any_match = True
+            if items and (not query or any_match):
+                section.pack(fill="x", padx=6, pady=2)
+                if query:
+                    section.set_expanded(True)
 
 
 if __name__ == "__main__":
