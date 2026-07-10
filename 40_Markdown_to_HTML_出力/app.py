@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 import subprocess
 import os
 from html import escape
@@ -15,6 +16,11 @@ from md_store import (
     resolve_md_path,
     sanitize_file_stem,
     update_md_file,
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 app = Flask(__name__)
@@ -709,21 +715,28 @@ def update():
 
     md_path = resolve_md_path(file_name)
     if md_path is None:
+        app.logger.warning("update 失敗: 対象ファイル不正 file=%s", file_name)
         return jsonify({"error": "invalid file"}), 400
 
     normalized_new = normalize_md_filename(str(new_file_name)) if str(new_file_name).strip() else md_path.name
     if not normalized_new:
+        app.logger.warning("update 失敗: 新ファイル名不正 file=%s new_file=%s", file_name, new_file_name)
         return jsonify({"error": "invalid new file name"}), 400
     target_path = (MD_DIR / normalized_new).resolve()
     if target_path.parent != MD_DIR.resolve() or target_path.suffix.lower() != ".md":
+        app.logger.warning("update 失敗: 新ファイルパス不正 file=%s new_file=%s", file_name, new_file_name)
         return jsonify({"error": "invalid new file path"}), 400
     if target_path != md_path and target_path.exists():
+        app.logger.warning("update 失敗: リネーム先が既存 file=%s new_file=%s", file_name, normalized_new)
         return jsonify({"error": "file already exists"}), 409
     if target_path != md_path:
         md_path.rename(target_path)
         md_path = target_path
 
     update_md_file(md_path, category, [str(t) for t in tags])
+    app.logger.info(
+        "update 完了: file=%s -> %s category=%s tags=%d件", file_name, md_path.name, category, len(tags)
+    )
     return jsonify({"ok": True, "file": md_path.name, "path": str(md_path)})
 
 
@@ -736,8 +749,10 @@ def bulk_update():
     tag_mode = str(data.get("tag_mode", "append")).strip().lower()
 
     if not isinstance(files, list) or not files:
+        app.logger.warning("bulk_update 失敗: 対象ファイル未選択")
         return jsonify({"error": "no files selected"}), 400
     if tag_mode not in {"append", "replace"}:
+        app.logger.warning("bulk_update 失敗: tag_mode不正 tag_mode=%s", tag_mode)
         return jsonify({"error": "invalid tag_mode"}), 400
 
     updated = 0
@@ -760,6 +775,13 @@ def bulk_update():
 
         update_md_file(md_path, category, final_tags)
         updated += 1
+
+    app.logger.info(
+        "bulk_update 完了: 対象=%d件 更新=%d件 失敗=%d件 category=%s tags=%d件 tag_mode=%s",
+        len(files), updated, len(failed), category, len(tags), tag_mode,
+    )
+    if failed:
+        app.logger.warning("bulk_update 失敗ファイル: %s", ", ".join(failed))
 
     return jsonify({
         "ok": True,
