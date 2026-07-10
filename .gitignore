@@ -15,3 +15,6 @@ venv/
 
 # Claude Code のローカル設定（ユーザー環境固有のため）
 **/.claude/settings.local.json
+
+# 実パス入りのローカル設定（config.example.ini を元に各自作成）
+82_日付付きファイル世代整理/config.ini

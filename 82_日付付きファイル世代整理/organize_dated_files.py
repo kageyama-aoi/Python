@@ -8,7 +8,10 @@ import configparser
 # 設定ファイル読み込み
 # -------------------------
 config = configparser.ConfigParser()
-config.read("config.ini", encoding="utf-8")
+if not config.read("config.ini", encoding="utf-8"):
+    raise SystemExit(
+        "config.ini が見つかりません。config.example.ini をコピーして作成してください。"
+    )
 
 TARGET_DIR = config["settings"]["target_dir"]
 KEEP = int(config["settings"]["keep"])
