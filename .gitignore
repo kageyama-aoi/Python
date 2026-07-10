@@ -12,3 +12,6 @@ venv/
 
 # Windowsショートカット（ユーザー環境依存のため）
 *.lnk
+
+# Claude Code のローカル設定（ユーザー環境固有のため）
+**/.claude/settings.local.json
