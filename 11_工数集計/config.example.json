@@ -1,0 +1,16 @@
+{
+  "notes": {
+    "project_patterns": [
+      "プロジェクトA",
+      "プロジェクトB",
+      ""
+    ],
+    "employee_patterns": [
+      "山田 太郎",
+      "佐藤 花子",
+      "全社員"
+    ]
+  },
+  "target_project": "",
+  "target_employee": ""
+}

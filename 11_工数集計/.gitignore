@@ -24,3 +24,10 @@ input/old/
 
 # ローカル作業用の一時CSV（先頭アンダースコア付き）
 input/_*.csv
+
+# 実データを含む入出力・設定ファイルはgit管理外（設定は config.example.json を参照）
+config.json
+tr_list.xlsx
+input/timesheet.csv
+input/bugs.csv
+output/tr_list.xlsx
