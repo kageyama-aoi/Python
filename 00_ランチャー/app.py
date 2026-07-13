@@ -23,10 +23,12 @@ favorites.json（このファイルと同じ場所に自動生成、gitignore対
 お気に入り登録したツールの相対パス一覧。ユーザーのローカル環境固有の状態。
 
 設定編集（⚙設定ボタン）:
-ツールディレクトリ直下に config.json がある場合、⚙設定ボタンを自動表示する。
-launcher.json への宣言は不要。押すと全キーをフォーム化した編集ウィンドウが開き、
-元の型を保ったまま config.json へ書き戻す。
+ツールディレクトリ直下に config.json または config.ini がある場合、⚙設定ボタンを
+自動表示する。launcher.json への宣言は不要。押すと全キーをフォーム化した編集
+ウィンドウが開く。JSONは元の型を保ったまま全体を書き戻し、INIは変更したキーの
+行だけを置換してコメント・空行を保持する。
 """
+import configparser
 import json
 import os
 import re
@@ -185,8 +187,17 @@ def run_generator(
     threading.Thread(target=worker, daemon=True).start()
 
 
-# フォルダ参照ボタンを付ける対象キーの判定（例: root_dir, output_base_dir, icon_folder）
+# フォルダ参照ボタンを付ける対象キーの判定（例: root_dir, TargetDirectory, icon_folder）
 _PATH_KEY_RE = re.compile(r"(dir|path|folder)", re.IGNORECASE)
+
+
+def _browse_dir_into_var(parent, var: tk.StringVar, fallback_dir: Path):
+    """フォルダ選択ダイアログを開き、選択結果を入力欄の変数へ反映する。"""
+    current = var.get()
+    initial = current if Path(current).is_dir() else str(fallback_dir)
+    selected = filedialog.askdirectory(parent=parent, initialdir=initial)
+    if selected:
+        var.set(selected)
 
 
 class ConfigEditorWindow(tk.Toplevel):
@@ -286,11 +297,7 @@ class ConfigEditorWindow(tk.Toplevel):
         ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
 
     def _browse_dir(self, var: tk.StringVar):
-        current = var.get()
-        initial = current if Path(current).is_dir() else str(self.config_path.parent)
-        selected = filedialog.askdirectory(parent=self, initialdir=initial)
-        if selected:
-            var.set(selected)
+        _browse_dir_into_var(self, var, self.config_path.parent)
 
     def _save(self):
         new_data = dict(self.data)
@@ -324,6 +331,147 @@ class ConfigEditorWindow(tk.Toplevel):
                 parent=self,
             )
             return
+        self.destroy()
+
+
+class IniConfigEditorWindow(tk.Toplevel):
+    """config.ini をセクションごとにフォーム化して編集・保存するサブウィンドウ。
+
+    INIの値はすべて文字列として編集する。保存はファイル全体の書き直しではなく
+    変更されたキーの行だけを置換する方式で、コメント行・空行・キーの記述順を
+    保持する（configparserで書き戻すとコメントが全て消えるため）。
+    複数行にまたがる値（継続行）は行置換で壊れるため編集不可として表示する。
+    """
+
+    _SECTION_RE = re.compile(r"^\s*\[(.+?)\]")
+    _KEY_LINE_RE = re.compile(r"^(\s*)([^=:\s][^=:]*?)(\s*[=:]\s*)")
+
+    def __init__(self, master, config_path: Path, tool_name: str):
+        super().__init__(master)
+        self.title(f"⚙設定 - {tool_name}")
+        self.config_path = config_path
+        self.minsize(480, 120)
+        self.transient(master)
+
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.optionxform = str  # キーの大文字小文字を保持する
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                parser.read_file(f)
+        except (configparser.Error, OSError, UnicodeDecodeError) as exc:
+            messagebox.showerror(
+                "読み込みエラー", f"{config_path.name} を読み込めませんでした:\n{exc}",
+                parent=master,
+            )
+            self.destroy()
+            return
+
+        # (セクション, キー, 入力変数, 元の値) のリスト。保存時に差分だけ書き込む。
+        self._fields = []
+        self._build_form(parser)
+        self.grab_set()
+
+    def _build_form(self, parser: configparser.ConfigParser):
+        form = ttk.Frame(self)
+        form.pack(fill="both", expand=True, padx=12, pady=(12, 4))
+        form.columnconfigure(1, weight=1)
+
+        row = 0
+        for section in parser.sections():
+            ttk.Label(form, text=f"[{section}]", font=("", 9, "bold")).grid(
+                row=row, column=0, columnspan=2, sticky="w",
+                pady=(8 if row else 0, 2),
+            )
+            row += 1
+            for key, value in parser.items(section):
+                ttk.Label(form, text=key).grid(
+                    row=row, column=0, sticky="w", padx=(12, 10), pady=3
+                )
+                var = tk.StringVar(value=value)
+                entry = ttk.Entry(form, textvariable=var, width=48)
+                entry.grid(row=row, column=1, sticky="ew", pady=3)
+                if "\n" in value:
+                    entry.config(state="disabled")
+                    ttk.Label(form, text="(複数行値のため編集不可)", foreground="gray").grid(
+                        row=row, column=2, sticky="w", padx=(6, 0)
+                    )
+                elif _PATH_KEY_RE.search(key):
+                    ttk.Button(
+                        form, text="参照...", width=7,
+                        command=lambda v=var: _browse_dir_into_var(
+                            self, v, self.config_path.parent
+                        ),
+                    ).grid(row=row, column=2, sticky="w", padx=(6, 0), pady=3)
+                self._fields.append((section, key, var, value))
+                row += 1
+
+        btn_row = ttk.Frame(self)
+        btn_row.pack(pady=(6, 12))
+        ttk.Button(btn_row, text="保存して閉じる", command=self._save).pack(
+            side="left", padx=(0, 8)
+        )
+        ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
+
+    def _replace_value_line(self, lines: list, section: str, key: str, new_value: str) -> bool:
+        """指定セクション内のキー行を探し、値部分だけ書き換える。見つからなければFalse。"""
+        current_section = None
+        for i, line in enumerate(lines):
+            m = self._SECTION_RE.match(line)
+            if m:
+                current_section = m.group(1)
+                continue
+            if current_section != section:
+                continue
+            stripped = line.lstrip()
+            if not stripped or stripped.startswith((";", "#")):
+                continue
+            km = self._KEY_LINE_RE.match(line)
+            if km and km.group(2).strip() == key:
+                newline = "\n" if line.endswith("\n") else ""
+                lines[i] = f"{km.group(1)}{km.group(2)}{km.group(3)}{new_value}{newline}"
+                return True
+        return False
+
+    def _save(self):
+        try:
+            lines = self.config_path.read_text(encoding="utf-8").splitlines(keepends=True)
+        except (OSError, UnicodeDecodeError) as exc:
+            messagebox.showerror(
+                "保存エラー", f"{self.config_path.name} を読み直せませんでした:\n{exc}",
+                parent=self,
+            )
+            return
+
+        changed = False
+        for section, key, var, original in self._fields:
+            new_value = var.get()
+            if new_value == original:
+                continue
+            if "\n" in new_value:
+                messagebox.showerror(
+                    "入力エラー", f"'{key}' に改行は入力できません。", parent=self
+                )
+                return
+            if not self._replace_value_line(lines, section, key, new_value):
+                messagebox.showerror(
+                    "保存エラー",
+                    f"[{section}] の '{key}' の行が見つからず、保存を中断しました。\n"
+                    f"{self.config_path.name} を直接確認してください。",
+                    parent=self,
+                )
+                return
+            changed = True
+
+        if changed:
+            try:
+                self.config_path.write_text("".join(lines), encoding="utf-8")
+            except OSError as exc:
+                messagebox.showerror(
+                    "保存エラー",
+                    f"{self.config_path.name} に保存できませんでした:\n{exc}",
+                    parent=self,
+                )
+                return
         self.destroy()
 
 
@@ -474,14 +622,19 @@ class LauncherApp(tk.Tk):
             command=lambda: self.toggle_favorite(rel_str),
         ).pack(side="right")
 
-        config_path = tool["_dir"] / "config.json"
-        if config_path.exists():
-            ttk.Button(
-                header_row,
-                text="⚙設定",
-                width=7,
-                command=lambda p=config_path, n=name: ConfigEditorWindow(self, p, n),
-            ).pack(side="right", padx=(0, 4))
+        for config_name, editor_cls in (
+            ("config.json", ConfigEditorWindow),
+            ("config.ini", IniConfigEditorWindow),
+        ):
+            config_path = tool["_dir"] / config_name
+            if config_path.exists():
+                ttk.Button(
+                    header_row,
+                    text="⚙設定",
+                    width=7,
+                    command=lambda p=config_path, n=name, c=editor_cls: c(self, p, n),
+                ).pack(side="right", padx=(0, 4))
+                break
 
         if desc:
             ttk.Label(frame, text=desc, wraplength=660, justify="left").pack(
