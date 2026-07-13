@@ -21,6 +21,11 @@ launcher.json の形式:
 
 favorites.json（このファイルと同じ場所に自動生成、gitignore対象）:
 お気に入り登録したツールの相対パス一覧。ユーザーのローカル環境固有の状態。
+
+設定編集（⚙設定ボタン）:
+ツールディレクトリ直下に config.json がある場合、⚙設定ボタンを自動表示する。
+launcher.json への宣言は不要。押すと全キーをフォーム化した編集ウィンドウが開き、
+元の型を保ったまま config.json へ書き戻す。
 """
 import json
 import os
@@ -30,7 +35,7 @@ import threading
 import tkinter as tk
 from collections import defaultdict
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 FAVORITES_FILE = Path(__file__).resolve().parent / "favorites.json"
@@ -180,6 +185,148 @@ def run_generator(
     threading.Thread(target=worker, daemon=True).start()
 
 
+# フォルダ参照ボタンを付ける対象キーの判定（例: root_dir, output_base_dir, icon_folder）
+_PATH_KEY_RE = re.compile(r"(dir|path|folder)", re.IGNORECASE)
+
+
+class ConfigEditorWindow(tk.Toplevel):
+    """config.json の全キーを自動フォーム化して編集・保存するサブウィンドウ。
+
+    型ごとの編集方式:
+    - bool            → チェックボックス
+    - str / int / float → 1行入力（キー名に dir/path/folder を含む文字列値は
+                          フォルダ参照ボタン付き）
+    - list（全要素が文字列）→ カンマ区切りの1行入力
+    - dict などその他  → JSON文字列として編集
+    保存時は元の型へ変換して書き戻す。変換できない入力はエラー表示して中断する。
+    """
+
+    def __init__(self, master, config_path: Path, tool_name: str):
+        super().__init__(master)
+        self.title(f"⚙設定 - {tool_name}")
+        self.config_path = config_path
+        self.minsize(480, 120)
+        self.transient(master)
+
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                self.data = json.load(f)
+        except (json.JSONDecodeError, OSError) as exc:
+            messagebox.showerror(
+                "読み込みエラー", f"{config_path.name} を読み込めませんでした:\n{exc}",
+                parent=master,
+            )
+            self.destroy()
+            return
+        if not isinstance(self.data, dict):
+            messagebox.showerror(
+                "読み込みエラー",
+                f"{config_path.name} のトップレベルがオブジェクトではないため編集できません。",
+                parent=master,
+            )
+            self.destroy()
+            return
+
+        # (キー, 編集方式, 入力変数) のリスト。保存時にここから値を復元する。
+        self._fields = []
+        self._build_form()
+        self.grab_set()
+
+    def _build_form(self):
+        form = ttk.Frame(self)
+        form.pack(fill="both", expand=True, padx=12, pady=(12, 4))
+        form.columnconfigure(1, weight=1)
+
+        for row, (key, value) in enumerate(self.data.items()):
+            ttk.Label(form, text=key).grid(
+                row=row, column=0, sticky="w", padx=(0, 10), pady=3
+            )
+            # bool は int のサブクラスなので、int より先に判定する
+            if isinstance(value, bool):
+                var = tk.BooleanVar(value=value)
+                ttk.Checkbutton(form, variable=var).grid(row=row, column=1, sticky="w", pady=3)
+                self._fields.append((key, "bool", var))
+                continue
+
+            if isinstance(value, str):
+                kind = "str"
+                text = value
+            elif isinstance(value, (int, float)):
+                kind = "number"
+                text = str(value)
+            elif isinstance(value, list) and all(isinstance(v, str) for v in value):
+                kind = "list_str"
+                text = ", ".join(value)
+            else:
+                kind = "json"
+                text = json.dumps(value, ensure_ascii=False)
+
+            var = tk.StringVar(value=text)
+            entry = ttk.Entry(form, textvariable=var, width=48)
+            entry.grid(row=row, column=1, sticky="ew", pady=3)
+            if kind == "str" and _PATH_KEY_RE.search(key):
+                ttk.Button(
+                    form, text="参照...", width=7,
+                    command=lambda v=var: self._browse_dir(v),
+                ).grid(row=row, column=2, sticky="w", padx=(6, 0), pady=3)
+            self._fields.append((key, kind, var))
+
+        hint = ttk.Label(
+            self,
+            text="リストはカンマ区切り、辞書はJSON形式で編集します。",
+            foreground="gray",
+        )
+        hint.pack(anchor="w", padx=12)
+
+        btn_row = ttk.Frame(self)
+        btn_row.pack(pady=(6, 12))
+        ttk.Button(btn_row, text="保存して閉じる", command=self._save).pack(
+            side="left", padx=(0, 8)
+        )
+        ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
+
+    def _browse_dir(self, var: tk.StringVar):
+        current = var.get()
+        initial = current if Path(current).is_dir() else str(self.config_path.parent)
+        selected = filedialog.askdirectory(parent=self, initialdir=initial)
+        if selected:
+            var.set(selected)
+
+    def _save(self):
+        new_data = dict(self.data)
+        for key, kind, var in self._fields:
+            raw = var.get()
+            try:
+                if kind == "bool":
+                    new_data[key] = bool(raw)
+                elif kind == "number":
+                    original = self.data[key]
+                    new_data[key] = type(original)(raw)
+                elif kind == "list_str":
+                    new_data[key] = [v.strip() for v in raw.split(",") if v.strip()]
+                elif kind == "json":
+                    new_data[key] = json.loads(raw)
+                else:
+                    new_data[key] = raw
+            except (ValueError, json.JSONDecodeError) as exc:
+                messagebox.showerror(
+                    "入力エラー", f"'{key}' の値を変換できません:\n{exc}", parent=self
+                )
+                return
+
+        try:
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(new_data, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+        except OSError as exc:
+            messagebox.showerror(
+                "保存エラー", f"{self.config_path.name} に保存できませんでした:\n{exc}",
+                parent=self,
+            )
+            return
+        self.destroy()
+
+
 class CollapsibleSection(ttk.Frame):
     """クリックで開閉できるセクション。見出しをクリックすると中身の表示/非表示を切り替える。"""
 
@@ -326,6 +473,15 @@ class LauncherApp(tk.Tk):
             width=3,
             command=lambda: self.toggle_favorite(rel_str),
         ).pack(side="right")
+
+        config_path = tool["_dir"] / "config.json"
+        if config_path.exists():
+            ttk.Button(
+                header_row,
+                text="⚙設定",
+                width=7,
+                command=lambda p=config_path, n=name: ConfigEditorWindow(self, p, n),
+            ).pack(side="right", padx=(0, 4))
 
         if desc:
             ttk.Label(frame, text=desc, wraplength=660, justify="left").pack(
