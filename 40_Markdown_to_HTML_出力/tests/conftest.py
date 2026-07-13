@@ -19,3 +19,19 @@ def client(monkeypatch):
     app.config["TESTING"] = True
     with app.test_client() as test_client:
         yield test_client
+
+
+@pytest.fixture()
+def tmp_client(monkeypatch, tmp_path):
+    """書き込みを伴うテスト用。md/ を実データではなく一時ディレクトリに向ける。
+
+    MD_DIR は相対パス Path("md") なので、カレントを tmp_path に移せば
+    読み書きがすべて一時ディレクトリ側で行われる。
+    """
+    (tmp_path / "md").mkdir()
+    (tmp_path / "html").mkdir()
+    monkeypatch.chdir(tmp_path)
+    from app import app
+    app.config["TESTING"] = True
+    with app.test_client() as test_client:
+        yield test_client

@@ -35,3 +35,25 @@ def test_api_items_returns_200(client):
     res = client.get("/api/items")
     assert res.status_code == 200
     assert isinstance(res.get_json(), list)
+
+
+def test_import_post_saves_md(tmp_client):
+    """取込フォームの保存が md ファイルを生成して200を返すこと（Issue: import漏れで500だった）。"""
+    res = tmp_client.post(
+        "/import",
+        data={
+            "title": "テスト取込",
+            "body": "本文です",
+            "category": "テスト",
+            "tags": "t1,t2",
+            "action": "save",
+        },
+    )
+    assert res.status_code == 200
+    assert "保存しました" in res.get_data(as_text=True)
+    saved = list(Path("md").glob("*テスト取込.md"))
+    assert len(saved) == 1
+    text = saved[0].read_text(encoding="utf-8")
+    assert "category: テスト" in text
+    assert "- t1" in text and "- t2" in text
+    assert "本文です" in text

@@ -6,7 +6,12 @@ from html import escape
 
 from flask import Flask, jsonify, redirect, request, send_file, send_from_directory
 
-from frontmatter import normalize_tags, parse_csv_tags, parse_front_matter
+from frontmatter import (
+    build_front_matter,
+    normalize_tags,
+    parse_csv_tags,
+    parse_front_matter,
+)
 from md_store import (
     HTML_DIR,
     MD_DIR,
@@ -522,14 +527,14 @@ def import_text():
     error = ""
     build_msg = ""
 
-    categories, tags = collect_meta_options()
+    categories, all_tags = collect_meta_options()
     if "未分類" not in categories:
         categories.append("未分類")
     category_options_html = "".join(
         f'<option value="{escape(c)}">{escape(c)}</option>' for c in categories
     )
     tag_options_html = "".join(
-        f'<option value="{escape(t)}"></option>' for t in tags
+        f'<option value="{escape(t)}"></option>' for t in all_tags
     )
 
     if request.method == "POST":
@@ -548,8 +553,8 @@ def import_text():
         else:
             safe_stem = sanitize_file_stem(title)
             md_path = make_unique_md_path(safe_stem)
-            tags = parse_csv_tags(tags_raw)
-            fm = build_front_matter(category or "未分類", tags)
+            input_tags = parse_csv_tags(tags_raw)
+            fm = build_front_matter(category or "未分類", input_tags)
             md_path.write_text(fm + "\n" + body + "\n", encoding="utf-8")
             message = f"保存しました: {md_path.name}"
 
@@ -632,7 +637,7 @@ def import_text():
       <div class="inline-row">
         <select id="tagSelect">
           <option value="">既存タグを選択</option>
-          {"".join(f'<option value="{escape(t)}">{escape(t)}</option>' for t in tags)}
+          {"".join(f'<option value="{escape(t)}">{escape(t)}</option>' for t in all_tags)}
         </select>
         <button type="button" id="addTagBtn">タグ追加</button>
       </div>
