@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Markdown Index</title>
+<style>
+  :root {
+    --max: 1120px;
+    --gap: 1.25rem;
+    --space-1: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+  }
+  body { font-family: system-ui, sans-serif; padding: var(--space-4); line-height: 1.6; background: #f5f7fa; margin: 0; }
+  .container { max-width: var(--max); margin: 0 auto; }
+  .navlinks { margin: 0.2rem 0 0.9rem; display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .navlinks a { color: #0f4c81; text-decoration: none; border-bottom: 1px solid #0f4c81; }
+  .navlinks a:hover { opacity: 0.85; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin-bottom: 0.75rem; }
+  #search { flex: 1 1 320px; min-width: 220px; padding: var(--space-1); font-size: 1rem; min-height: 2.2rem; }
+  button { min-height: 2.2rem; }
+  .toolbar .controls { display: flex; gap: 0.5rem; }
+  .pager { display: flex; align-items: center; gap: 0.5rem; }
+  .pager .info { color: #666; font-size: 0.9rem; min-width: 6.5rem; text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--gap); }
+  details.category { padding: 0.5rem 0.75rem; border: 1px solid #e3e3e3; border-radius: 8px; background: #fafafa; }
+  details.category > summary { cursor: pointer; font-weight: 600; }
+  details.category ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+  .md-item.hidden { display: none; }
+  .count { color: #666; font-size: 0.9rem; }
+  .tagbar { margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag { border: 1px solid #bbb; background: #f7f7f7; padding: 0.25rem 0.6rem; border-radius: 999px; cursor: pointer; }
+  .tag.active { background: #333; color: #fff; border-color: #333; }
+  .clear { border: 1px dashed #999; background: #fff; }
+  .category.hidden { display: none; }
+  .category.page-hidden { display: none; }
+  @media (max-width: 640px) {
+    body { padding: var(--space-3); }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar .controls { justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Markdown 一覧</h1>
+<div class="navlinks">
+  <a href="/import" target="_blank" rel="noopener">テキスト取込を開く</a>
+  <a href="/" target="_blank" rel="noopener">メタ編集を開く</a>
+</div>
+<div class="toolbar">
+  <input id="search" type="search" placeholder="検索: タイトル / カテゴリ / タグ" />
+  <div class="controls">
+    <button type="button" id="openAll">全て開く</button>
+    <button type="button" id="closeAll">全て閉じる</button>
+  </div>
+  <div class="pager">
+    <button type="button" id="prevPage">前へ</button>
+    <span class="info" id="pageInfo">1/1</span>
+    <button type="button" id="nextPage">次へ</button>
+  </div>
+</div>
+<div class="tagbar" id="tagbar">
+  <button type="button" class="tag clear" id="clearTags">タグ解除</button>
+  {% for tag in all_tags %}<button type="button" class="tag" data-tag="{{ tag }}">#{{ tag }}</button>
+{% endfor %}</div>
+<div class="grid">
+{% for cat in categories %}<details class="category" data-category="{{ cat.name }}" open>
+<summary>{{ cat.name }} <span class="count" data-total="{{ cat.entries|length }}">({{ cat.entries|length }})</span></summary>
+<ul>
+{% for item in cat.entries %}<li class="md-item" data-title="{{ item.file_name }}" data-tags="{{ item.tags_csv }}" data-category="{{ item.category }}"><a href="{{ item.html_name }}">{{ item.file_name }}</a></li>
+{% endfor %}</ul>
+</details>
+{% endfor %}</div>
+
+<script>
+  const search = document.getElementById('search');
+  const items = Array.from(document.querySelectorAll('.md-item'));
+  const categories = Array.from(document.querySelectorAll('details.category'));
+  const tagButtons = Array.from(document.querySelectorAll('.tagbar .tag')).filter(b => b.id !== 'clearTags');
+  const clearTags = document.getElementById('clearTags');
+  const selectedTags = new Set();
+  const openAll = document.getElementById('openAll');
+  const closeAll = document.getElementById('closeAll');
+  const prevPage = document.getElementById('prevPage');
+  const nextPage = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+  const categoriesPerPage = 3;
+  let currentPage = 1;
+
+  function normalize(v) {
+    return (v || '').toLowerCase();
+  }
+
+  function applyPagination() {
+    const visibleCategories = categories.filter((cat) => !cat.classList.contains('hidden'));
+    const totalPages = Math.max(1, Math.ceil(visibleCategories.length / categoriesPerPage));
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    categories.forEach((cat) => cat.classList.add('page-hidden'));
+    const start = (currentPage - 1) * categoriesPerPage;
+    const end = start + categoriesPerPage;
+    visibleCategories.slice(start, end).forEach((cat) => cat.classList.remove('page-hidden'));
+
+    pageInfo.textContent = currentPage + '/' + totalPages;
+    prevPage.disabled = currentPage <= 1;
+    nextPage.disabled = currentPage >= totalPages;
+  }
+
+  function filter() {
+    const q = normalize(search.value);
+    const hasFilter = q.length > 0 || selectedTags.size > 0;
+    items.forEach((el) => {
+      const title = normalize(el.dataset.title);
+      const tags = normalize(el.dataset.tags);
+      const category = normalize(el.dataset.category);
+      const tagList = (el.dataset.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+      const hasSelectedTags = Array.from(selectedTags).every(t => tagList.includes(t));
+      const hitText = !q || title.includes(q) || tags.includes(q) || category.includes(q);
+      const hit = hitText && (selectedTags.size === 0 || hasSelectedTags);
+      el.classList.toggle('hidden', !hit);
+    });
+
+    categories.forEach((cat) => {
+      const visibleCount = cat.querySelectorAll('.md-item:not(.hidden)').length;
+      const countEl = cat.querySelector('.count');
+      const total = countEl?.dataset.total || '0';
+      if (countEl) {
+        countEl.textContent = hasFilter
+          ? '(' + visibleCount + '/' + total + ')'
+          : '(' + total + ')';
+      }
+      cat.classList.toggle('hidden', visibleCount === 0);
+    });
+    applyPagination();
+  }
+
+  tagButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      if (!tag) return;
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        btn.classList.remove('active');
+      } else {
+        selectedTags.add(tag);
+        btn.classList.add('active');
+      }
+      currentPage = 1;
+      filter();
+    });
+  });
+
+  clearTags.addEventListener('click', () => {
+    selectedTags.clear();
+    tagButtons.forEach((b) => b.classList.remove('active'));
+    currentPage = 1;
+    filter();
+  });
+
+  openAll.addEventListener('click', () => {
+    categories
+      .filter((c) => !c.classList.contains('hidden') && !c.classList.contains('page-hidden'))
+      .forEach((c) => c.open = true);
+  });
+
+  closeAll.addEventListener('click', () => {
+    categories
+      .filter((c) => !c.classList.contains('hidden') && !c.classList.contains('page-hidden'))
+      .forEach((c) => c.open = false);
+  });
+
+  prevPage.addEventListener('click', () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    applyPagination();
+  });
+
+  nextPage.addEventListener('click', () => {
+    currentPage += 1;
+    applyPagination();
+  });
+
+  search.addEventListener('input', () => {
+    currentPage = 1;
+    filter();
+  });
+  filter();
+</script>
+</div>
+</body>
+</html>

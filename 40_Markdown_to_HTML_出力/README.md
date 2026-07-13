@@ -23,6 +23,7 @@ Python・依存モジュール・ディレクトリ構成・主要ルート疎�
 - `start_here.bat` / `scripts/start_here.ps1`: 番号メニュー付きの実行入口
 - `deploy_toolkit.bat` / `scripts/deploy_toolkit.ps1`: 本体ツールを別ディレクトリへコピー配布
 - `health_check.bat` / `scripts/health_check.ps1`: 環境の自己診断（Python・依存・ディレクトリ・ルート疎通）
+- `templates/`: 画面・生成HTMLのテンプレート（Jinja2）。`meta_editor.html` / `import.html` は `app.py` の画面、`kb_index.html` / `kb_article.html` は `build.py` の生成物
 - `md/`: 入力 Markdown（`*.md`）。サンプル以外はgit管理外（誤コミット防止）
 - `html/`: 出力先（各HTML、`index.html`、`style.css`）。生成HTMLもサンプル以外はgit管理外
 - `tests/`: スモークテスト（`python -m pytest tests` で主要ルートの200確認）
