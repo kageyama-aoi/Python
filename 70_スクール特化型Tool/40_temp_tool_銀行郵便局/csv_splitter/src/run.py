@@ -1,13 +1,62 @@
 import csv
 import json
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Callable, Optional
 
 
 BASE_DIR = Path(__file__).parent.parent
 OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
+
+# 進捗メッセージを受け取るコールバック（CLIはprint、GUIはキュー投入を渡す）
+ProgressCallback = Callable[[str], None]
+
+
+@dataclass
+class SplitOptions:
+    """分割の実行パラメータ。config.json と1対1に対応する。"""
+
+    rows_per_file: int
+    encoding: str
+    has_header: bool = True
+    delimiter: Optional[str] = None  # None = 自動判定
+
+    @classmethod
+    def from_config_file(cls, config_path: Path) -> "SplitOptions":
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+        return cls(
+            rows_per_file=config["rows_per_file"],
+            encoding=config["encoding"],
+            has_header=config.get("has_header", True),
+            delimiter=config.get("delimiter") or None,
+        )
+
+    def validate(self) -> None:
+        if not isinstance(self.rows_per_file, int) or self.rows_per_file <= 0:
+            raise ValueError("rows_per_file は1以上の整数を指定してください")
+        if not isinstance(self.has_header, bool):
+            raise ValueError("has_header は true / false で指定してください")
+
+
+@dataclass
+class SplitResult:
+    """1回の分割実行の結果。write_log がそのままログに書き出す。"""
+
+    status: str
+    started_at: datetime
+    ended_at: datetime
+    input_path: Path
+    rows_per_file: int
+    encoding: str
+    delimiter: str
+    has_header: bool
+    total_rows: int
+    output_summaries: list  # list[tuple[ファイル名, レコード数]]
+    error_message: str = ""
 
 
 def _detect_delimiter(path: Path, encoding: str, ext: str) -> str:
@@ -19,137 +68,120 @@ def _detect_delimiter(path: Path, encoding: str, ext: str) -> str:
                     break
                 for delim in candidates:
                     candidates[delim] += line.count(delim)
-    except Exception:
-        pass
+    except (OSError, UnicodeDecodeError, LookupError):
+        pass  # 読めない場合は拡張子フォールバックに任せる（本読み込みで改めてエラーになる）
     best = max(candidates, key=lambda d: candidates[d])
     if candidates[best] > 0:
         return best
     return "," if ext.lower() == ".csv" else "\t"
 
 
-def write_log(
-    log_path: Path,
-    status: str,
-    started_at: datetime,
-    ended_at: datetime,
-    input_path: Path,
-    rows_per_file: int,
-    encoding: str,
-    delimiter: str,
-    has_header: bool,
-    total_rows: int,
-    output_summaries: list[tuple[str, int]],
-    error_message: str = "",
-) -> None:
-    delimiter_repr = "\\t" if delimiter == "\t" else delimiter
+def write_log(log_path: Path, result: SplitResult) -> None:
+    delimiter_repr = "\\t" if result.delimiter == "\t" else result.delimiter
     lines = [
         "=== CSV Splitter Execution Log ===",
-        f"status: {status}",
-        f"started_at: {started_at.isoformat(timespec='seconds')}",
-        f"ended_at: {ended_at.isoformat(timespec='seconds')}",
-        f"input_file: {input_path}",
-        f"rows_per_file: {rows_per_file}",
-        f"encoding: {encoding}",
+        f"status: {result.status}",
+        f"started_at: {result.started_at.isoformat(timespec='seconds')}",
+        f"ended_at: {result.ended_at.isoformat(timespec='seconds')}",
+        f"input_file: {result.input_path}",
+        f"rows_per_file: {result.rows_per_file}",
+        f"encoding: {result.encoding}",
         f"delimiter: {delimiter_repr}",
-        f"has_header: {has_header}",
-        f"data_record_count: {total_rows}",
-        f"created_file_count: {len(output_summaries)}",
+        f"has_header: {result.has_header}",
+        f"data_record_count: {result.total_rows}",
+        f"created_file_count: {len(result.output_summaries)}",
         "created_files:",
     ]
 
-    if output_summaries:
-        for file_name, record_count in output_summaries:
+    if result.output_summaries:
+        for file_name, record_count in result.output_summaries:
             lines.append(f"- {file_name}: {record_count} records")
     else:
         lines.append("- (none)")
 
-    if error_message:
-        lines.append(f"error: {error_message}")
+    if result.error_message:
+        lines.append(f"error: {result.error_message}")
 
     log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def split_csv(input_path: Path, config_path: Path) -> tuple[int, list[tuple[str, int]], Path]:
+def split_csv(
+    input_path: Path,
+    options: SplitOptions,
+    *,
+    output_dir: Optional[Path] = None,
+    log_dir: Optional[Path] = None,
+    progress: Optional[ProgressCallback] = None,
+) -> tuple[int, list[tuple[str, int]], Path]:
+    """input_path を options.rows_per_file 行ごとに分割する。
+
+    戻り値は (総データ件数, [(出力ファイル名, レコード数)], ログファイルパス)。
+    エラー時も finally でログを必ず出力してから例外を再送出する。
+    """
     started_at = datetime.now()
+    output_dir = output_dir if output_dir is not None else OUTPUT_DIR
+    log_dir = log_dir if log_dir is not None else LOG_DIR
 
-    with open(config_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
-
-    rows_per_file = config["rows_per_file"]
-    encoding = config["encoding"]
-    has_header = config.get("has_header", True)
-    ext = input_path.suffix
-    delimiter = config.get("delimiter") or _detect_delimiter(input_path, encoding, ext)
-    quoting = csv.QUOTE_ALL if delimiter == "," else csv.QUOTE_MINIMAL
-
-    if not isinstance(rows_per_file, int) or rows_per_file <= 0:
-        raise ValueError("rows_per_file は1以上の整数を指定してください")
-
-    if not isinstance(has_header, bool):
-        raise ValueError("has_header は true / false で指定してください")
-
+    options.validate()
     if not input_path.exists():
         raise FileNotFoundError(f"入力ファイルが見つかりません: {input_path}")
 
-    OUTPUT_DIR.mkdir(exist_ok=True)
-    LOG_DIR.mkdir(exist_ok=True)
+    ext = input_path.suffix
+    delimiter = options.delimiter or _detect_delimiter(input_path, options.encoding, ext)
+    quoting = csv.QUOTE_ALL if delimiter == "," else csv.QUOTE_MINIMAL
+
+    output_dir.mkdir(exist_ok=True)
+    log_dir.mkdir(exist_ok=True)
 
     base_name = input_path.stem
 
-    file_index = 1
+    file_index = 0
     total_rows = 0
-    current_file_records = 0
-    prev_file_records = 0
+    rows_in_file = 0
     output_summaries: list[tuple[str, int]] = []
     status = "SUCCESS"
     error_message = ""
 
     outfile = None
+    output_name = ""
+
+    def _close_current_file():
+        nonlocal outfile
+        if outfile is not None:
+            outfile.close()
+            outfile = None
+            output_summaries.append((output_name, rows_in_file))
 
     try:
-        with open(input_path, "r", encoding=encoding, newline="") as infile:
+        with open(input_path, "r", encoding=options.encoding, newline="") as infile:
             reader = csv.reader(infile, delimiter=delimiter)
 
             header = None
-            if has_header:
+            if options.has_header:
                 header = next(reader, None)
 
             for row in reader:
-                if current_file_records == 0:
-                    if outfile:
-                        output_summaries.append((output_file_name, prev_file_records))
-                        outfile.close()
-
-                    output_path = OUTPUT_DIR / f"{base_name}_split_{file_index:03}{ext}"
-                    output_file_name = output_path.name
-
-                    outfile = open(output_path, "w", encoding=encoding, newline="")
+                if outfile is None:
+                    file_index += 1
+                    output_path = output_dir / f"{base_name}_split_{file_index:03}{ext}"
+                    output_name = output_path.name
+                    rows_in_file = 0
+                    outfile = open(output_path, "w", encoding=options.encoding, newline="")
                     writer = csv.writer(outfile, delimiter=delimiter, quoting=quoting)
-
-                    if has_header and header is not None:
+                    if header is not None:
                         writer.writerow(header)
 
-                    file_index += 1
-
                 writer.writerow(row)
-
                 total_rows += 1
-                current_file_records += 1
+                rows_in_file += 1
 
-                if total_rows % 10_000 == 0:
-                    print(f"  処理中: {total_rows:,} 行 ...", flush=True)
+                if progress and total_rows % 10_000 == 0:
+                    progress(f"  処理中: {total_rows:,} 行 ...")
 
-                if current_file_records >= rows_per_file:
-                    prev_file_records = current_file_records
-                    current_file_records = 0
+                if rows_in_file >= options.rows_per_file:
+                    _close_current_file()
 
-            if outfile:
-                # current_file_records が 0 の場合は最終ファイルがちょうど満杯で
-                # リセット済みのため、prev_file_records を使う
-                final_count = prev_file_records if current_file_records == 0 else current_file_records
-                output_summaries.append((output_file_name, final_count))
-                outfile.close()
-                outfile = None
+            _close_current_file()
 
     except Exception as exc:
         status = "ERROR"
@@ -157,25 +189,25 @@ def split_csv(input_path: Path, config_path: Path) -> tuple[int, list[tuple[str,
         raise
 
     finally:
-        if outfile:
+        if outfile is not None:
             outfile.close()
 
-        ended_at = datetime.now()
-        log_path = LOG_DIR / f"split_log_{started_at:%Y%m%d_%H%M%S}.log"
-
+        log_path = log_dir / f"split_log_{started_at:%Y%m%d_%H%M%S}.log"
         write_log(
-            log_path=log_path,
-            status=status,
-            started_at=started_at,
-            ended_at=ended_at,
-            input_path=input_path,
-            rows_per_file=rows_per_file,
-            encoding=encoding,
-            delimiter=delimiter,
-            has_header=has_header,
-            total_rows=total_rows,
-            output_summaries=output_summaries,
-            error_message=error_message,
+            log_path,
+            SplitResult(
+                status=status,
+                started_at=started_at,
+                ended_at=datetime.now(),
+                input_path=input_path,
+                rows_per_file=options.rows_per_file,
+                encoding=options.encoding,
+                delimiter=delimiter,
+                has_header=options.has_header,
+                total_rows=total_rows,
+                output_summaries=output_summaries,
+                error_message=error_message,
+            ),
         )
 
     return total_rows, output_summaries, log_path
@@ -189,7 +221,10 @@ if __name__ == "__main__":
     input_path = Path(sys.argv[1])
     config_path = Path(sys.argv[2]) if len(sys.argv) >= 3 else BASE_DIR / "config.json"
 
-    _total, _summaries, _log = split_csv(input_path, config_path)
+    options = SplitOptions.from_config_file(config_path)
+    _total, _summaries, _log = split_csv(
+        input_path, options, progress=lambda msg: print(msg, flush=True)
+    )
     print("=================================")
     print("CSV分割 完了")
     print(f"入力ファイル : {input_path}")

@@ -1,5 +1,3 @@
-import csv
-import io
 import json
 import queue
 import sys
@@ -10,81 +8,28 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 sys.path.insert(0, str(Path(__file__).parent))
-from run import OUTPUT_DIR, _detect_delimiter, split_csv
+from analyze import (
+    _count_rows,
+    _detect_encoding_from_file,
+    _fmt_size,
+    _read_first_row,
+    _suggest_rows,
+)
+from run import OUTPUT_DIR, SplitOptions, _detect_delimiter, split_csv
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = BASE_DIR / "config.json"
 
 ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
 
+# ワーカースレッド→メインスレッドへの通知（すべて log_queue 経由で受け渡す）
 _SENTINEL_SPLIT_DONE = object()
 _SENTINEL_ANALYZE_DONE = object()
+_SENTINEL_APPLY_ANALYSIS = object()  # ("payload": (encoding, delimiter)) をフォームに反映
 
 
 # ------------------------------------------------------------------
-# ファイル解析ヘルパー
-# ------------------------------------------------------------------
-
-def _detect_encoding_from_file(path: Path) -> str:
-    with open(path, "rb") as f:
-        raw = f.read(4)
-    if raw.startswith(b"\xef\xbb\xbf"):
-        return "utf-8-sig"
-    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
-        return "utf-16"
-    for enc in ("utf-8", "shift_jis", "cp932"):
-        try:
-            with open(path, "r", encoding=enc, errors="strict") as f:
-                f.read(65536)
-            return enc
-        except (UnicodeDecodeError, LookupError):
-            continue
-    return "不明"
-
-
-def _count_rows(path: Path) -> int:
-    count = 0
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            count += chunk.count(b"\n")
-    return count
-
-
-def _fmt_size(n: int) -> str:
-    for unit in ("B", "KB", "MB", "GB"):
-        if n < 1024:
-            return f"{n:.1f} {unit}"
-        n /= 1024
-    return f"{n:.1f} TB"
-
-
-def _read_first_row(path: Path, enc: str, delim: str) -> tuple[int, str]:
-    try:
-        with open(path, "r", encoding=enc, newline="") as f:
-            reader = csv.reader(f, delimiter=delim)
-            row = next(reader, [])
-        col_count = len(row)
-        preview = ", ".join(str(v) for v in row[:8])
-        if len(row) > 8:
-            preview += f" ... (+{len(row) - 8}列)"
-        return col_count, preview
-    except Exception:
-        return 0, "(読み取り失敗)"
-
-
-def _suggest_rows(total_rows: int) -> str:
-    if total_rows <= 0:
-        return "不明"
-    per_file = max(1000, total_rows // 10)
-    if per_file >= 10000:
-        per_file = round(per_file / 10000) * 10000
-    elif per_file >= 1000:
-        per_file = round(per_file / 1000) * 1000
-    return f"{per_file:,} 行（全体を約10ファイルに分割）"
-
-
-# ------------------------------------------------------------------
-# Queue stream
+# config読み書き
 # ------------------------------------------------------------------
 
 def _load_config() -> dict:
@@ -97,21 +42,6 @@ def _load_config() -> dict:
 def _save_config(cfg: dict) -> None:
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
-
-
-class QueueStream(io.TextIOBase):
-    """print() の出力をキューに流す擬似ストリーム。"""
-
-    def __init__(self, q: queue.Queue) -> None:
-        self._q = q
-
-    def write(self, s: str) -> int:
-        if s:
-            self._q.put(s)
-        return len(s)
-
-    def flush(self) -> None:
-        pass
 
 
 # ------------------------------------------------------------------
@@ -195,13 +125,13 @@ class App(tk.Tk):
         self._var_header.set(bool(cfg.get("has_header", True)))
         self._var_delim.set(cfg.get("delimiter") or "")
 
-    def _form_to_config(self) -> dict:
-        return {
-            "rows_per_file": int(self._var_rows.get()),
-            "encoding": self._var_enc.get(),
-            "has_header": self._var_header.get(),
-            "delimiter": self._var_delim.get() or None,
-        }
+    def _form_to_options(self) -> SplitOptions:
+        return SplitOptions(
+            rows_per_file=int(self._var_rows.get()),
+            encoding=self._var_enc.get(),
+            has_header=self._var_header.get(),
+            delimiter=self._var_delim.get() or None,
+        )
 
     # ------------------------------------------------------------------
     # ファイル選択
@@ -236,6 +166,7 @@ class App(tk.Tk):
         ).start()
 
     def _analyze_worker(self, path: Path) -> None:
+        """バックグラウンドスレッド。UIへの反映はすべて log_queue 経由で行う。"""
         try:
             size_str = _fmt_size(path.stat().st_size)
             detected_enc = _detect_encoding_from_file(path)
@@ -266,14 +197,11 @@ class App(tk.Tk):
                 "━" * 50 + "\n"
             )
             self._log_queue.put(result)
-
-            # フォームへ自動反映（メインスレッドで実行）
-            self.after(0, lambda enc=detected_enc, delim=detected_delim: self._apply_analysis(enc, delim))
+            self._log_queue.put((_SENTINEL_APPLY_ANALYSIS, detected_enc, detected_delim))
 
         except Exception as e:
             self._log_queue.put(f"[解析エラー] {e}\n")
-            self._log_queue.put(_SENTINEL_ANALYZE_DONE)
-        else:
+        finally:
             self._log_queue.put(_SENTINEL_ANALYZE_DONE)
 
     def _apply_analysis(self, enc: str, delim: str) -> None:
@@ -295,35 +223,41 @@ class App(tk.Tk):
             return
 
         try:
-            cfg = self._form_to_config()
+            options = self._form_to_options()
         except ValueError:
             messagebox.showwarning("入力エラー", "分割行数は整数で入力してください。")
             return
 
-        _save_config(cfg)
+        _save_config(
+            {
+                "rows_per_file": options.rows_per_file,
+                "encoding": options.encoding,
+                "has_header": options.has_header,
+                "delimiter": options.delimiter,
+            }
+        )
         self._btn_run.configure(state="disabled")
         self._btn_analyze.configure(state="disabled")
-        self._log_append("")
 
         threading.Thread(
             target=self._run_worker,
-            args=(Path(file_str), cfg),
+            args=(Path(file_str), options),
             daemon=True,
         ).start()
 
-    def _run_worker(self, input_path: Path, cfg: dict) -> None:
-        tmp_config = BASE_DIR / ".tmp_gui_config.json"
+    def _run_worker(self, input_path: Path, options: SplitOptions) -> None:
+        """バックグラウンドスレッド。進捗は progress コールバック→キュー経由で流す。"""
         started_at = datetime.now()
-        delim_disp = repr(cfg.get("delimiter")) if cfg.get("delimiter") else "自動検出"
+        delim_disp = repr(options.delimiter) if options.delimiter else "自動検出"
 
         header = (
             "━" * 50 + "\n"
             f"  開始時刻  : {started_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"  ファイル  : {input_path}\n"
-            f"  分割行数  : {cfg['rows_per_file']:,} 行\n"
-            f"  エンコード: {cfg['encoding']}\n"
+            f"  分割行数  : {options.rows_per_file:,} 行\n"
+            f"  エンコード: {options.encoding}\n"
             f"  デリミタ  : {delim_disp}\n"
-            f"  ヘッダー  : {'あり' if cfg['has_header'] else 'なし'}\n"
+            f"  ヘッダー  : {'あり' if options.has_header else 'なし'}\n"
             "━" * 50 + "\n"
         )
         self._log_queue.put(header)
@@ -333,22 +267,15 @@ class App(tk.Tk):
         output_summaries: list = []
         log_path = None
         try:
-            with open(tmp_config, "w", encoding="utf-8") as f:
-                json.dump(cfg, f, ensure_ascii=False)
-
-            orig_stdout = sys.stdout
-            sys.stdout = QueueStream(self._log_queue)
-            try:
-                total_rows, output_summaries, log_path = split_csv(input_path, tmp_config)
-            finally:
-                sys.stdout = orig_stdout
+            total_rows, output_summaries, log_path = split_csv(
+                input_path,
+                options,
+                progress=lambda msg: self._log_queue.put(msg + "\n"),
+            )
         except Exception as e:
             error_msg = str(e)
             self._log_queue.put(f"[ERROR] {e}\n")
         finally:
-            if tmp_config.exists():
-                tmp_config.unlink()
-
             ended_at = datetime.now()
             elapsed = ended_at - started_at
             total_sec = int(elapsed.total_seconds())
@@ -389,12 +316,11 @@ class App(tk.Tk):
         try:
             while True:
                 item = self._log_queue.get_nowait()
-                if item is _SENTINEL_SPLIT_DONE:
+                if item is _SENTINEL_SPLIT_DONE or item is _SENTINEL_ANALYZE_DONE:
                     self._btn_run.configure(state="normal")
                     self._btn_analyze.configure(state="normal")
-                elif item is _SENTINEL_ANALYZE_DONE:
-                    self._btn_analyze.configure(state="normal")
-                    self._btn_run.configure(state="normal")
+                elif isinstance(item, tuple) and item and item[0] is _SENTINEL_APPLY_ANALYSIS:
+                    self._apply_analysis(item[1], item[2])
                 else:
                     self._log_append(item)
         except queue.Empty:

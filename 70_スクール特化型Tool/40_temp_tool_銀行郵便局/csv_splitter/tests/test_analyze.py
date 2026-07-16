@@ -1,5 +1,5 @@
 """
-gui.py のヘルパー関数ユニットテスト。
+analyze.py（入力ファイル事前解析ヘルパー）のユニットテスト。
 tkinter の表示系には触れず、純粋なロジックのみ検証する。
 """
 import sys
@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from gui import (
+from analyze import (
     _count_rows,
     _detect_encoding_from_file,
     _fmt_size,

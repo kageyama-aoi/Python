@@ -2,15 +2,28 @@
 
 実行コマンド：
 ```bash
+python -m pytest tests
+# または
 python -m unittest discover -s tests
 ```
 
-標準ライブラリのみ（`unittest` + `tempfile`）。  
-`OUTPUT_DIR` / `LOG_DIR` はテスト内で一時ディレクトリに差し替えるため、実際の `output/` / `logs/` を汚染しない。
+標準ライブラリのみ（`unittest` + `tempfile`）。
+出力先は `split_csv()` の `output_dir` / `log_dir` 引数で一時ディレクトリに向けるため、
+実際の `output/` / `logs/` を汚染しない。
 
 ---
 
-## test_run.py — コアロジック（25件）
+## test_run.py — コアロジック（29件）
+
+### `SplitOptions` （5件）
+
+| テスト名 | 内容 |
+|---|---|
+| `test_from_config_file` | config.json の全キーが読み込まれる |
+| `test_from_config_file_defaults` | `has_header` 省略時は `True`、`delimiter` 省略・`null`・空文字は `None`（自動判定） |
+| `test_validate_rejects_zero` | `rows_per_file=0` で `ValueError` |
+| `test_validate_rejects_negative` | `rows_per_file=-1` で `ValueError` |
+| `test_validate_rejects_non_bool_header` | `has_header` が bool 以外で `ValueError` |
 
 ### `_detect_delimiter` （5件）
 
@@ -22,7 +35,7 @@ python -m unittest discover -s tests
 | `test_fallback_csv_extension` | 区切り文字がないファイルは `.csv` 拡張子 → `,` にフォールバック |
 | `test_fallback_tsv_extension` | 区切り文字がないファイルは `.tsv` 拡張子 → `\t` にフォールバック |
 
-### `split_csv` （11件）
+### `split_csv` （13件）
 
 **基本分割**
 
@@ -45,12 +58,13 @@ python -m unittest discover -s tests
 |---|---|
 | `test_tab_delimiter` | タブ区切りファイルが正しく分割される |
 
-**戻り値・ログ**
+**戻り値・ログ・進捗**
 
 | テスト名 | 内容 |
 |---|---|
 | `test_return_types` | 戻り値が `(int, list, Path)` の型である |
 | `test_log_file_created_on_success` | 正常実行後にログファイルが生成され `status: SUCCESS` と総行数が記録される |
+| `test_progress_callback_called` | 10,000行ごとに `progress` コールバックが呼ばれる |
 
 **エラー系**
 
@@ -59,8 +73,11 @@ python -m unittest discover -s tests
 | `test_file_not_found` | 存在しない入力ファイルで `FileNotFoundError` が発生する |
 | `test_invalid_rows_per_file_zero` | `rows_per_file=0` で `ValueError` が発生する |
 | `test_invalid_rows_per_file_negative` | `rows_per_file=-1` で `ValueError` が発生する |
+| `test_error_log_written_on_failure` | 読み込み途中のデコードエラーでも finally で `status: ERROR` のログが出力される |
 
 ### `write_log` （6件）
+
+`SplitResult` dataclass を組み立てて渡す（ヘルパー `_make_result()`）。
 
 | テスト名 | 内容 |
 |---|---|
@@ -73,7 +90,9 @@ python -m unittest discover -s tests
 
 ---
 
-## test_gui_helpers.py — GUIヘルパー関数（19件）
+## test_analyze.py — 入力ファイル事前解析ヘルパー（22件）
+
+対象は `src/analyze.py`（旧 gui.py 内蔵ヘルパーを分離したもの）。
 
 ### `_fmt_size` （5件）
 
@@ -128,9 +147,7 @@ python -m unittest discover -s tests
 
 意図的にテスト対象外としているもの：
 
-- **GUI表示系**（tkinterウィジェット、ボタン操作、ログエリア描画）  
-  → 手動確認が現実的
-- **エンコードエラーが途中で発生するケース**  
-  → ファイル読み込み中の例外パス（ログにERROR記録）
-- **巨大ファイルのパフォーマンス**  
+- **GUI表示系**（tkinterウィジェット、ボタン操作、ログエリア描画）
+  → 手動確認またはGUIスモークテストが現実的
+- **巨大ファイルのパフォーマンス**
   → 機能テストの範囲外

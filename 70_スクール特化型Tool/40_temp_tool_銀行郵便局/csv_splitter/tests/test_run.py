@@ -1,6 +1,6 @@
 """
 run.py のユニットテスト。
-OUTPUT_DIR / LOG_DIR を一時ディレクトリに差し替えてファイルシステムを汚染しない。
+output_dir / log_dir を引数で一時ディレクトリに向けるため、実際の output/ logs/ を汚染しない。
 """
 import csv
 import json
@@ -11,8 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-import run
-from run import _detect_delimiter, split_csv, write_log
+from run import SplitOptions, SplitResult, _detect_delimiter, split_csv, write_log
 
 
 # ------------------------------------------------------------------
@@ -34,19 +33,72 @@ def _make_csv(
     return path
 
 
-def _make_config(
-    tmpdir: Path,
+def _make_options(
     rows_per_file: int = 3,
     encoding: str = "utf-8",
     has_header: bool = False,
     delimiter: str | None = None,
-) -> Path:
-    cfg: dict = {"rows_per_file": rows_per_file, "encoding": encoding, "has_header": has_header}
-    if delimiter is not None:
-        cfg["delimiter"] = delimiter
-    path = tmpdir / "config.json"
-    path.write_text(json.dumps(cfg), encoding="utf-8")
-    return path
+) -> SplitOptions:
+    return SplitOptions(
+        rows_per_file=rows_per_file,
+        encoding=encoding,
+        has_header=has_header,
+        delimiter=delimiter,
+    )
+
+
+# ------------------------------------------------------------------
+# SplitOptions
+# ------------------------------------------------------------------
+
+class TestSplitOptions(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmpdir = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _write_config(self, cfg: dict) -> Path:
+        path = self.tmpdir / "config.json"
+        path.write_text(json.dumps(cfg), encoding="utf-8")
+        return path
+
+    def test_from_config_file(self):
+        path = self._write_config(
+            {"rows_per_file": 500, "encoding": "cp932", "has_header": True, "delimiter": ";"}
+        )
+        opts = SplitOptions.from_config_file(path)
+        self.assertEqual(opts.rows_per_file, 500)
+        self.assertEqual(opts.encoding, "cp932")
+        self.assertTrue(opts.has_header)
+        self.assertEqual(opts.delimiter, ";")
+
+    def test_from_config_file_defaults(self):
+        """has_header 省略時は True、delimiter 省略・null・空文字は None（自動判定）"""
+        path = self._write_config({"rows_per_file": 100, "encoding": "utf-8"})
+        opts = SplitOptions.from_config_file(path)
+        self.assertTrue(opts.has_header)
+        self.assertIsNone(opts.delimiter)
+
+        path = self._write_config({"rows_per_file": 100, "encoding": "utf-8", "delimiter": None})
+        self.assertIsNone(SplitOptions.from_config_file(path).delimiter)
+
+        path = self._write_config({"rows_per_file": 100, "encoding": "utf-8", "delimiter": ""})
+        self.assertIsNone(SplitOptions.from_config_file(path).delimiter)
+
+    def test_validate_rejects_zero(self):
+        with self.assertRaises(ValueError):
+            _make_options(rows_per_file=0).validate()
+
+    def test_validate_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            _make_options(rows_per_file=-1).validate()
+
+    def test_validate_rejects_non_bool_header(self):
+        opts = SplitOptions(rows_per_file=10, encoding="utf-8", has_header="yes")
+        with self.assertRaises(ValueError):
+            opts.validate()
 
 
 # ------------------------------------------------------------------
@@ -94,16 +146,16 @@ class TestSplitCsv(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmpdir = Path(self._tmp.name)
-        # OUTPUT_DIR / LOG_DIR を一時ディレクトリに差し替え
-        self._orig_output = run.OUTPUT_DIR
-        self._orig_log = run.LOG_DIR
-        run.OUTPUT_DIR = self.tmpdir / "output"
-        run.LOG_DIR = self.tmpdir / "logs"
+        self.output_dir = self.tmpdir / "output"
+        self.log_dir = self.tmpdir / "logs"
 
     def tearDown(self):
-        run.OUTPUT_DIR = self._orig_output
-        run.LOG_DIR = self._orig_log
         self._tmp.cleanup()
+
+    def _split(self, input_path: Path, options: SplitOptions, **kwargs):
+        return split_csv(
+            input_path, options, output_dir=self.output_dir, log_dir=self.log_dir, **kwargs
+        )
 
     # --- 基本分割 ---
 
@@ -111,9 +163,8 @@ class TestSplitCsv(unittest.TestCase):
         """9行を3件ずつ → 3ファイル、各3レコード"""
         rows = [[str(i), f"v{i}"] for i in range(9)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=3)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=3))
 
         self.assertEqual(total, 9)
         self.assertEqual(len(summaries), 3)
@@ -124,9 +175,8 @@ class TestSplitCsv(unittest.TestCase):
         """10行を3件ずつ → 4ファイル（3+3+3+1）"""
         rows = [[str(i)] for i in range(10)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=3)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=3))
 
         self.assertEqual(total, 10)
         self.assertEqual(len(summaries), 4)
@@ -136,9 +186,8 @@ class TestSplitCsv(unittest.TestCase):
         """rows_per_file が総行数より大きい → 1ファイルにまとまる"""
         rows = [[str(i)] for i in range(5)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=100)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=100))
 
         self.assertEqual(total, 5)
         self.assertEqual(len(summaries), 1)
@@ -149,13 +198,12 @@ class TestSplitCsv(unittest.TestCase):
         """has_header=True: 各分割ファイルの1行目がヘッダー"""
         rows = [["id", "name"]] + [[str(i), f"name{i}"] for i in range(6)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=3, has_header=True)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=3, has_header=True))
 
         self.assertEqual(total, 6)
         for fname, _ in summaries:
-            out = run.OUTPUT_DIR / fname
+            out = self.output_dir / fname
             with open(out, encoding="utf-8", newline="") as f:
                 first_row = next(csv.reader(f))
             self.assertEqual(first_row, ["id", "name"])
@@ -164,9 +212,8 @@ class TestSplitCsv(unittest.TestCase):
         """has_header=False: ヘッダー行なし、全行がデータ"""
         rows = [[str(i)] for i in range(6)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=6, has_header=False)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=6, has_header=False))
 
         self.assertEqual(total, 6)
         self.assertEqual(len(summaries), 1)
@@ -177,9 +224,8 @@ class TestSplitCsv(unittest.TestCase):
         """タブ区切りファイルも正しく分割される"""
         rows = [["a", "b"], ["c", "d"], ["e", "f"]]
         path = _make_csv(self.tmpdir, rows, delimiter="\t", filename="input.tsv")
-        cfg = _make_config(self.tmpdir, rows_per_file=2)
 
-        total, summaries, _ = split_csv(path, cfg)
+        total, summaries, _ = self._split(path, _make_options(rows_per_file=2))
 
         self.assertEqual(total, 3)
         self.assertEqual(len(summaries), 2)
@@ -190,9 +236,8 @@ class TestSplitCsv(unittest.TestCase):
         """(int, list, Path) を返す"""
         rows = [[str(i)] for i in range(4)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=2)
 
-        result = split_csv(path, cfg)
+        result = self._split(path, _make_options(rows_per_file=2))
 
         self.assertIsInstance(result[0], int)
         self.assertIsInstance(result[1], list)
@@ -202,38 +247,80 @@ class TestSplitCsv(unittest.TestCase):
         """正常実行時にログファイルが生成される"""
         rows = [[str(i)] for i in range(3)]
         path = _make_csv(self.tmpdir, rows)
-        cfg = _make_config(self.tmpdir, rows_per_file=10)
 
-        _, _, log_path = split_csv(path, cfg)
+        _, _, log_path = self._split(path, _make_options(rows_per_file=10))
 
         self.assertTrue(log_path.exists())
         content = log_path.read_text(encoding="utf-8")
         self.assertIn("status: SUCCESS", content)
         self.assertIn("data_record_count: 3", content)
 
+    # --- 進捗コールバック ---
+
+    def test_progress_callback_called(self):
+        """10,000行ごとに progress コールバックが呼ばれる"""
+        rows = [[str(i)] for i in range(20_001)]
+        path = _make_csv(self.tmpdir, rows)
+        messages: list[str] = []
+
+        self._split(path, _make_options(rows_per_file=30_000), progress=messages.append)
+
+        self.assertEqual(len(messages), 2)  # 10,000 / 20,000 行時点
+        self.assertIn("10,000", messages[0])
+
     # --- エラー ---
 
     def test_file_not_found(self):
-        cfg = _make_config(self.tmpdir)
         with self.assertRaises(FileNotFoundError):
-            split_csv(self.tmpdir / "nonexistent.csv", cfg)
+            self._split(self.tmpdir / "nonexistent.csv", _make_options())
 
     def test_invalid_rows_per_file_zero(self):
         path = _make_csv(self.tmpdir, [["a"]])
-        cfg = _make_config(self.tmpdir, rows_per_file=0)
         with self.assertRaises(ValueError):
-            split_csv(path, cfg)
+            self._split(path, _make_options(rows_per_file=0))
 
     def test_invalid_rows_per_file_negative(self):
         path = _make_csv(self.tmpdir, [["a"]])
-        cfg = _make_config(self.tmpdir, rows_per_file=-1)
         with self.assertRaises(ValueError):
-            split_csv(path, cfg)
+            self._split(path, _make_options(rows_per_file=-1))
+
+    def test_error_log_written_on_failure(self):
+        """読み込み途中のエラーでも finally でログが出力される"""
+        path = self.tmpdir / "broken.csv"
+        path.write_bytes("a,b\n".encode("utf-8") + b"\xff\xfe\x00" + "c,d\n".encode("utf-8"))
+
+        with self.assertRaises(Exception):
+            self._split(path, _make_options(rows_per_file=10))
+
+        logs = list(self.log_dir.glob("split_log_*.log"))
+        self.assertEqual(len(logs), 1)
+        content = logs[0].read_text(encoding="utf-8")
+        self.assertIn("status: ERROR", content)
+        self.assertIn("error:", content)
 
 
 # ------------------------------------------------------------------
 # write_log
 # ------------------------------------------------------------------
+
+def _make_result(**overrides) -> SplitResult:
+    now = datetime.now()
+    defaults = dict(
+        status="SUCCESS",
+        started_at=now,
+        ended_at=now,
+        input_path=Path("input/test.csv"),
+        rows_per_file=100,
+        encoding="utf-8",
+        delimiter=",",
+        has_header=True,
+        total_rows=100,
+        output_summaries=[("out_001.csv", 100)],
+        error_message="",
+    )
+    defaults.update(overrides)
+    return SplitResult(**defaults)
+
 
 class TestWriteLog(unittest.TestCase):
     def setUp(self):
@@ -243,25 +330,9 @@ class TestWriteLog(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def _call(self, status="SUCCESS", total_rows=100, summaries=None, error_message=""):
-        if summaries is None:
-            summaries = [("out_001.csv", 100)]
-        now = datetime.now()
+    def _call(self, **overrides) -> str:
         log_path = self.tmpdir / "test.log"
-        write_log(
-            log_path=log_path,
-            status=status,
-            started_at=now,
-            ended_at=now,
-            input_path=Path("input/test.csv"),
-            rows_per_file=100,
-            encoding="utf-8",
-            delimiter=",",
-            has_header=True,
-            total_rows=total_rows,
-            output_summaries=summaries,
-            error_message=error_message,
-        )
+        write_log(log_path, _make_result(**overrides))
         return log_path.read_text(encoding="utf-8")
 
     def test_success_status(self):
@@ -278,32 +349,16 @@ class TestWriteLog(unittest.TestCase):
         self.assertIn("data_record_count: 250", content)
 
     def test_created_file_count(self):
-        summaries = [("f1.csv", 50), ("f2.csv", 50)]
-        content = self._call(summaries=summaries)
+        content = self._call(output_summaries=[("f1.csv", 50), ("f2.csv", 50)])
         self.assertIn("created_file_count: 2", content)
 
     def test_empty_summaries(self):
-        content = self._call(summaries=[])
+        content = self._call(output_summaries=[])
         self.assertIn("- (none)", content)
 
     def test_tab_delimiter_repr(self):
         """タブ区切りは \\t と表示される"""
-        now = datetime.now()
-        log_path = self.tmpdir / "tab.log"
-        write_log(
-            log_path=log_path,
-            status="SUCCESS",
-            started_at=now,
-            ended_at=now,
-            input_path=Path("input/test.tsv"),
-            rows_per_file=10,
-            encoding="utf-8",
-            delimiter="\t",
-            has_header=False,
-            total_rows=10,
-            output_summaries=[("out.tsv", 10)],
-        )
-        content = log_path.read_text(encoding="utf-8")
+        content = self._call(delimiter="\t")
         self.assertIn(r"delimiter: \t", content)
 
 

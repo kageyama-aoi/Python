@@ -7,9 +7,13 @@
 ```text
 csv_splitter/
 ├ src/
-│  └ run.py
+│  ├ run.py       # コアロジック + CLIエントリポイント
+│  ├ analyze.py   # 入力ファイルの事前解析ヘルパー
+│  └ gui.py       # 単体GUI（tkinter）
+├ tests/          # ユニットテスト（仕様は tests/TESTS.md）
 ├ config.json
 ├ README.md
+├ input/          # 入力置き場（任意。CLIは任意パスを直接指定可能）
 ├ output/
 └ logs/
 ```
@@ -63,6 +67,22 @@ python src/run.py <入力CSVファイルパス>
 
 ```bash
 python src/run.py /path/to/input.csv /path/to/config.json
+```
+
+### GUI で実行する場合
+
+```bash
+python src/gui.py
+```
+
+ファイル選択 → 「解析」でエンコード・行数・推奨分割行数を確認 → 「実行」。
+フォームの内容は実行時に `config.json` へ保存されます。
+親フォルダのランチャー（`../launcher_gui.bat`）からも起動できます。
+
+### テスト
+
+```bash
+python -m pytest tests
 ```
 
 ## 出力
