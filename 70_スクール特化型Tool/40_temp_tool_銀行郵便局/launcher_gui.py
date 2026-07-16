@@ -112,32 +112,46 @@ def _open_in_explorer(path):
         messagebox.showerror("エラー", f"開けませんでした:\n{path}\n\n{exc}")
 
 
+def _iter_output_files(dir_path):
+    """出力ディレクトリ直下と1階層下のサブディレクトリ内の出力ファイルを列挙する。
+    （csv_splitter は実行ごとに output/<stem>_<日時>/ サブディレクトリへ出力する）"""
+    if not dir_path.is_dir():
+        return
+    for p in dir_path.iterdir():
+        if p.is_file() and p.suffix.lower() in _OUTPUT_EXTS:
+            yield p
+        elif p.is_dir():
+            try:
+                children = list(p.iterdir())
+            except OSError:
+                continue
+            for q in children:
+                if q.is_file() and q.suffix.lower() in _OUTPUT_EXTS:
+                    yield q
+
+
 def _snapshot_dir(dir_path):
-    """出力ディレクトリの {ファイル名: mtime} スナップショットを返す。"""
+    """出力ディレクトリの {相対パス: mtime} スナップショットを返す。"""
     snapshot = {}
-    if dir_path.is_dir():
-        for p in dir_path.iterdir():
-            if p.is_file() and p.suffix.lower() in _OUTPUT_EXTS:
-                try:
-                    snapshot[p.name] = p.stat().st_mtime
-                except OSError:
-                    pass
+    for p in _iter_output_files(dir_path):
+        try:
+            snapshot[str(p.relative_to(dir_path))] = p.stat().st_mtime
+        except OSError:
+            pass
     return snapshot
 
 
 def _detect_new_files(dir_path, snapshot):
     """スナップショット以降に作成・更新されたファイルを新しい順で返す。"""
     results = []
-    if dir_path.is_dir():
-        for p in dir_path.iterdir():
-            if not (p.is_file() and p.suffix.lower() in _OUTPUT_EXTS):
-                continue
-            try:
-                mtime = p.stat().st_mtime
-            except OSError:
-                continue
-            if p.name not in snapshot or mtime > snapshot[p.name] + 0.5:
-                results.append((mtime, p))
+    for p in _iter_output_files(dir_path):
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            continue
+        key = str(p.relative_to(dir_path))
+        if key not in snapshot or mtime > snapshot[key] + 0.5:
+            results.append((mtime, p))
     return [p for _mtime, p in sorted(results, reverse=True)]
 
 
@@ -656,7 +670,7 @@ class LauncherApp(tk.Tk):
             self._append_log(f"=== 終了 (exit code: {exit_code}) ===\n", tag="fail")
         self._set_running(False)
         self._autosave_log(tool_name)
-        self._populate_output_panel(_detect_new_files(output_dir, snapshot))
+        self._populate_output_panel(_detect_new_files(output_dir, snapshot), output_dir)
 
     def _on_stop(self):
         proc = self.proc
@@ -769,7 +783,7 @@ class LauncherApp(tk.Tk):
             self.out_tree.delete(item)
         self._output_paths.clear()
 
-    def _populate_output_panel(self, paths):
+    def _populate_output_panel(self, paths, base_dir):
         self._clear_output_panel()
         for path in paths:
             try:
@@ -777,7 +791,11 @@ class LauncherApp(tk.Tk):
             except OSError:
                 size = "-"
             count, encoding = _analyze_output_file(path)
-            item = self.out_tree.insert("", "end", text=path.name,
+            try:
+                display_name = str(path.relative_to(base_dir))
+            except ValueError:
+                display_name = path.name
+            item = self.out_tree.insert("", "end", text=display_name,
                                         values=(size, count, encoding))
             self._output_paths[item] = path
         if paths:

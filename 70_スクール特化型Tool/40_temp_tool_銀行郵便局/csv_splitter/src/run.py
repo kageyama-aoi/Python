@@ -57,6 +57,8 @@ class SplitResult:
     total_rows: int
     output_summaries: list  # list[tuple[ファイル名, レコード数]]
     error_message: str = ""
+    output_dir: Optional[Path] = None  # この実行の出力サブディレクトリ
+    log_path: Optional[Path] = None
 
 
 def _detect_delimiter(path: Path, encoding: str, ext: str) -> str:
@@ -84,6 +86,7 @@ def write_log(log_path: Path, result: SplitResult) -> None:
         f"started_at: {result.started_at.isoformat(timespec='seconds')}",
         f"ended_at: {result.ended_at.isoformat(timespec='seconds')}",
         f"input_file: {result.input_path}",
+        f"output_dir: {result.output_dir}",
         f"rows_per_file: {result.rows_per_file}",
         f"encoding: {result.encoding}",
         f"delimiter: {delimiter_repr}",
@@ -112,10 +115,11 @@ def split_csv(
     output_dir: Optional[Path] = None,
     log_dir: Optional[Path] = None,
     progress: Optional[ProgressCallback] = None,
-) -> tuple[int, list[tuple[str, int]], Path]:
+) -> "SplitResult":
     """input_path を options.rows_per_file 行ごとに分割する。
 
-    戻り値は (総データ件数, [(出力ファイル名, レコード数)], ログファイルパス)。
+    分割ファイルは output_dir 直下ではなく、実行ごとのサブディレクトリ
+    `{stem}_{YYYYMMDD_HHMMSS}/` に出力する（再実行で上書きされない）。
     エラー時も finally でログを必ず出力してから例外を再送出する。
     """
     started_at = datetime.now()
@@ -130,10 +134,11 @@ def split_csv(
     delimiter = options.delimiter or _detect_delimiter(input_path, options.encoding, ext)
     quoting = csv.QUOTE_ALL if delimiter == "," else csv.QUOTE_MINIMAL
 
-    output_dir.mkdir(exist_ok=True)
-    log_dir.mkdir(exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     base_name = input_path.stem
+    # 出力サブディレクトリは最初のファイルを書く直前に作成する（空実行で空フォルダを残さない）
+    run_output_dir = output_dir / f"{base_name}_{started_at:%Y%m%d_%H%M%S}"
 
     file_index = 0
     total_rows = 0
@@ -163,7 +168,8 @@ def split_csv(
             for row in reader:
                 if outfile is None:
                     file_index += 1
-                    output_path = output_dir / f"{base_name}_split_{file_index:03}{ext}"
+                    run_output_dir.mkdir(parents=True, exist_ok=True)
+                    output_path = run_output_dir / f"{base_name}_split_{file_index:03}{ext}"
                     output_name = output_path.name
                     rows_in_file = 0
                     outfile = open(output_path, "w", encoding=options.encoding, newline="")
@@ -193,43 +199,58 @@ def split_csv(
             outfile.close()
 
         log_path = log_dir / f"split_log_{started_at:%Y%m%d_%H%M%S}.log"
-        write_log(
-            log_path,
-            SplitResult(
-                status=status,
-                started_at=started_at,
-                ended_at=datetime.now(),
-                input_path=input_path,
-                rows_per_file=options.rows_per_file,
-                encoding=options.encoding,
-                delimiter=delimiter,
-                has_header=options.has_header,
-                total_rows=total_rows,
-                output_summaries=output_summaries,
-                error_message=error_message,
-            ),
+        result = SplitResult(
+            status=status,
+            started_at=started_at,
+            ended_at=datetime.now(),
+            input_path=input_path,
+            rows_per_file=options.rows_per_file,
+            encoding=options.encoding,
+            delimiter=delimiter,
+            has_header=options.has_header,
+            total_rows=total_rows,
+            output_summaries=output_summaries,
+            error_message=error_message,
+            output_dir=run_output_dir,
+            log_path=log_path,
         )
+        write_log(log_path, result)
 
-    return total_rows, output_summaries, log_path
+    return result
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("使い方: python run.py <入力CSVファイルパス> [config.json]")
-        sys.exit(1)
+    import argparse
 
-    input_path = Path(sys.argv[1])
-    config_path = Path(sys.argv[2]) if len(sys.argv) >= 3 else BASE_DIR / "config.json"
+    parser = argparse.ArgumentParser(description="CSV/TSVファイルを指定件数ごとに分割する")
+    parser.add_argument("input", help="入力CSV/TSVファイルパス")
+    parser.add_argument("config", nargs="?", default=None,
+                        help="config.json のパス（省略時はツール直下の config.json）")
+    parser.add_argument("--preset", metavar="名前",
+                        help="presets.json に登録した名前付きプリセットで実行する")
+    args = parser.parse_args()
 
-    options = SplitOptions.from_config_file(config_path)
-    _total, _summaries, _log = split_csv(
-        input_path, options, progress=lambda msg: print(msg, flush=True)
-    )
+    input_path = Path(args.input)
+    if args.preset:
+        from presets import get_preset_options
+        try:
+            options = get_preset_options(args.preset)
+        except (FileNotFoundError, KeyError) as exc:
+            message = exc.args[0] if exc.args else str(exc)
+            print(f"[ERROR] {message}")
+            sys.exit(1)
+    else:
+        config_path = Path(args.config) if args.config else BASE_DIR / "config.json"
+        options = SplitOptions.from_config_file(config_path)
+
+    result = split_csv(input_path, options, progress=lambda msg: print(msg, flush=True))
     print("=================================")
     print("CSV分割 完了")
     print(f"入力ファイル : {input_path}")
-    print(f"総データ件数 : {_total}")
-    print(f"出力ファイル数 : {len(_summaries)}")
-    print(f"出力フォルダ : {OUTPUT_DIR}")
-    print(f"ログファイル : {_log}")
+    if args.preset:
+        print(f"プリセット : {args.preset}")
+    print(f"総データ件数 : {result.total_rows}")
+    print(f"出力ファイル数 : {len(result.output_summaries)}")
+    print(f"出力フォルダ : {result.output_dir}")
+    print(f"ログファイル : {result.log_path}")
     print("=================================")

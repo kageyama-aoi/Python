@@ -11,7 +11,8 @@ csv_splitter/
 │  ├ analyze.py   # 入力ファイルの事前解析ヘルパー
 │  └ gui.py       # 単体GUI（tkinter）
 ├ tests/          # ユニットテスト（仕様は tests/TESTS.md）
-├ config.json
+├ config.json     # 最後に使った設定
+├ presets.json    # 名前付きプリセット（gitignore対象。形式は presets.example.json 参照）
 ├ README.md
 ├ input/          # 入力置き場（任意。CLIは任意パスを直接指定可能）
 ├ output/
@@ -24,7 +25,9 @@ csv_splitter/
 - CSV（`,`）/ TSV（`\t`）/ 任意区切り文字ファイルに対応
 - 区切り文字は拡張子で自動判定（省略可）、`config.json` で上書きも可能
 - ヘッダー有無を `config.json` で切り替え可能
+- 出力は実行ごとのサブディレクトリ `output/入力名_日時/` に分かれる（再実行しても上書きされない）
 - 出力ファイル名: `input_split_001.csv`, `input_split_002.csv` ...
+- よく使う設定を名前付きプリセットとして保存・呼び出し可能（GUI / CLI `--preset`）
 - `UTF-8` / `Shift_JIS` などのエンコーディングに対応
 - 巨大ファイルでも扱えるストリーム処理
 - 実行条件と結果件数を `logs/` に記録
@@ -69,6 +72,18 @@ python src/run.py <入力CSVファイルパス>
 python src/run.py /path/to/input.csv /path/to/config.json
 ```
 
+### 名前付きプリセット（お気に入り設定）
+
+よく使う設定の組み合わせは `presets.json` に名前付きで保存できます。
+
+```bash
+python src/run.py /path/to/input.csv --preset "大容量分割（45,000行・ヘッダーなし）"
+```
+
+- 初回は `presets.example.json` をコピーして `presets.json` を作成（または GUI の「保存...」で作成）
+- GUI では「お気に入り」コンボボックスで選択 → フォームに即反映。「保存...」で現在のフォーム内容を名前を付けて登録、「削除」で削除
+- `presets.json` は gitignore 対象（実案件名を入れても公開リポジトリに載らない）
+
 ### GUI で実行する場合
 
 ```bash
@@ -87,8 +102,8 @@ python -m pytest tests
 
 ## 出力
 
-- 分割ファイル: `output/`（既存フォルダがあればそのまま使用）
-- 実行ログ: `logs/split_log_YYYYMMDD_HHMMSS.log`
+- 分割ファイル: `output/<入力名>_<YYYYMMDD_HHMMSS>/`（実行ごとにサブディレクトリを作成）
+- 実行ログ: `logs/split_log_YYYYMMDD_HHMMSS.log`（出力先サブディレクトリも記録）
 
 ## ログに残る情報
 

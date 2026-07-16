@@ -5,7 +5,7 @@ import threading
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 sys.path.insert(0, str(Path(__file__).parent))
 from analyze import (
@@ -15,7 +15,8 @@ from analyze import (
     _read_first_row,
     _suggest_rows,
 )
-from run import OUTPUT_DIR, SplitOptions, _detect_delimiter, split_csv
+from presets import load_presets, save_presets
+from run import SplitOptions, _detect_delimiter, split_csv
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = BASE_DIR / "config.json"
@@ -55,8 +56,10 @@ class App(tk.Tk):
         self.resizable(False, False)
 
         self._log_queue: queue.Queue = queue.Queue()
+        self._presets: dict = {}
         self._build_ui()
         self._load_config_to_form()
+        self._refresh_presets()
         self._poll_log()
 
     # ------------------------------------------------------------------
@@ -80,23 +83,36 @@ class App(tk.Tk):
         frm_cfg = ttk.LabelFrame(self, text="設定")
         frm_cfg.grid(row=1, column=0, columnspan=2, sticky="ew", **pad)
 
-        ttk.Label(frm_cfg, text="分割行数").grid(row=0, column=0, sticky="e", padx=6, pady=4)
-        self._var_rows = tk.StringVar()
-        ttk.Entry(frm_cfg, textvariable=self._var_rows, width=12).grid(row=0, column=1, sticky="w", padx=6, pady=4)
+        ttk.Label(frm_cfg, text="お気に入り").grid(row=0, column=0, sticky="e", padx=6, pady=4)
+        self._var_preset = tk.StringVar()
+        self._cmb_preset = ttk.Combobox(
+            frm_cfg, textvariable=self._var_preset, width=24, state="readonly"
+        )
+        self._cmb_preset.grid(row=0, column=1, sticky="w", padx=6, pady=4)
+        self._cmb_preset.bind("<<ComboboxSelected>>", self._on_preset_selected)
 
-        ttk.Label(frm_cfg, text="エンコーディング").grid(row=1, column=0, sticky="e", padx=6, pady=4)
+        frm_preset_btns = ttk.Frame(frm_cfg)
+        frm_preset_btns.grid(row=0, column=2, sticky="w", padx=(0, 6), pady=4)
+        ttk.Button(frm_preset_btns, text="保存...", width=7, command=self._save_preset).pack(side="left", padx=(0, 4))
+        ttk.Button(frm_preset_btns, text="削除", width=5, command=self._delete_preset).pack(side="left")
+
+        ttk.Label(frm_cfg, text="分割行数").grid(row=1, column=0, sticky="e", padx=6, pady=4)
+        self._var_rows = tk.StringVar()
+        ttk.Entry(frm_cfg, textvariable=self._var_rows, width=12).grid(row=1, column=1, sticky="w", padx=6, pady=4)
+
+        ttk.Label(frm_cfg, text="エンコーディング").grid(row=2, column=0, sticky="e", padx=6, pady=4)
         self._var_enc = tk.StringVar()
         ttk.Combobox(frm_cfg, textvariable=self._var_enc, values=ENCODINGS, width=14, state="readonly").grid(
-            row=1, column=1, sticky="w", padx=6, pady=4
+            row=2, column=1, sticky="w", padx=6, pady=4
         )
 
-        ttk.Label(frm_cfg, text="デリミタ（空=自動）").grid(row=2, column=0, sticky="e", padx=6, pady=4)
+        ttk.Label(frm_cfg, text="デリミタ（空=自動）").grid(row=3, column=0, sticky="e", padx=6, pady=4)
         self._var_delim = tk.StringVar()
-        ttk.Entry(frm_cfg, textvariable=self._var_delim, width=6).grid(row=2, column=1, sticky="w", padx=6, pady=4)
+        ttk.Entry(frm_cfg, textvariable=self._var_delim, width=6).grid(row=3, column=1, sticky="w", padx=6, pady=4)
 
         self._var_header = tk.BooleanVar()
         ttk.Checkbutton(frm_cfg, text="ヘッダーあり（各分割ファイルに複製）", variable=self._var_header).grid(
-            row=3, column=0, columnspan=2, sticky="w", padx=6, pady=4
+            row=4, column=0, columnspan=3, sticky="w", padx=6, pady=4
         )
 
         # --- 実行 ---
@@ -132,6 +148,87 @@ class App(tk.Tk):
             has_header=self._var_header.get(),
             delimiter=self._var_delim.get() or None,
         )
+
+    # ------------------------------------------------------------------
+    # お気に入り（プリセット）
+    # ------------------------------------------------------------------
+
+    def _refresh_presets(self, select: str | None = None) -> None:
+        try:
+            self._presets = load_presets()
+        except (ValueError, OSError) as exc:
+            messagebox.showerror("プリセット読み込みエラー", str(exc))
+            self._presets = {}
+        names = list(self._presets)
+        self._cmb_preset["values"] = names
+        if select in names:
+            self._var_preset.set(select)
+        elif self._var_preset.get() not in names:
+            self._var_preset.set("")
+
+    def _on_preset_selected(self, _event=None) -> None:
+        name = self._var_preset.get()
+        preset = self._presets.get(name)
+        if not preset:
+            return
+        self._var_rows.set(str(preset.get("rows_per_file", 10000)))
+        enc = preset.get("encoding", "utf-8")
+        self._var_enc.set(enc if enc in ENCODINGS else ENCODINGS[0])
+        self._var_header.set(bool(preset.get("has_header", True)))
+        self._var_delim.set(preset.get("delimiter") or "")
+        self._log_append(f"プリセット「{name}」を適用しました\n")
+
+    def _save_preset(self) -> None:
+        try:
+            options = self._form_to_options()
+        except ValueError:
+            messagebox.showwarning("入力エラー", "分割行数は整数で入力してください。")
+            return
+        name = simpledialog.askstring(
+            "お気に入り保存",
+            "プリセット名を入力してください:",
+            initialvalue=self._var_preset.get(),
+            parent=self,
+        )
+        if name is None:
+            return
+        name = name.strip()
+        if not name:
+            return
+        if name in self._presets and not messagebox.askyesno(
+            "確認", f"プリセット「{name}」は既に存在します。上書きしますか？"
+        ):
+            return
+        self._presets[name] = {
+            "rows_per_file": options.rows_per_file,
+            "encoding": options.encoding,
+            "has_header": options.has_header,
+            "delimiter": options.delimiter,
+        }
+        try:
+            save_presets(self._presets)
+        except OSError as exc:
+            messagebox.showerror("エラー", f"プリセットの保存に失敗しました:\n{exc}")
+            return
+        self._refresh_presets(select=name)
+        self._log_append(f"プリセット「{name}」を保存しました\n")
+
+    def _delete_preset(self) -> None:
+        name = self._var_preset.get()
+        if not name:
+            messagebox.showinfo("情報", "削除するプリセットを選択してください。")
+            return
+        if not messagebox.askyesno("確認", f"プリセット「{name}」を削除しますか？"):
+            return
+        self._presets.pop(name, None)
+        try:
+            save_presets(self._presets)
+        except OSError as exc:
+            messagebox.showerror("エラー", f"プリセットの保存に失敗しました:\n{exc}")
+            return
+        self._var_preset.set("")
+        self._refresh_presets()
+        self._log_append(f"プリセット「{name}」を削除しました\n")
 
     # ------------------------------------------------------------------
     # ファイル選択
@@ -263,11 +360,9 @@ class App(tk.Tk):
         self._log_queue.put(header)
 
         error_msg = ""
-        total_rows = 0
-        output_summaries: list = []
-        log_path = None
+        result = None
         try:
-            total_rows, output_summaries, log_path = split_csv(
+            result = split_csv(
                 input_path,
                 options,
                 progress=lambda msg: self._log_queue.put(msg + "\n"),
@@ -288,12 +383,12 @@ class App(tk.Tk):
                 f"  経過時間    : {elapsed_str}\n"
                 f"  ステータス  : {status}\n"
             )
-            if not error_msg:
+            if not error_msg and result is not None:
                 footer += (
-                    f"  総データ件数: {total_rows:,} 行\n"
-                    f"  出力ファイル: {len(output_summaries)} 件\n"
-                    f"  出力フォルダ: {OUTPUT_DIR}\n"
-                    f"  ログファイル: {log_path}\n"
+                    f"  総データ件数: {result.total_rows:,} 行\n"
+                    f"  出力ファイル: {len(result.output_summaries)} 件\n"
+                    f"  出力フォルダ: {result.output_dir}\n"
+                    f"  ログファイル: {result.log_path}\n"
                 )
             else:
                 footer += f"  エラー      : {error_msg}\n"

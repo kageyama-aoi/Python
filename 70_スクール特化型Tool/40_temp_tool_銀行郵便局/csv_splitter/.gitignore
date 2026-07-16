@@ -1,6 +1,7 @@
 input/
 output/
 logs/
+presets.json
 __pycache__/
 .pytest_cache/
 *.pyc

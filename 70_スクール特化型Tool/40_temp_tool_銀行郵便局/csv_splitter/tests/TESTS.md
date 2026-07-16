@@ -13,7 +13,7 @@ python -m unittest discover -s tests
 
 ---
 
-## test_run.py — コアロジック（29件）
+## test_run.py — コアロジック（32件）
 
 ### `SplitOptions` （5件）
 
@@ -35,7 +35,7 @@ python -m unittest discover -s tests
 | `test_fallback_csv_extension` | 区切り文字がないファイルは `.csv` 拡張子 → `,` にフォールバック |
 | `test_fallback_tsv_extension` | 区切り文字がないファイルは `.tsv` 拡張子 → `\t` にフォールバック |
 
-### `split_csv` （13件）
+### `split_csv` （15件）
 
 **基本分割**
 
@@ -44,6 +44,13 @@ python -m unittest discover -s tests
 | `test_exact_split` | 9行を3件ずつ → 3ファイル、各3レコード（端数なし・満杯ケース） |
 | `test_split_with_remainder` | 10行を3件ずつ → 4ファイル（3+3+3+1）、最終ファイルは1レコード |
 | `test_rows_per_file_larger_than_data` | `rows_per_file` が総行数より大きい → 1ファイルにまとまる |
+
+**出力サブディレクトリ**
+
+| テスト名 | 内容 |
+|---|---|
+| `test_output_written_to_run_subdir` | 分割ファイルは `output/<stem>_<日時>/` に出力され、output 直下には置かれない |
+| `test_no_empty_subdir_on_empty_input` | データ0行の入力では空のサブディレクトリを作らない |
 
 **ヘッダー制御**
 
@@ -75,7 +82,7 @@ python -m unittest discover -s tests
 | `test_invalid_rows_per_file_negative` | `rows_per_file=-1` で `ValueError` が発生する |
 | `test_error_log_written_on_failure` | 読み込み途中のデコードエラーでも finally で `status: ERROR` のログが出力される |
 
-### `write_log` （6件）
+### `write_log` （7件）
 
 `SplitResult` dataclass を組み立てて渡す（ヘルパー `_make_result()`）。
 
@@ -87,6 +94,23 @@ python -m unittest discover -s tests
 | `test_created_file_count` | `created_file_count` に正しいファイル数が記録される |
 | `test_empty_summaries` | 出力ファイルがない場合 `- (none)` と記録される |
 | `test_tab_delimiter_repr` | タブ区切りは `\t` という文字列で記録される（リテラルのタブではなく） |
+| `test_output_dir_recorded` | 出力サブディレクトリのパスが `output_dir:` としてログに記録される |
+
+---
+
+## test_presets.py — 名前付きプリセット（7件）
+
+対象は `src/presets.py`。
+
+| テスト名 | 内容 |
+|---|---|
+| `test_load_missing_file_returns_empty` | presets.json がなければ空 dict（エラーにしない） |
+| `test_save_and_load_roundtrip` | 保存→読み込みで内容と順序が保持される |
+| `test_get_preset_options` | プリセット名から `SplitOptions` が組み立てられる |
+| `test_get_preset_options_defaults` | `has_header` 省略時 `True`、`delimiter` 省略・空文字は `None` |
+| `test_unknown_name_raises_keyerror_with_available` | 未登録名は登録済み一覧付きの `KeyError` |
+| `test_invalid_structure_raises` | dict-of-dict でないJSONは `ValueError` |
+| `test_example_template_is_loadable` | 同梱 `presets.example.json` が正しい形式で全プリセットが validate を通る |
 
 ---
 

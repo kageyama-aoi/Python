@@ -1,0 +1,20 @@
+{
+  "大容量分割（45,000行・ヘッダーなし）": {
+    "rows_per_file": 45000,
+    "encoding": "utf-8",
+    "has_header": false,
+    "delimiter": null
+  },
+  "ヘッダー付きCSV（10,000行）": {
+    "rows_per_file": 10000,
+    "encoding": "utf-8",
+    "has_header": true,
+    "delimiter": null
+  },
+  "Shift-JISタブ区切り": {
+    "rows_per_file": 50000,
+    "encoding": "shift_jis",
+    "has_header": true,
+    "delimiter": "\t"
+  }
+}

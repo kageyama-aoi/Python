@@ -13,7 +13,10 @@ CLI・単体GUI・親フォルダのランチャー（`../launcher_gui.py`）の
 # CLI（入力ファイルは引数で直接指定。input/ 配置は不要）
 python src/run.py <入力CSVファイルパス> [config.json]
 
-# GUI（ファイル選択・解析・実行をウィンドウ上で行う）
+# 名前付きプリセットで実行（presets.json に登録した設定を使う）
+python src/run.py <入力CSVファイルパス> --preset <プリセット名>
+
+# GUI（ファイル選択・解析・実行・プリセット管理をウィンドウ上で行う）
 python src/gui.py
 
 # テスト
@@ -31,15 +34,23 @@ python -m pytest tests
 
 GUIは実行時にフォーム内容を config.json へ保存する（次回起動時の初期値になる）。
 
+## プリセット (presets.json)
+
+`{"プリセット名": {config.jsonと同じ4キー}}` 形式でツールルートに置く。
+GUIの「お気に入り」コンボボックス（保存/削除ボタン付き）と CLI の `--preset` から使う。
+実案件名が入り得るため **gitignore 対象**。形式サンプルは `presets.example.json`（コミット対象）。
+
 ## アーキテクチャ
 
 - `src/run.py` — コアロジック。`SplitOptions`（実行パラメータ、`from_config_file()`/`validate()`）、
   `SplitResult`（実行結果）、`split_csv()`（分割本体）、`write_log()`、`_detect_delimiter()`。
   CLI エントリポイントを兼ねる。
 - `src/analyze.py` — 入力ファイルの事前解析ヘルパー（エンコード判定・行数カウント・先頭行プレビュー・推奨分割行数）。tkinter 非依存。
-- `src/gui.py` — 単体GUI（tkinter）。入出力に徹し、処理は `run.py` / `analyze.py` を呼ぶ。
-- `config.json` — 実行パラメータ。ツールルートに必置。
-- `output/` — 分割済みCSV出力先。ファイル名は `{stem}_split_{001}{ext}` 形式。
+- `src/presets.py` — 名前付きプリセットの読み書き（`load_presets`/`save_presets`/`get_preset_options`）。
+- `src/gui.py` — 単体GUI（tkinter）。入出力に徹し、処理は `run.py` / `analyze.py` / `presets.py` を呼ぶ。
+- `config.json` — 実行パラメータ（最後に使った設定）。ツールルートに必置。
+- `output/` — 分割済みCSV出力先。**実行ごとに `{stem}_{YYYYMMDD_HHMMSS}/` サブディレクトリを作り**、
+  その中に `{stem}_split_{001}{ext}` 形式で出力する（再実行で上書きされない）。
 - `logs/` — 実行ログ。`split_log_YYYYMMDD_HHMMSS.log` 形式で毎回生成。
 - `tests/` — pytest/unittest（`TESTS.md` に仕様一覧）。
 
