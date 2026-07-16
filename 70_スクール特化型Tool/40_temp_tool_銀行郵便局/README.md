@@ -1,0 +1,87 @@
+# launcher_gui.py — 銀行郵便局ツール ランチャー GUI
+
+`csv_splitter` / `diff_csv` を1つのウィンドウから起動・監視できる内蔵型ランチャー。
+Python 標準ライブラリ（Tkinter）のみで動作する。
+`e2e/run/run_gui.py`（テストランナーGUI）の設計を踏襲している。
+
+## 起動方法
+
+```
+launcher_gui.bat をダブルクリック
+```
+
+## 動作要件
+
+| 項目 | 条件 |
+|---|---|
+| Python | 3.8 以上（Tkinter 付属、標準配布で OK） |
+| sv-ttk | **任意**。`pip install sv-ttk` で Windows 11 スタイルのダークテーマが有効になる。未インストールでも標準 ttk テーマで正常動作する |
+
+## 画面構成
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ [左ペイン]                  │ [右ペイン]                    │
+│  ツール一覧                  │  Command（参照用・読み取り専用）│
+│  実行パラメータ（ツール別）    │  Log（色付きリアルタイム表示） │
+│  [▶ Run] [■ Stop]           │  出力ファイルパネル            │
+│  [入力フォルダ] [出力フォルダ] │   （サイズ・件数・エンコード）  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### ツール別パラメータ
+
+| ツール | パラメータ |
+|---|---|
+| **csv_splitter** | 入力ファイル選択（`input/` 自動スキャン + 参照ボタン）、設定ボタン（`config.json` を GUI 編集）、単体GUI起動ボタン |
+| **diff_csv** | 新旧ファイルの存在チェック表示（ファイル名は `src/postcode_diff.py` に定義） |
+
+### 実行まわり
+
+- **Run** — 選択ツールをサブスレッドで実行し、ログをリアルタイムに色付き表示する
+- **Stop** — 実行中プロセスを `terminate()` で停止する
+- 実行終了後（正常・Stop・エラーとも）、ログを `logs/<tool>_<YYYYMMDD_HHMMSS>.log` に自動保存する
+- 実行終了後、そのツールの `output/` に新しく作成・更新されたファイルを一覧表示する
+  （ダブルクリックまたは「開く」で既定アプリ起動）
+
+### ログの色分けルール
+
+| 色 | 条件 |
+|---|---|
+| 青 | `===` で始まる行（ヘッダー） |
+| グレー | `---` で始まる行 |
+| 緑 | `✓` / `完了` / `passed` / exit code 0 |
+| 赤（太字） | `FAIL` / `Traceback` / exit code ≠ 0 |
+| ピンク | `Error` / `エラー` |
+| オレンジ | `warn` / `警告` |
+
+### ログの自動クリーンアップ
+
+起動 0.3 秒後にバックグラウンドで、`logs/` 内の 30 日以上古いログを
+`logs/archive/<name>.log.zip` に圧縮してから削除する。
+日数は `launcher_gui.py` の `LOG_CLEANUP_DAYS` で変更できる。
+
+## ツールを追加する
+
+`launcher_gui.py` に `ToolPanelBase` のサブクラスを作り、`_PANEL_CLASSES` に登録する。
+
+```python
+class MyToolPanel(ToolPanelBase):
+    name = "my_tool"          # BASE_DIR/my_tool がツールフォルダになる
+    title = "my_tool — 説明"   # 一覧表示名
+    description = "..."
+
+    def build_command(self):
+        return [sys.executable, "-u", str(self.tool_dir / "run.py")], self.tool_dir
+```
+
+## フォルダ構成
+
+```
+40_temp_tool_銀行郵便局/
+├── launcher_gui.py    # ランチャー本体
+├── launcher_gui.bat   # ダブルクリック起動用
+├── logs/              # 実行ログ（gitignore対象、30日で自動アーカイブ）
+├── csv_splitter/      # 巨大CSV分割ツール
+└── diff_csv/          # 郵便番号差分比較ツール
+```
