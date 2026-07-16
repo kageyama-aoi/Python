@@ -1,0 +1,11 @@
+{
+  "name": "CSV検証サポート",
+  "description": "巨大CSV/TSVの分割（csv_splitter）とCSV差分比較（diff_csv）を、リアルタイムログ付きの専用ランチャーから実行する",
+  "actions": [
+    {
+      "label": "ランチャーGUIを起動",
+      "kind": "gui",
+      "entry": "run.bat"
+    }
+  ]
+}

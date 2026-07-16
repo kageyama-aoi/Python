@@ -1,4 +1,4 @@
-# 40_temp_tool_銀行郵便局 ツールランチャー GUI
+# 33_CSV検証サポート ツールランチャー GUI
 # csv_splitter / diff_csv を起動・監視する内蔵型ランチャー。
 # Python 標準ライブラリ（Tkinter）のみで動作する。
 # Optional: pip install sv-ttk → Windows 11 スタイルのテーマが有効になる
@@ -168,7 +168,7 @@ class SplashScreen(tk.Toplevel):
         self.geometry(f"{width}x{height}+{(sw - width) // 2}+{(sh - height) // 2}")
         frame = ttk.Frame(self, padding=24)
         frame.pack(fill="both", expand=True)
-        ttk.Label(frame, text="銀行郵便局ツール ランチャー",
+        ttk.Label(frame, text="CSV検証サポート ランチャー",
                   font=("Yu Gothic UI", 14, "bold")).pack(pady=(16, 8))
         ttk.Label(frame, text="初期化中...").pack()
         self.update_idletasks()
@@ -454,7 +454,7 @@ class LauncherApp(tk.Tk):
         self.withdraw()
         splash = SplashScreen(self)
 
-        self.title("銀行郵便局ツール ランチャー")
+        self.title("CSV検証サポート ランチャー")
         self.geometry("1100x680")
         self.minsize(860, 560)
 

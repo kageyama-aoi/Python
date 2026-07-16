@@ -1,4 +1,4 @@
-# launcher_gui.py — 銀行郵便局ツール ランチャー GUI
+# launcher_gui.py — CSV検証サポート ランチャー GUI
 
 `csv_splitter` / `diff_csv` を1つのウィンドウから起動・監視できる内蔵型ランチャー。
 Python 標準ライブラリ（Tkinter）のみで動作する。
@@ -7,7 +7,7 @@ Python 標準ライブラリ（Tkinter）のみで動作する。
 ## 起動方法
 
 ```
-launcher_gui.bat をダブルクリック
+run.bat をダブルクリック（または 00_ランチャーから起動）
 ```
 
 ## 動作要件
@@ -79,9 +79,10 @@ class MyToolPanel(ToolPanelBase):
 ## フォルダ構成
 
 ```
-40_temp_tool_銀行郵便局/
+33_CSV検証サポート/
 ├── launcher_gui.py    # ランチャー本体
-├── launcher_gui.bat   # ダブルクリック起動用
+├── run.bat            # ダブルクリック起動用
+├── launcher.json      # 00_ランチャー登録マニフェスト
 ├── logs/              # 実行ログ（gitignore対象、30日で自動アーカイブ）
 ├── csv_splitter/      # 巨大CSV分割ツール
 └── diff_csv/          # 郵便番号差分比較ツール
