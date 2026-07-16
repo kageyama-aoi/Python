@@ -9,6 +9,7 @@ csv_splitter/
 ├ src/
 │  ├ run.py       # コアロジック + CLIエントリポイント
 │  ├ analyze.py   # 入力ファイルの事前解析ヘルパー
+│  ├ presets.py   # 名前付きプリセットの読み書き
 │  └ gui.py       # 単体GUI（tkinter）
 ├ tests/          # ユニットテスト（仕様は tests/TESTS.md）
 ├ config.json     # 最後に使った設定
@@ -31,6 +32,45 @@ csv_splitter/
 - `UTF-8` / `Shift_JIS` などのエンコーディングに対応
 - 巨大ファイルでも扱えるストリーム処理
 - 実行条件と結果件数を `logs/` に記録
+
+## できること一覧
+
+```mermaid
+graph TB
+    subgraph entry["エントリポイント"]
+        CLI["CLI: python src/run.py 入力 [--preset 名前]\nコマンドラインから分割を実行"]
+        GUI["GUI: python src/gui.py\n解析・実行・プリセット管理をウィンドウで操作"]
+    end
+
+    subgraph core["src/run.py — コア分割"]
+        SPLIT["split_csv\n指定行数ごとにストリーム分割し実行ごとのサブディレクトリへ出力"]
+        OPT["SplitOptions.from_config_file / validate\nconfig.jsonの読み込みと設定値の検証"]
+        LOG["write_log\n実行結果（SplitResult）をログファイルに出力"]
+    end
+
+    subgraph preset["src/presets.py — お気に入り設定"]
+        PLOAD["load_presets / save_presets\npresets.jsonの読み書き"]
+        PGET["get_preset_options\nプリセット名からSplitOptionsを組み立て"]
+    end
+
+    subgraph analyze["src/analyze.py — 入力ファイル事前解析"]
+        ANA["エンコード判定・行数カウント・先頭行プレビュー・推奨分割行数"]
+    end
+```
+
+### 実装状況
+
+| 機能 | 状態 | 概要 |
+|---|---|---|
+| CSV/TSV分割（ストリーム処理） | ✅ | 巨大ファイルをメモリに全展開せず指定行数ごとに分割 |
+| 区切り文字・エンコードの自動判定 | ✅ | 先頭20行の出現数と拡張子から区切り文字を推定。GUIの「解析」でエンコードも検出 |
+| ヘッダー複製 | ✅ | `has_header: true` で各分割ファイルの先頭にヘッダー行を複製 |
+| 実行ごとの出力サブディレクトリ | ✅ | `output/<入力名>_<日時>/` に出力し、再実行しても上書きされない |
+| 名前付きプリセット | ✅ | よく使う設定を `presets.json` に保存。GUIのお気に入りUIと CLI `--preset` から呼び出し |
+| 入力ファイルの事前解析（GUI） | ✅ | サイズ・総行数・エンコード・カラム構成・推奨分割行数を実行前に確認 |
+| 実行ログ | ✅ | 成功・エラーを問わず実行条件と結果件数を `logs/` に記録 |
+| ランチャー連携 | ✅ | 親フォルダの `launcher_gui.py` からCLI経由で実行・出力検知が可能 |
+| 今後追加予定の機能 | 📋 | （現時点では未定） |
 
 ## 必要環境
 
