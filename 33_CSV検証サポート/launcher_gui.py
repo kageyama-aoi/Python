@@ -326,6 +326,73 @@ class ConfigEditorWindow(tk.Toplevel):
 
 
 # ------------------------------------------------------------------
+# 出力ファイル詳細サブウィンドウ
+# ------------------------------------------------------------------
+
+class OutputDetailWindow(tk.Toplevel):
+    """今回の実行で作成・更新された出力ファイルの詳細一覧。
+    行数カウント等の解析はこのウィンドウを開いたときにだけ行う。"""
+
+    def __init__(self, master, paths, base_dir):
+        super().__init__(master)
+        self.title(f"出力ファイルの詳細（{len(paths)} 件）")
+        self.geometry("860x420")
+        self.minsize(600, 280)
+        self._output_paths = {}  # Treeview item id -> Path
+
+        frame = ttk.Frame(self, padding=8)
+        frame.pack(fill="both", expand=True)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        columns = ("size", "count", "encoding")
+        self.tree = ttk.Treeview(frame, columns=columns)
+        self.tree.heading("#0", text="ファイル名")
+        self.tree.heading("size", text="サイズ")
+        self.tree.heading("count", text="件数")
+        self.tree.heading("encoding", text="形式/エンコード")
+        self.tree.column("#0", width=460)
+        self.tree.column("size", width=90, anchor="e", stretch=False)
+        self.tree.column("count", width=100, anchor="e", stretch=False)
+        self.tree.column("encoding", width=120, anchor="center", stretch=False)
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        sb = ttk.Scrollbar(frame, command=self.tree.yview)
+        sb.grid(row=0, column=1, sticky="ns")
+        self.tree.configure(yscrollcommand=sb.set)
+        self.tree.bind("<Double-1>", lambda _e: self._open_selected())
+
+        btns = ttk.Frame(frame)
+        btns.grid(row=1, column=0, columnspan=2, sticky="e", pady=(8, 0))
+        ttk.Button(btns, text="フォルダを開く",
+                   command=lambda: _open_in_explorer(base_dir)).pack(side="left", padx=(0, 8))
+        ttk.Button(btns, text="開く", command=self._open_selected).pack(side="left", padx=(0, 8))
+        ttk.Button(btns, text="閉じる", command=self.destroy).pack(side="left")
+
+        for path in paths:
+            try:
+                size = _format_filesize(path.stat().st_size)
+            except OSError:
+                size = "-"
+            count, encoding = _analyze_output_file(path)
+            try:
+                display_name = str(path.relative_to(base_dir))
+            except ValueError:
+                display_name = path.name
+            item = self.tree.insert("", "end", text=display_name,
+                                    values=(size, count, encoding))
+            self._output_paths[item] = path
+
+    def _open_selected(self):
+        selection = self.tree.selection()
+        if not selection:
+            messagebox.showinfo("情報", "開くファイルを選択してください。", parent=self)
+            return
+        path = self._output_paths.get(selection[0])
+        if path:
+            _open_in_explorer(path)
+
+
+# ------------------------------------------------------------------
 # ツールパネル（左ペインの下半分に差し替え表示）
 # ------------------------------------------------------------------
 
@@ -357,6 +424,10 @@ class ToolPanelBase(ttk.Frame):
     def build_command(self):
         """(コマンドリスト, 作業ディレクトリ) を返す。実行不可なら ValueError。"""
         raise NotImplementedError
+
+    def run_input_label(self):
+        """実行結果サマリーに表示する入力の表示名。不明なら None。"""
+        return None
 
     def refresh(self):
         """パネル表示時・↻ボタンで呼ばれる。ファイル一覧などを再スキャンする。"""
@@ -438,6 +509,10 @@ class CsvSplitterPanel(ToolPanelBase):
         gui_py = self.tool_dir / "src" / "gui.py"
         subprocess.Popen([sys.executable, str(gui_py)], cwd=str(self.tool_dir),
                          creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+    def run_input_label(self):
+        selected = self.input_var.get().strip()
+        return Path(selected).name if selected else None
 
     def _resolve_input_path(self):
         selected = self.input_var.get().strip()
@@ -595,8 +670,7 @@ class LauncherApp(tk.Tk):
         # ---- 右ペイン
         right = ttk.Frame(paned)
         paned.add(right, weight=1)
-        right.rowconfigure(1, weight=3)
-        right.rowconfigure(2, weight=1)
+        right.rowconfigure(1, weight=1)
         right.columnconfigure(0, weight=1)
 
         cmd_frame = ttk.Frame(right)
@@ -619,32 +693,22 @@ class LauncherApp(tk.Tk):
         log_menu.add_command(label="Clear Log", command=self._clear_log)
         self.log_text.bind("<Button-3>", lambda e: log_menu.tk_popup(e.x_root, e.y_root))
 
-        out_frame = ttk.LabelFrame(right, text="出力ファイル（今回の実行で作成・更新）", padding=6)
-        out_frame.grid(row=2, column=0, sticky="nsew", pady=(6, 0))
-        out_frame.rowconfigure(0, weight=1)
+        out_frame = ttk.LabelFrame(right, text="実行結果（今回の実行で作成・更新）", padding=6)
+        out_frame.grid(row=2, column=0, sticky="ew", pady=(6, 0))
         out_frame.columnconfigure(0, weight=1)
 
-        columns = ("size", "count", "encoding")
-        self.out_tree = ttk.Treeview(out_frame, columns=columns, height=4)
-        self.out_tree.heading("#0", text="ファイル名")
-        self.out_tree.heading("size", text="サイズ")
-        self.out_tree.heading("count", text="件数")
-        self.out_tree.heading("encoding", text="形式/エンコード")
-        self.out_tree.column("#0", width=320)
-        self.out_tree.column("size", width=90, anchor="e")
-        self.out_tree.column("count", width=100, anchor="e")
-        self.out_tree.column("encoding", width=110, anchor="center")
-        self.out_tree.grid(row=0, column=0, sticky="nsew")
-        self.out_tree.bind("<Double-1>", self._on_output_double_click)
-
-        out_btns = ttk.Frame(out_frame)
-        out_btns.grid(row=0, column=1, sticky="ns", padx=(6, 0))
-        ttk.Button(out_btns, text="フォルダを開く",
+        self.summary_var = tk.StringVar(value="（まだ実行していません）")
+        ttk.Label(out_frame, textvariable=self.summary_var, anchor="w").grid(
+            row=0, column=0, sticky="ew")
+        self.detail_btn = ttk.Button(out_frame, text="詳細...", state="disabled",
+                                     command=self._open_output_detail)
+        self.detail_btn.grid(row=0, column=1, padx=(6, 0))
+        ttk.Button(out_frame, text="フォルダを開く",
                    command=lambda: _open_in_explorer(self._current_panel().output_dir)
-                   ).pack(fill="x", pady=(0, 4))
-        ttk.Button(out_btns, text="開く", command=self._open_selected_output).pack(fill="x")
+                   ).grid(row=0, column=2, padx=(6, 0))
 
-        self._output_paths = {}  # Treeview item id -> Path
+        self._last_run_files = []      # 直近の実行で作成・更新されたファイル
+        self._last_output_base = None  # そのときの出力ベースディレクトリ
 
     # -------------------------------------------------- ツール切替
 
@@ -693,19 +757,20 @@ class LauncherApp(tk.Tk):
             return
 
         self.cmd_var.set(subprocess.list2cmdline(cmd))
-        self._clear_output_panel()
+        self._reset_run_summary()
         snapshot = _snapshot_dir(panel.output_dir)
+        input_label = panel.run_input_label()
 
         self._set_running(True)
         self._append_log(f"=== {panel.name} 実行開始 {datetime.now():%Y-%m-%d %H:%M:%S} ===\n")
 
         threading.Thread(
             target=self._run_process,
-            args=(cmd, cwd, panel.name, panel.output_dir, snapshot),
+            args=(cmd, cwd, panel.name, panel.output_dir, snapshot, input_label),
             daemon=True,
         ).start()
 
-    def _run_process(self, cmd, cwd, tool_name, output_dir, snapshot):
+    def _run_process(self, cmd, cwd, tool_name, output_dir, snapshot, input_label):
         """バックグラウンドスレッド。tkinter ウィジェットは直接触らず、
         ログも完了通知もスレッドセーフな log_queue 経由でメインスレッドに渡す。"""
         exit_code = None
@@ -726,9 +791,10 @@ class LauncherApp(tk.Tk):
             self.log_queue.put(f"[launcher] 実行エラー: {exc}\n")
         finally:
             self.proc = None
-            self.log_queue.put((_SENTINEL_RUN_DONE, (tool_name, output_dir, snapshot, exit_code)))
+            self.log_queue.put((_SENTINEL_RUN_DONE,
+                                (tool_name, output_dir, snapshot, exit_code, input_label)))
 
-    def _on_run_finished(self, tool_name, output_dir, snapshot, exit_code):
+    def _on_run_finished(self, tool_name, output_dir, snapshot, exit_code, input_label):
         """メインスレッドで実行される後処理。"""
         if exit_code == 0:
             self._append_log(f"=== 終了 (exit code: 0) ===\n", tag="pass")
@@ -738,7 +804,7 @@ class LauncherApp(tk.Tk):
             self._append_log(f"=== 終了 (exit code: {exit_code}) ===\n", tag="fail")
         self._set_running(False)
         self._autosave_log(tool_name)
-        self._populate_output_panel(_detect_new_files(output_dir, snapshot), output_dir)
+        self._show_run_summary(_detect_new_files(output_dir, snapshot), output_dir, input_label)
 
     def _on_stop(self):
         proc = self.proc
@@ -844,43 +910,47 @@ class LauncherApp(tk.Tk):
         except OSError as exc:
             self._append_log(f"[launcher] ログ保存に失敗: {exc}\n", tag="error")
 
-    # -------------------------------------------------- 出力ファイルパネル
+    # -------------------------------------------------- 実行結果サマリー
 
-    def _clear_output_panel(self):
-        for item in self.out_tree.get_children():
-            self.out_tree.delete(item)
-        self._output_paths.clear()
+    def _reset_run_summary(self):
+        self._last_run_files = []
+        self._last_output_base = None
+        self.summary_var.set("実行中...")
+        self.detail_btn.config(state="disabled")
 
-    def _populate_output_panel(self, paths, base_dir):
-        self._clear_output_panel()
+    def _show_run_summary(self, paths, base_dir, input_label):
+        """実行完了後のサマリー1行を表示する。ファイル解析は詳細ウィンドウ側で行う。"""
+        self._last_run_files = paths
+        self._last_output_base = base_dir
+        if not paths:
+            self.summary_var.set("新しい出力ファイルはありません")
+            self.detail_btn.config(state="disabled")
+            return
+        total_size = 0
         for path in paths:
             try:
-                size = _format_filesize(path.stat().st_size)
+                total_size += path.stat().st_size
             except OSError:
-                size = "-"
-            count, encoding = _analyze_output_file(path)
+                pass
+        # 出力先が1つのサブディレクトリに揃っていればそれも表示する
+        parents = {p.parent for p in paths}
+        dir_part = ""
+        if len(parents) == 1:
+            parent = parents.pop()
             try:
-                display_name = str(path.relative_to(base_dir))
+                rel = parent.relative_to(base_dir)
+                dir_part = f"（{rel}/）" if str(rel) != "." else ""
             except ValueError:
-                display_name = path.name
-            item = self.out_tree.insert("", "end", text=display_name,
-                                        values=(size, count, encoding))
-            self._output_paths[item] = path
-        if paths:
-            self._append_log(f"[launcher] 出力ファイル {len(paths)} 件を検出しました\n", tag="debug")
+                dir_part = f"（{parent.name}/）"
+        input_part = f"入力 {input_label} → " if input_label else ""
+        self.summary_var.set(
+            f"{input_part}出力 {len(paths)} ファイル / {_format_filesize(total_size)} {dir_part}")
+        self.detail_btn.config(state="normal")
+        self._append_log(f"[launcher] 出力ファイル {len(paths)} 件を検出しました\n", tag="debug")
 
-    def _open_selected_output(self):
-        selection = self.out_tree.selection()
-        if not selection:
-            messagebox.showinfo("情報", "開くファイルを選択してください。")
-            return
-        path = self._output_paths.get(selection[0])
-        if path:
-            _open_in_explorer(path)
-
-    def _on_output_double_click(self, _event):
-        if self.out_tree.selection():
-            self._open_selected_output()
+    def _open_output_detail(self):
+        if self._last_run_files:
+            OutputDetailWindow(self, self._last_run_files, self._last_output_base)
 
 
 def main():
