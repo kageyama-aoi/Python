@@ -13,7 +13,7 @@ def create_structure(project_name, dest_dir=None):
         "data/input",
         "data/output",
         "data/temp",
-        "logs",
+        "data/logs",
         "scripts",
         "tests"
     ]
@@ -46,9 +46,11 @@ var/
 .installed.cfg
 *.egg
 
+# Data (入力・出力・ログの実行データ。実データはコミット禁止)
+data/
+
 # Logs
 *.log
-logs/
 
 # IDE
 .vscode/
@@ -65,7 +67,7 @@ desktop.ini
         "src/main.py": "import os\nimport sys\n\n# プロジェクトルートをパスに追加\nsys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n\nfrom src.utils.logger import setup_logger\nfrom src.config_manager import ConfigManager\n\ndef main():\n    logger = setup_logger()\n    logger.info(\"Application started.\")\n    \n    # 設定の読み込み例\n    config = ConfigManager().load_config()\n    logger.info(f\"Loaded config for: {config.get('app_name', 'Unknown')}\")\n\n    print(f\"Hello, {config.get('app_name')}!\")\n\nif __name__ == \"__main__\":\n    main()\n",
         "src/config_manager.py": "import yaml\nimport os\n\nclass ConfigManager:\n    def __init__(self, config_path=\"config/main.yaml\"):\n        self.config_path = config_path\n\n    def load_config(self):\n        if not os.path.exists(self.config_path):\n            return {}\n        with open(self.config_path, 'r', encoding='utf-8') as f:\n            return yaml.safe_load(f)\n",
         "src/utils/__init__.py": "",
-        "src/utils/logger.py": "import logging\nimport os\nfrom datetime import datetime\n\ndef setup_logger(name=\"app\", log_dir=\"logs\"):\n    os.makedirs(log_dir, exist_ok=True)\n    logger = logging.getLogger(name)\n    \n    if logger.hasHandlers():\n        return logger\n        \n    logger.setLevel(logging.INFO)\n\n    # Console Handler\n    ch = logging.StreamHandler()\n    ch.setLevel(logging.INFO)\n    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')\n    ch.setFormatter(formatter)\n    logger.addHandler(ch)\n\n    # File Handler\n    log_filename = datetime.now().strftime(\"%Y%m%d\") + \".log\"\n    fh = logging.FileHandler(os.path.join(log_dir, log_filename), encoding='utf-8')\n    fh.setLevel(logging.INFO)\n    fh.setFormatter(formatter)\n    logger.addHandler(fh)\n\n    return logger\n",
+        "src/utils/logger.py": "import logging\nimport os\nfrom datetime import datetime\n\ndef setup_logger(name=\"app\", log_dir=\"data/logs\"):\n    os.makedirs(log_dir, exist_ok=True)\n    logger = logging.getLogger(name)\n    \n    if logger.hasHandlers():\n        return logger\n        \n    logger.setLevel(logging.INFO)\n\n    # Console Handler\n    ch = logging.StreamHandler()\n    ch.setLevel(logging.INFO)\n    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')\n    ch.setFormatter(formatter)\n    logger.addHandler(ch)\n\n    # File Handler\n    log_filename = datetime.now().strftime(\"%Y%m%d\") + \".log\"\n    fh = logging.FileHandler(os.path.join(log_dir, log_filename), encoding='utf-8')\n    fh.setLevel(logging.INFO)\n    fh.setFormatter(formatter)\n    logger.addHandler(fh)\n\n    return logger\n",
     }
 
     # 出力先: --dest 指定があればそのディレクトリ直下、なければカレントディレクトリ直下（従来どおり）

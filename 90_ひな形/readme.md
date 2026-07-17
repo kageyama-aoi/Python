@@ -17,4 +17,4 @@
 python scripts/create_project.py <新規プロジェクト名>
 ```
 
-カレントディレクトリ配下に `<新規プロジェクト名>/` が作成され、`src/` `config/` `docs/` `data/` `logs/` `scripts/` `tests/` などの標準構成一式と、`.gitignore` / `README.md` / `requirements.txt` の雛形ファイルが生成されます。
+カレントディレクトリ配下に `<新規プロジェクト名>/` が作成され、`src/` `config/` `docs/` `data/`（input/output/temp/logs、丸ごとgitignore対象） `scripts/` `tests/` などの標準構成一式と、`.gitignore` / `README.md` / `requirements.txt` の雛形ファイルが生成されます。
