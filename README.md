@@ -28,7 +28,7 @@ python app.py
 | `30_データ変換ツール(JSON⇔CSV⇔TSV)` | データ変換 | JSON・CSV・TSV間の変換を行う小さなスクリプト集 |
 | `31_csv-excel-viewer(phpMyadmin)` | CSV Table Viewer | フォルダ内の全CSVを読み込み、見やすく整形されたExcelを生成する |
 | `32_フォルダ構造Excel出力` | フォルダ構造Excel出力 | ディレクトリ構造をスキャンして階層付きExcelに出力する（ツリー表示の show_tree 同梱） |
-| `33_CSV検証サポート` | CSV検証サポート | 巨大CSV/TSVの分割（csv_splitter）と2ファイル差分比較（diff_csv）。専用ランチャー付き |
+| `33_CSV検証サポート` | CSV検証サポート | 巨大な区切りテキスト（CSV/TSV/TXT/DAT）の分割（text_splitter）と2ファイル差分比較（diff_csv）。専用ランチャー付き |
 | `40_Markdown_to_HTML_出力` | Markdown to HTML | MarkdownをHTMLに変換して閲覧・管理する。一括ビルドとポータルサーバーの2モード |
 | `41_PDFファイルを1つに統合` | PDF結合CLI | inputs.txt に記載されたPDFを順番どおりに1つへ結合する |
 | `50_ナレッジ抽出整理（Notion）` | ナレッジ抽出（Notion） | Notion上のSQL集ページを検索し、Markdownとしてエクスポートする |

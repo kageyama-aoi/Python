@@ -224,8 +224,8 @@ def split_csv(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="CSV/TSVファイルを指定件数ごとに分割する")
-    parser.add_argument("input", help="入力CSV/TSVファイルパス")
+    parser = argparse.ArgumentParser(description="区切りテキストファイル（CSV/TSV/TXT/DAT）を指定件数ごとに分割する")
+    parser.add_argument("input", help="入力ファイルパス（CSV/TSV/TXT/DAT）")
     parser.add_argument("config", nargs="?", default=None,
                         help="config.json のパス（省略時は config/config.json）")
     parser.add_argument("--preset", metavar="名前",

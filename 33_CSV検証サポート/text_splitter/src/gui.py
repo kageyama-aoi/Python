@@ -52,7 +52,7 @@ def _save_config(cfg: dict) -> None:
 class App(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("CSV Splitter")
+        self.title("Text Splitter")
         self.resizable(False, False)
 
         self._log_queue: queue.Queue = queue.Queue()
@@ -236,8 +236,8 @@ class App(tk.Tk):
 
     def _browse_file(self) -> None:
         path = filedialog.askopenfilename(
-            title="CSVファイルを選択",
-            filetypes=[("CSV / TSV", "*.csv *.tsv"), ("すべてのファイル", "*.*")],
+            title="入力ファイルを選択",
+            filetypes=[("区切りテキスト", "*.csv *.tsv *.txt *.dat"), ("すべてのファイル", "*.*")],
         )
         if path:
             self._var_file.set(path)

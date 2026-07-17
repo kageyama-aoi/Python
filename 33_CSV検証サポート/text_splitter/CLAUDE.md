@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 概要
 
-巨大CSV/TSVファイルを指定件数ごとに分割するPythonツール。標準ライブラリのみで動作する。
+巨大な区切りテキストファイル（CSV/TSV/TXT/DAT）を指定件数ごとに分割するPythonツール。標準ライブラリのみで動作する。
 CLI・単体GUI・親フォルダのランチャー（`../launcher_gui.py`）の3経路から実行できる。
 
 ## 実行方法

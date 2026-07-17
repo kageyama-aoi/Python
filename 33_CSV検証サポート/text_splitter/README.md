@@ -1,11 +1,11 @@
-# CSV / TSV / TXT Splitter
+# Text Splitter (CSV / TSV / TXT / DAT)
 
-巨大な区切り文字ファイルを指定件数ごとに分割するPythonツール。
+巨大な区切りテキストファイルを指定件数ごとに分割するPythonツール。拡張子は問わない。
 
 ## ディレクトリ構成
 
 ```text
-csv_splitter/
+text_splitter/
 ├ src/
 │  ├ run.py       # コアロジック + CLIエントリポイント
 │  ├ analyze.py   # 入力ファイルの事前解析ヘルパー
@@ -25,7 +25,7 @@ csv_splitter/
 ## 特徴
 
 - 入力ファイルをCLI引数で直接指定（`data/input/` フォルダ不要）
-- CSV（`,`）/ TSV（`\t`）/ 任意区切り文字ファイルに対応
+- CSV（`,`）/ TSV（タブ）/ TXT / DAT など任意の区切りテキストに対応（拡張子は問わない）
 - 区切り文字は拡張子で自動判定（省略可）、`config.json` で上書きも可能
 - ヘッダー有無を `config.json` で切り替え可能
 - 出力は実行ごとのサブディレクトリ `data/output/入力名_日時/` に分かれる（再実行しても上書きされない）

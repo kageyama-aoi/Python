@@ -1,5 +1,5 @@
 # 33_CSV検証サポート ツールランチャー GUI
-# csv_splitter / diff_csv を起動・監視する内蔵型ランチャー。
+# text_splitter / diff_csv を起動・監視する内蔵型ランチャー。
 # Python 標準ライブラリ（Tkinter）のみで動作する。
 # Optional: pip install sv-ttk → Windows 11 スタイルのテーマが有効になる
 
@@ -58,7 +58,7 @@ _SUMMARY_COLORS = {
     "empty": "#ffb347",    # 出力なし（オレンジ）
 }
 
-_OUTPUT_EXTS = {".csv", ".tsv", ".txt", ".log"}
+_OUTPUT_EXTS = {".csv", ".tsv", ".txt", ".dat", ".log"}
 _SENTINEL_RUN_DONE = object()  # ワーカー→メインスレッドへの完了通知（log_queue 経由）
 _LOG_NAME_RE = re.compile(r"_\d{8}_\d{6}\.log$")
 _MAX_ANALYZE_BYTES = 50 * 1024 * 1024  # 件数解析はこのサイズまで
@@ -158,7 +158,7 @@ def _zip_and_remove(target, archive_dir):
 
 def cleanup_old_outputs():
     """各ツールの output/ 内の古い出力ファイル・実行サブディレクトリを zip 化して削除する。
-    csv_splitter の実行ごとサブディレクトリはディレクトリ単位で 1 つの zip にまとめる。"""
+    text_splitter の実行ごとサブディレクトリはディレクトリ単位で 1 つの zip にまとめる。"""
     cutoff = datetime.now() - timedelta(days=OUTPUT_CLEANUP_DAYS)
     for cls in _PANEL_CLASSES:
         output_dir = BASE_DIR / cls.name / cls.output_subdir
@@ -217,7 +217,7 @@ def _open_in_explorer(path):
 
 def _iter_output_files(dir_path):
     """出力ディレクトリ直下と1階層下のサブディレクトリ内の出力ファイルを列挙する。
-    （csv_splitter は実行ごとに output/<stem>_<日時>/ サブディレクトリへ出力する）"""
+    （text_splitter は実行ごとに output/<stem>_<日時>/ サブディレクトリへ出力する）"""
     if not dir_path.is_dir():
         return
     for p in dir_path.iterdir():
@@ -271,14 +271,14 @@ class SplashScreen(tk.Toplevel):
         self.geometry(f"{width}x{height}+{(sw - width) // 2}+{(sh - height) // 2}")
         frame = ttk.Frame(self, padding=24)
         frame.pack(fill="both", expand=True)
-        ttk.Label(frame, text="CSV検証サポート ランチャー",
+        ttk.Label(frame, text="CSV/テキスト検証サポート ランチャー",
                   font=("Yu Gothic UI", 14, "bold")).pack(pady=(16, 8))
         ttk.Label(frame, text="初期化中...").pack()
         self.update_idletasks()
 
 
 # ------------------------------------------------------------------
-# csv_splitter config.json 編集サブウィンドウ
+# text_splitter config.json 編集サブウィンドウ
 # ------------------------------------------------------------------
 
 _ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
@@ -291,14 +291,14 @@ _DELIMITER_CHOICES = {
 
 
 class ConfigEditorWindow(tk.Toplevel):
-    """csv_splitter/config.json を GUI で編集する。"""
+    """text_splitter/config.json を GUI で編集する。"""
 
     def __init__(self, master, config_path, on_saved=None):
         super().__init__(master)
         self.config_path = config_path
         self.presets_path = config_path.parent / "presets.json"
         self.on_saved = on_saved
-        self.title("config.json 設定 (csv_splitter)")
+        self.title("config.json 設定 (text_splitter)")
         self.resizable(False, False)
         self.transient(master)
         self.grab_set()
@@ -470,11 +470,11 @@ _analyze_module = None
 
 
 def _load_analyze_module():
-    """csv_splitter/src/analyze.py（tkinter非依存）を読み込む。推奨分割行数ロジックを共用する。"""
+    """text_splitter/src/analyze.py（tkinter非依存）を読み込む。推奨分割行数ロジックを共用する。"""
     global _analyze_module
     if _analyze_module is None:
-        path = BASE_DIR / "csv_splitter" / "src" / "analyze.py"
-        spec = importlib.util.spec_from_file_location("csv_splitter_analyze", path)
+        path = BASE_DIR / "text_splitter" / "src" / "analyze.py"
+        spec = importlib.util.spec_from_file_location("text_splitter_analyze", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         _analyze_module = module
@@ -665,10 +665,10 @@ class ToolPanelBase(ttk.Frame):
         """パネル表示時・↻ボタンで呼ばれる。ファイル一覧などを再スキャンする。"""
 
 
-class CsvSplitterPanel(ToolPanelBase):
-    name = "csv_splitter"
-    title = "csv_splitter — 巨大CSV分割"
-    description = "巨大CSV/TSVを指定件数ごとに分割する。入力ファイルを選んで Run。"
+class TextSplitterPanel(ToolPanelBase):
+    name = "text_splitter"
+    title = "text_splitter — 巨大区切りテキスト分割"
+    description = "巨大な区切りテキスト（CSV/TSV/TXT/DAT）を指定件数ごとに分割する。入力ファイルを選んで Run。"
     input_subdir = "data/input"
     output_subdir = "data/output"
 
@@ -707,7 +707,7 @@ class CsvSplitterPanel(ToolPanelBase):
         files = []
         if self.input_dir.is_dir():
             files = sorted(p.name for p in self.input_dir.iterdir()
-                           if p.is_file() and p.suffix.lower() in (".csv", ".tsv", ".txt"))
+                           if p.is_file() and p.suffix.lower() in (".csv", ".tsv", ".txt", ".dat"))
         values = list(files)
         if self._browsed_path:
             values.append(str(self._browsed_path))
@@ -738,7 +738,7 @@ class CsvSplitterPanel(ToolPanelBase):
     def _browse(self):
         path = filedialog.askopenfilename(
             initialdir=str(self.input_dir if self.input_dir.is_dir() else self.tool_dir),
-            filetypes=[("CSV/TSV/TXT", "*.csv;*.tsv;*.txt"), ("すべて", "*.*")])
+            filetypes=[("区切りテキスト", "*.csv;*.tsv;*.txt;*.dat"), ("すべて", "*.*")])
         if path:
             self._browsed_path = Path(path)
             self.refresh()
@@ -838,7 +838,7 @@ class DiffCsvPanel(ToolPanelBase):
         return [sys.executable, "-u", str(run_py)], self.tool_dir
 
 
-_PANEL_CLASSES = [CsvSplitterPanel, DiffCsvPanel]
+_PANEL_CLASSES = [TextSplitterPanel, DiffCsvPanel]
 
 
 # ------------------------------------------------------------------
@@ -851,7 +851,7 @@ class LauncherApp(tk.Tk):
         self.withdraw()
         splash = SplashScreen(self)
 
-        self.title("CSV検証サポート ランチャー")
+        self.title("CSV/テキスト検証サポート ランチャー")
         self.geometry("1100x680")
         self.minsize(860, 560)
 
