@@ -41,6 +41,14 @@ _LOG_TAGS = {
     "warn": {"foreground": "#ffb347"},    # orange: warnings
 }
 
+# 実行結果サマリーの状態別文字色（ログ色分けと同系。ダーク/ライト両テーマで視認可能な色のみ）
+_SUMMARY_COLORS = {
+    "idle": "#888888",     # 待機（グレー）
+    "running": "#4a9eff",  # 実行中（青）
+    "done": "#4ec94e",     # 出力あり（緑）
+    "empty": "#ffb347",    # 出力なし（オレンジ）
+}
+
 _OUTPUT_EXTS = {".csv", ".tsv", ".txt", ".log"}
 _SENTINEL_RUN_DONE = object()  # ワーカー→メインスレッドへの完了通知（log_queue 経由）
 _LOG_NAME_RE = re.compile(r"_\d{8}_\d{6}\.log$")
@@ -698,8 +706,10 @@ class LauncherApp(tk.Tk):
         out_frame.columnconfigure(0, weight=1)
 
         self.summary_var = tk.StringVar(value="（まだ実行していません）")
-        ttk.Label(out_frame, textvariable=self.summary_var, anchor="w").grid(
-            row=0, column=0, sticky="ew")
+        self.summary_label = ttk.Label(out_frame, textvariable=self.summary_var,
+                                       anchor="w", foreground=_SUMMARY_COLORS["idle"])
+        self.summary_label.grid(row=0, column=0, sticky="ew")
+        self._summary_flash_job = None  # 点滅タイマー（after id）
         self.detail_btn = ttk.Button(out_frame, text="詳細...", state="disabled",
                                      command=self._open_output_detail)
         self.detail_btn.grid(row=0, column=1, padx=(6, 0))
@@ -913,9 +923,11 @@ class LauncherApp(tk.Tk):
     # -------------------------------------------------- 実行結果サマリー
 
     def _reset_run_summary(self):
+        self._cancel_summary_flash()
         self._last_run_files = []
         self._last_output_base = None
         self.summary_var.set("実行中...")
+        self.summary_label.config(foreground=_SUMMARY_COLORS["running"])
         self.detail_btn.config(state="disabled")
 
     def _show_run_summary(self, paths, base_dir, input_label):
@@ -925,6 +937,7 @@ class LauncherApp(tk.Tk):
         if not paths:
             self.summary_var.set("新しい出力ファイルはありません")
             self.detail_btn.config(state="disabled")
+            self._flash_summary(_SUMMARY_COLORS["empty"])
             return
         total_size = 0
         for path in paths:
@@ -944,9 +957,30 @@ class LauncherApp(tk.Tk):
                 dir_part = f"（{parent.name}/）"
         input_part = f"入力 {input_label} → " if input_label else ""
         self.summary_var.set(
-            f"{input_part}出力 {len(paths)} ファイル / {_format_filesize(total_size)} {dir_part}")
+            f"✔ {input_part}出力 {len(paths)} ファイル / {_format_filesize(total_size)} {dir_part}")
         self.detail_btn.config(state="normal")
+        self._flash_summary(_SUMMARY_COLORS["done"])
         self._append_log(f"[launcher] 出力ファイル {len(paths)} 件を検出しました\n", tag="debug")
+
+    def _flash_summary(self, color, blinks=3, interval=180):
+        """サマリー行を状態色⇔グレーで点滅させて更新に気づかせる。最後は状態色で止まる。"""
+        self._cancel_summary_flash()
+        total_steps = blinks * 2 - 1  # 偶数step=状態色で開始・終了する
+
+        def step(n):
+            self._summary_flash_job = None
+            on = (n % 2 == 0)
+            self.summary_label.config(
+                foreground=color if on else _SUMMARY_COLORS["idle"])
+            if n + 1 < total_steps:
+                self._summary_flash_job = self.after(interval, step, n + 1)
+
+        step(0)
+
+    def _cancel_summary_flash(self):
+        if self._summary_flash_job is not None:
+            self.after_cancel(self._summary_flash_job)
+            self._summary_flash_job = None
 
     def _open_output_detail(self):
         if self._last_run_files:
