@@ -353,13 +353,15 @@ class OutputDetailWindow(tk.Toplevel):
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
 
-        columns = ("size", "count", "encoding")
+        columns = ("name", "size", "count", "encoding")
         self.tree = ttk.Treeview(frame, columns=columns)
-        self.tree.heading("#0", text="ファイル名")
+        self.tree.heading("#0", text="No.")
+        self.tree.heading("name", text="ファイル名")
         self.tree.heading("size", text="サイズ")
         self.tree.heading("count", text="件数")
         self.tree.heading("encoding", text="形式/エンコード")
-        self.tree.column("#0", width=460)
+        self.tree.column("#0", width=50, anchor="e", stretch=False)
+        self.tree.column("name", width=440)
         self.tree.column("size", width=90, anchor="e", stretch=False)
         self.tree.column("count", width=100, anchor="e", stretch=False)
         self.tree.column("encoding", width=120, anchor="center", stretch=False)
@@ -376,18 +378,21 @@ class OutputDetailWindow(tk.Toplevel):
         ttk.Button(btns, text="開く", command=self._open_selected).pack(side="left", padx=(0, 8))
         ttk.Button(btns, text="閉じる", command=self.destroy).pack(side="left")
 
-        for path in paths:
+        def display_name(path):
+            try:
+                return str(path.relative_to(base_dir))
+            except ValueError:
+                return path.name
+
+        # ファイル名の昇順（大文字小文字は無視）で項番を振って表示する
+        for no, path in enumerate(sorted(paths, key=lambda p: display_name(p).lower()), start=1):
             try:
                 size = _format_filesize(path.stat().st_size)
             except OSError:
                 size = "-"
             count, encoding = _analyze_output_file(path)
-            try:
-                display_name = str(path.relative_to(base_dir))
-            except ValueError:
-                display_name = path.name
-            item = self.tree.insert("", "end", text=display_name,
-                                    values=(size, count, encoding))
+            item = self.tree.insert("", "end", text=str(no),
+                                    values=(display_name(path), size, count, encoding))
             self._output_paths[item] = path
 
     def _open_selected(self):
