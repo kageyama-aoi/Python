@@ -596,6 +596,117 @@ class InputPreviewWindow(tk.Toplevel):
 
 
 # ------------------------------------------------------------------
+# 固定長折り返しプレビューサブウィンドウ
+# ------------------------------------------------------------------
+
+class FixedLengthPreviewWindow(tk.Toplevel):
+    """レコード長で折り返した冒頭を表示する。長さを変えながらリアルタイムに確認できる。
+    先頭 レコード長×MAX_RECORDS バイトしか読まないため巨大ファイルでも一瞬。"""
+
+    MAX_RECORDS = 10
+
+    def __init__(self, master, path, record_bytes, encoding="cp932", on_apply=None):
+        super().__init__(master)
+        self.title(f"折り返しプレビュー — {path.name}")
+        self.geometry("860x380")
+        self.minsize(600, 260)
+        _style_titlebar(self)
+        self.path = path
+        self.encoding = encoding
+        self.on_apply = on_apply
+
+        frame = ttk.Frame(self, padding=8)
+        frame.pack(fill="both", expand=True)
+        frame.rowconfigure(1, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        top = ttk.Frame(frame)
+        top.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 6))
+        ttk.Label(top, text="レコード長 (バイト)").pack(side="left")
+        self.record_var = tk.StringVar(value=str(record_bytes))
+        spin = ttk.Spinbox(top, from_=1, to=1_000_000, textvariable=self.record_var,
+                           width=9, command=self._render)
+        spin.pack(side="left", padx=(8, 0))
+        spin.bind("<KeyRelease>", lambda _e: self._render())
+        self.status_label = ttk.Label(top, text="")
+        self.status_label.pack(side="left", padx=(14, 0))
+
+        self.text = tk.Text(frame, font=LOG_FONT, wrap="none", height=12)
+        self.text.grid(row=1, column=0, sticky="nsew")
+        sb_y = ttk.Scrollbar(frame, command=self.text.yview)
+        sb_y.grid(row=1, column=1, sticky="ns")
+        sb_x = ttk.Scrollbar(frame, orient="horizontal", command=self.text.xview)
+        sb_x.grid(row=2, column=0, sticky="ew")
+        self.text.configure(yscrollcommand=sb_y.set, xscrollcommand=sb_x.set)
+
+        btns = ttk.Frame(frame)
+        btns.grid(row=3, column=0, columnspan=2, sticky="e", pady=(8, 0))
+        if on_apply:
+            ttk.Button(btns, text="この値を使う", style=BTN_SECONDARY,
+                       command=self._apply).pack(side="left", padx=(0, 8))
+        ttk.Button(btns, text="閉じる", style=BTN_TERTIARY,
+                   command=self.destroy).pack(side="left")
+
+        self._render()
+
+    def _set_text(self, content):
+        self.text.configure(state="normal")
+        self.text.delete("1.0", "end")
+        self.text.insert("end", content)
+        self.text.configure(state="disabled")
+
+    def _render(self):
+        try:
+            n = int(self.record_var.get())
+            if n < 1:
+                raise ValueError
+        except (ValueError, tk.TclError):
+            self.status_label.config(text="レコード長を入力してください", foreground="#888888")
+            self._set_text("")
+            return
+        try:
+            with open(self.path, "rb") as f:
+                head = f.read(3)
+                bom = head == b"\xef\xbb\xbf"
+                data = (b"" if bom else head) + f.read(n * self.MAX_RECORDS)
+        except OSError as exc:
+            self.status_label.config(text="読み込みエラー", foreground="#ff7777")
+            self._set_text(str(exc))
+            return
+        records = [data[i:i + n] for i in range(0, len(data), n)][:self.MAX_RECORDS]
+
+        # 境界チェックはプレビュー中の全レコードで行う。
+        # 先頭レコードだけだと「末尾の空白が削れただけ」のズレを見逃す（2件目以降で露呈する）
+        boundary_ok = None
+        if records:
+            try:
+                for record in records:
+                    record.decode(self.encoding)
+                boundary_ok = True
+            except (UnicodeDecodeError, LookupError):
+                boundary_ok = False
+        status = (f"境界チェック({self.encoding}, {len(records)}レコード): "
+                  + ("✓ OK" if boundary_ok else "✗ NG — 長さが合っていない可能性"))
+        if bom:
+            status += " ／ BOMを読み飛ばし"
+        self.status_label.config(
+            text=status, foreground="#4ec94e" if boundary_ok else "#ff7777")
+
+        lines = []
+        for no, record in enumerate(records, start=1):
+            decoded = record.decode(self.encoding, errors="replace")
+            lines.append(f"{no:>3}: {decoded}")
+        self._set_text("\n".join(lines) if lines else "(ファイルが空です)")
+
+    def _apply(self):
+        try:
+            self.on_apply(int(self.record_var.get()))
+        except (ValueError, TypeError):
+            return
+        self.destroy()
+
+
+# ------------------------------------------------------------------
 # 出力ファイル詳細サブウィンドウ
 # ------------------------------------------------------------------
 
@@ -854,12 +965,14 @@ class FixedLengthFormatterPanel(ToolPanelBase):
         self.input_combo.grid(row=0, column=1, sticky="ew", padx=(8, 4), pady=(0, 6))
         self.input_combo.bind("<<ComboboxSelected>>", lambda _e: self.app.update_command_preview())
         ttk.Button(self, text="参照...", width=8, style=BTN_SECONDARY,
-                   command=self._browse).grid(row=0, column=2, pady=(0, 6))
+                   command=self._browse).grid(row=0, column=2, padx=(0, 4), pady=(0, 6))
+        ttk.Button(self, text="折り返し確認", width=11, style=BTN_SECONDARY,
+                   command=self._open_wrap_preview).grid(row=0, column=3, pady=(0, 6))
 
         config = self._load_config()
         ttk.Label(self, text="レコード長 (バイト)").grid(row=1, column=0, sticky="w", pady=(0, 6))
         param_frame = ttk.Frame(self)
-        param_frame.grid(row=1, column=1, columnspan=2, sticky="w", padx=(8, 0), pady=(0, 6))
+        param_frame.grid(row=1, column=1, columnspan=3, sticky="w", padx=(8, 0), pady=(0, 6))
         self.record_var = tk.StringVar(value=str(config.get("record_bytes", 120)))
         spin = ttk.Spinbox(param_frame, from_=1, to=1_000_000, textvariable=self.record_var, width=9)
         spin.pack(side="left")
@@ -873,7 +986,7 @@ class FixedLengthFormatterPanel(ToolPanelBase):
         ttk.Checkbutton(self, text="変換後、結果を text_splitter の入力にセットする",
                         variable=self.handoff_var,
                         style="Switch.TCheckbutton" if _SV_TTK else "TCheckbutton",
-                        ).grid(row=2, column=0, columnspan=3, sticky="w", pady=(0, 8))
+                        ).grid(row=2, column=0, columnspan=4, sticky="w", pady=(0, 8))
 
         self._browsed_path = None
         self.refresh()
@@ -920,6 +1033,25 @@ class FixedLengthFormatterPanel(ToolPanelBase):
         if not path.is_absolute():
             path = self.input_dir / selected
         return path
+
+    def _open_wrap_preview(self):
+        path = self._resolve_input_path()
+        if path is None or not path.exists():
+            messagebox.showerror(
+                "エラー", "入力ファイルを選択してください。" if path is None
+                else f"入力ファイルが見つかりません:\n{path}")
+            return
+        try:
+            record_bytes = max(1, int(self.record_var.get()))
+        except ValueError:
+            record_bytes = 120
+        encoding = self._load_config().get("encoding", "cp932")
+        FixedLengthPreviewWindow(self.app, path, record_bytes, encoding,
+                                 on_apply=self._apply_record_bytes)
+
+    def _apply_record_bytes(self, value):
+        self.record_var.set(str(value))
+        self.app.update_command_preview()
 
     def build_command(self):
         input_path = self._resolve_input_path()
