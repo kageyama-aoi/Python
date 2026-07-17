@@ -56,11 +56,17 @@ run.bat をダブルクリック（または 00_ランチャーから起動）
 | ピンク | `Error` / `エラー` |
 | オレンジ | `warn` / `警告` |
 
-### ログの自動クリーンアップ
+### ログ・出力ファイルの自動クリーンアップ
 
-起動 0.3 秒後にバックグラウンドで、`logs/` 内の 30 日以上古いログを
-`logs/archive/<name>.log.zip` に圧縮してから削除する。
-日数は `launcher_gui.py` の `LOG_CLEANUP_DAYS` で変更できる。
+起動 0.3 秒後にバックグラウンドで、30 日以上古いものを zip 圧縮してから削除する。
+
+- ログ: `logs/` 内のログ → `logs/archive/<name>.log.zip`
+- 出力ファイル: 各ツールの `output/` 直下のファイル・実行ごとサブディレクトリ →
+  `output/archive/<name>.zip`（サブディレクトリはフォルダ単位で 1 つの zip にまとめる。
+  ディレクトリの新旧は配下ファイルの最新更新日時で判定し、`archive/` 自体と
+  出力拡張子以外のファイル（`desktop.ini` 等）は対象外）
+
+日数は `launcher_gui.py` の `LOG_CLEANUP_DAYS` / `OUTPUT_CLEANUP_DAYS` で変更できる。
 
 ## ツールを追加する
 

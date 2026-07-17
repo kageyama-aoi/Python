@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import queue
+import shutil
 import zipfile
 import threading
 import subprocess
@@ -27,6 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent
 LOGS_DIR = BASE_DIR / "logs"
 
 LOG_CLEANUP_DAYS = 30
+OUTPUT_CLEANUP_DAYS = 30
 LOG_FONT = ("Courier New", 9)
 
 # ログ行の色定義（foreground / font を指定）
@@ -102,6 +104,68 @@ def cleanup_old_logs():
             log_file.unlink()
         except OSError:
             continue
+
+
+def _latest_mtime(path):
+    """ファイルまたはディレクトリの最終更新日時を返す。
+    ディレクトリは配下ファイルの最新 mtime を採用する（作成が古くても中身が新しければ残す）。"""
+    try:
+        mtime = path.stat().st_mtime
+        if path.is_dir():
+            for p in path.rglob("*"):
+                try:
+                    mtime = max(mtime, p.stat().st_mtime)
+                except OSError:
+                    pass
+        return datetime.fromtimestamp(mtime)
+    except OSError:
+        return None
+
+
+def _zip_and_remove(target, archive_dir):
+    """ファイルまたはディレクトリを archive_dir 内に zip 化してから削除する。"""
+    archive_dir.mkdir(exist_ok=True)
+    zip_path = archive_dir / f"{target.name}.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        if target.is_dir():
+            for p in sorted(target.rglob("*")):
+                if p.is_file():
+                    zf.write(p, arcname=str(p.relative_to(target.parent)))
+        else:
+            zf.write(target, arcname=target.name)
+    if target.is_dir():
+        shutil.rmtree(target)
+    else:
+        target.unlink()
+
+
+def cleanup_old_outputs():
+    """各ツールの output/ 内の古い出力ファイル・実行サブディレクトリを zip 化して削除する。
+    csv_splitter の実行ごとサブディレクトリはディレクトリ単位で 1 つの zip にまとめる。"""
+    cutoff = datetime.now() - timedelta(days=OUTPUT_CLEANUP_DAYS)
+    for cls in _PANEL_CLASSES:
+        output_dir = BASE_DIR / cls.name / "output"
+        if not output_dir.is_dir():
+            continue
+        archive_dir = output_dir / "archive"
+        for entry in output_dir.iterdir():
+            if entry == archive_dir:
+                continue
+            if entry.is_file() and entry.suffix.lower() not in _OUTPUT_EXTS:
+                continue
+            mtime = _latest_mtime(entry)
+            if mtime is None or mtime >= cutoff:
+                continue
+            try:
+                _zip_and_remove(entry, archive_dir)
+            except OSError:
+                continue
+
+
+def _startup_cleanup():
+    """起動時のバックグラウンドクリーンアップ（ログ・出力ファイル）。"""
+    cleanup_old_logs()
+    cleanup_old_outputs()
 
 
 def _open_in_explorer(path):
@@ -470,7 +534,7 @@ class LauncherApp(tk.Tk):
 
         self._select_tool(0)
         self.after(100, self._drain_log_queue)
-        self.after(300, lambda: threading.Thread(target=cleanup_old_logs, daemon=True).start())
+        self.after(300, lambda: threading.Thread(target=_startup_cleanup, daemon=True).start())
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         splash.destroy()
