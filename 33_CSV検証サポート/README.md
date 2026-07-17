@@ -15,7 +15,8 @@ run.bat をダブルクリック（または 00_ランチャーから起動）
 | 項目 | 条件 |
 |---|---|
 | Python | 3.8 以上（Tkinter 付属、標準配布で OK） |
-| sv-ttk | **任意**。`pip install sv-ttk` で Windows 11 スタイルのダークテーマが有効になる。未インストールでも標準 ttk テーマで正常動作する |
+| sv-ttk | **任意**。`pip install sv-ttk` で Windows 11 スタイルのダークテーマが有効になる（has_header はトグルスイッチ表示に）。未インストールでも標準 ttk テーマで正常動作する |
+| pywinstyles | **任意**。`pip install pywinstyles` で全ウィンドウのタイトルバーもダークテーマに揃う（sv-ttk 併用時のみ。Win11はヘッダー色指定、Win10はダークスタイルで対応） |
 
 ## 画面構成
 

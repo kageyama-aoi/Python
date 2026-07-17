@@ -1,7 +1,8 @@
 # 33_CSV検証サポート ツールランチャー GUI
 # text_splitter / diff_csv を起動・監視する内蔵型ランチャー。
 # Python 標準ライブラリ（Tkinter）のみで動作する。
-# Optional: pip install sv-ttk → Windows 11 スタイルのテーマが有効になる
+# Optional: pip install sv-ttk      → Windows 11 スタイルのテーマが有効になる
+# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
 
 import importlib.util
 import json
@@ -24,6 +25,12 @@ try:
     _SV_TTK = True
 except ImportError:
     _SV_TTK = False
+
+try:
+    import pywinstyles as _pywinstyles
+    _PYWINSTYLES = True
+except ImportError:
+    _PYWINSTYLES = False
 
 BASE_DIR = Path(__file__).resolve().parent
 LOGS_DIR = BASE_DIR / "logs"
@@ -219,6 +226,23 @@ def _read_head_lines(path, max_lines=10, max_bytes=64 * 1024):
     return lines[:max_lines], label
 
 
+def _style_titlebar(window):
+    """タイトルバーをダークテーマに揃える（sv_ttk＋pywinstyles があるときだけ。失敗しても無害）。
+    Windows 11 はヘッダー色の直接指定、Windows 10 はダークスタイル適用＋再描画ハックで対応する。"""
+    if not (_SV_TTK and _PYWINSTYLES):
+        return
+    try:
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.build >= 22000:   # Windows 11
+            _pywinstyles.change_header_color(window, "#1c1c1c")
+        elif version.major == 10:                            # Windows 10
+            _pywinstyles.apply_style(window, "dark")
+            window.wm_attributes("-alpha", 0.99)             # 色が即時反映されないための再描画ハック
+            window.wm_attributes("-alpha", 1)
+    except Exception:
+        pass
+
+
 def _open_in_explorer(path):
     """フォルダまたはファイルを既定の方法で開く。"""
     try:
@@ -314,6 +338,7 @@ class ConfigEditorWindow(tk.Toplevel):
         self.resizable(False, False)
         self.transient(master)
         self.grab_set()
+        _style_titlebar(self)
 
         try:
             config = json.loads(config_path.read_text(encoding="utf-8"))
@@ -361,8 +386,11 @@ class ConfigEditorWindow(tk.Toplevel):
                      state="readonly", width=14).grid(row=4, column=1, sticky="w", padx=(12, 0), pady=4)
 
         self.header_var = tk.BooleanVar(value=bool(config.get("has_header", False)))
+        # sv_ttk 有効時は Windows 11 風のトグルスイッチ表示になる（値の扱いは通常のCheckbuttonと同じ）
         ttk.Checkbutton(frame, text="1行目をヘッダーとして各分割ファイルに複製する (has_header)",
-                        variable=self.header_var).grid(row=5, column=0, columnspan=2, sticky="w", pady=8)
+                        variable=self.header_var,
+                        style="Switch.TCheckbutton" if _SV_TTK else "TCheckbutton",
+                        ).grid(row=5, column=0, columnspan=2, sticky="w", pady=8)
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=6, column=0, columnspan=2, sticky="e", pady=(12, 0))
@@ -507,6 +535,7 @@ class InputPreviewWindow(tk.Toplevel):
         self.title(f"冒頭プレビュー — {path.name}")
         self.geometry("860x320")
         self.minsize(600, 220)
+        _style_titlebar(self)
 
         try:
             lines, enc_label = _read_head_lines(path)
@@ -579,6 +608,7 @@ class OutputDetailWindow(tk.Toplevel):
         self.title(f"出力ファイルの詳細（{len(paths)} 件）")
         self.geometry("860x420")
         self.minsize(600, 280)
+        _style_titlebar(self)
         self._output_paths = {}  # Treeview item id -> Path
 
         frame = ttk.Frame(self, padding=8)
@@ -889,6 +919,7 @@ class LauncherApp(tk.Tk):
 
         splash.destroy()
         self.deiconify()
+        _style_titlebar(self)
 
     # -------------------------------------------------- UI 構築
 
