@@ -712,7 +712,8 @@ class LauncherApp(tk.Tk):
 
         self.summary_var = tk.StringVar(value="（まだ実行していません）")
         self.summary_label = ttk.Label(out_frame, textvariable=self.summary_var,
-                                       anchor="w", foreground=_SUMMARY_COLORS["idle"])
+                                       anchor="w", justify="left",
+                                       foreground=_SUMMARY_COLORS["idle"])
         self.summary_label.grid(row=0, column=0, sticky="ew")
         self._summary_flash_job = None  # 点滅タイマー（after id）
         self.detail_btn = ttk.Button(out_frame, text="詳細...", state="disabled",
@@ -960,9 +961,12 @@ class LauncherApp(tk.Tk):
                 dir_part = f"（{rel}/）" if str(rel) != "." else ""
             except ValueError:
                 dir_part = f"（{parent.name}/）"
-        input_part = f"入力 {input_label} → " if input_label else ""
-        self.summary_var.set(
-            f"✔ {input_part}出力 {len(paths)} ファイル / {_format_filesize(total_size)} {dir_part}")
+        output_line = f"出力 {len(paths)} ファイル / {_format_filesize(total_size)} {dir_part}"
+        if input_label:
+            # 入力と出力は行を分けて表示する（長いファイル名・ディレクトリ名対策）
+            self.summary_var.set(f"✔ 入力 {input_label}\n   {output_line}")
+        else:
+            self.summary_var.set(f"✔ {output_line}")
         self.detail_btn.config(state="normal")
         self._flash_summary(_SUMMARY_COLORS["done"])
         self._append_log(f"[launcher] 出力ファイル {len(paths)} 件を検出しました\n", tag="debug")
