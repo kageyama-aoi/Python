@@ -282,7 +282,6 @@ class SplashScreen(tk.Toplevel):
 # ------------------------------------------------------------------
 
 _ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
-_NO_PRESET = "（config.json の設定）"
 _DELIMITER_CHOICES = {
     "自動判定": None,
     "カンマ (,)": ",",
@@ -297,6 +296,7 @@ class ConfigEditorWindow(tk.Toplevel):
     def __init__(self, master, config_path, on_saved=None):
         super().__init__(master)
         self.config_path = config_path
+        self.presets_path = config_path.parent / "presets.json"
         self.on_saved = on_saved
         self.title("config.json 設定 (csv_splitter)")
         self.resizable(False, False)
@@ -313,48 +313,148 @@ class ConfigEditorWindow(tk.Toplevel):
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill="both", expand=True)
 
-        ttk.Label(frame, text="分割単位の行数 (rows_per_file)").grid(row=0, column=0, sticky="w", pady=4)
+        # ---- お気に入り（選択でフォームに反映。保存・削除もここで行う）
+        preset_frame = ttk.Frame(frame)
+        preset_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        ttk.Label(preset_frame, text="お気に入り").pack(side="left")
+        self.preset_var = tk.StringVar()
+        self.preset_combo = ttk.Combobox(preset_frame, textvariable=self.preset_var,
+                                         state="readonly", width=24)
+        self.preset_combo.pack(side="left", padx=8)
+        self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_selected)
+        ttk.Button(preset_frame, text="保存...", width=7,
+                   command=self._save_preset).pack(side="left")
+        ttk.Button(preset_frame, text="削除", width=6,
+                   command=self._delete_preset).pack(side="left", padx=(4, 0))
+        self._presets = {}
+        self._reload_presets()
+
+        ttk.Separator(frame).grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+
+        # ---- config.json 編集フォーム
+        ttk.Label(frame, text="分割単位の行数 (rows_per_file)").grid(row=2, column=0, sticky="w", pady=4)
         self.rows_var = tk.StringVar(value=str(config.get("rows_per_file", 45000)))
         ttk.Spinbox(frame, from_=1000, to=10_000_000, increment=1000,
                     textvariable=self.rows_var,
-                    width=12).grid(row=0, column=1, sticky="w", padx=(12, 0), pady=4)
+                    width=12).grid(row=2, column=1, sticky="w", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="エンコード (encoding)").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text="エンコード (encoding)").grid(row=3, column=0, sticky="w", pady=4)
         self.enc_var = tk.StringVar(value=config.get("encoding", "utf-8"))
         ttk.Combobox(frame, values=_ENCODINGS, textvariable=self.enc_var,
-                     width=12).grid(row=1, column=1, sticky="w", padx=(12, 0), pady=4)
+                     width=12).grid(row=3, column=1, sticky="w", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="区切り文字 (delimiter)").grid(row=2, column=0, sticky="w", pady=4)
-        current_delim = config.get("delimiter")
-        delim_label = next((label for label, val in _DELIMITER_CHOICES.items()
-                            if val == current_delim), "自動判定")
-        self.delim_var = tk.StringVar(value=delim_label)
+        ttk.Label(frame, text="区切り文字 (delimiter)").grid(row=4, column=0, sticky="w", pady=4)
+        self.delim_var = tk.StringVar(value=self._delim_label(config.get("delimiter")))
         ttk.Combobox(frame, values=list(_DELIMITER_CHOICES), textvariable=self.delim_var,
-                     state="readonly", width=14).grid(row=2, column=1, sticky="w", padx=(12, 0), pady=4)
+                     state="readonly", width=14).grid(row=4, column=1, sticky="w", padx=(12, 0), pady=4)
 
         self.header_var = tk.BooleanVar(value=bool(config.get("has_header", False)))
         ttk.Checkbutton(frame, text="1行目をヘッダーとして各分割ファイルに複製する (has_header)",
-                        variable=self.header_var).grid(row=3, column=0, columnspan=2, sticky="w", pady=8)
+                        variable=self.header_var).grid(row=5, column=0, columnspan=2, sticky="w", pady=8)
 
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=4, column=0, columnspan=2, sticky="e", pady=(12, 0))
+        btn_frame.grid(row=6, column=0, columnspan=2, sticky="e", pady=(12, 0))
         ttk.Button(btn_frame, text="保存", command=self._save).pack(side="left", padx=(0, 8))
         ttk.Button(btn_frame, text="キャンセル", command=self.destroy).pack(side="left")
 
-    def _save(self):
+    @staticmethod
+    def _delim_label(delim_value):
+        return next((label for label, val in _DELIMITER_CHOICES.items()
+                     if val == delim_value), "自動判定")
+
+    def _form_config(self):
+        """フォーム内容を config dict にして返す。不正なら None（エラー表示済み）。"""
         try:
             rows = int(self.rows_var.get())
             if rows < 1:
                 raise ValueError
         except ValueError:
             messagebox.showerror("エラー", "分割単位の行数は1以上の整数で指定してください。", parent=self)
-            return
-        config = {
+            return None
+        return {
             "rows_per_file": rows,
             "encoding": self.enc_var.get().strip() or "utf-8",
             "has_header": self.header_var.get(),
             "delimiter": _DELIMITER_CHOICES.get(self.delim_var.get()),
         }
+
+    # ---- お気に入り管理
+
+    def _reload_presets(self, select=None):
+        try:
+            data = json.loads(self.presets_path.read_text(encoding="utf-8"))
+            self._presets = data if isinstance(data, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            self._presets = {}
+        names = list(self._presets)
+        self.preset_combo["values"] = names
+        if select in names:
+            self.preset_var.set(select)
+        elif self.preset_var.get() not in names:
+            self.preset_var.set("")
+
+    def _on_preset_selected(self, _event=None):
+        preset = self._presets.get(self.preset_var.get())
+        if not preset:
+            return
+        self.rows_var.set(str(preset.get("rows_per_file", 10000)))
+        self.enc_var.set(preset.get("encoding", "utf-8"))
+        self.delim_var.set(self._delim_label(preset.get("delimiter")))
+        self.header_var.set(bool(preset.get("has_header", False)))
+
+    def _write_presets(self):
+        try:
+            self.presets_path.write_text(
+                json.dumps(self._presets, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            return True
+        except OSError as exc:
+            messagebox.showerror("エラー", f"プリセットの保存に失敗しました:\n{exc}", parent=self)
+            return False
+
+    def _save_preset(self):
+        config = self._form_config()
+        if config is None:
+            return
+        name = simpledialog.askstring(
+            "お気に入り保存",
+            "プリセット名を入力してください\n（現在のフォーム内容を保存します）:",
+            initialvalue=self.preset_var.get(), parent=self)
+        if name is None:
+            return
+        name = name.strip()
+        if not name:
+            return
+        if name in self._presets and not messagebox.askyesno(
+                "確認", f"プリセット「{name}」は既に存在します。上書きしますか？", parent=self):
+            return
+        self._presets[name] = config
+        if not self._write_presets():
+            return
+        self._reload_presets(select=name)
+        if self.on_saved:
+            self.on_saved()
+
+    def _delete_preset(self):
+        name = self.preset_var.get()
+        if not name or name not in self._presets:
+            messagebox.showinfo("情報", "削除するプリセットを選択してください。", parent=self)
+            return
+        if not messagebox.askyesno("確認", f"プリセット「{name}」を削除しますか？", parent=self):
+            return
+        self._presets.pop(name, None)
+        if not self._write_presets():
+            return
+        self.preset_var.set("")
+        self._reload_presets()
+        if self.on_saved:
+            self.on_saved()
+
+    # ---- config.json 保存
+
+    def _save(self):
+        config = self._form_config()
+        if config is None:
+            return
         try:
             self.config_path.write_text(
                 json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -576,38 +676,29 @@ class CsvSplitterPanel(ToolPanelBase):
         super().__init__(master, app)
         self.columnconfigure(1, weight=1)
 
-        ttk.Label(self, text="入力ファイル").grid(row=0, column=0, sticky="w", pady=(0, 4))
+        # 1行目: 入力ファイルに対する操作（コンボ・参照・冒頭確認）をまとめる
+        ttk.Label(self, text="入力ファイル").grid(row=0, column=0, sticky="w", pady=(0, 6))
         self.input_var = tk.StringVar()
         self.input_combo = ttk.Combobox(self, textvariable=self.input_var, state="readonly")
-        self.input_combo.grid(row=0, column=1, sticky="ew", padx=(8, 4), pady=(0, 4))
+        self.input_combo.grid(row=0, column=1, sticky="ew", padx=(8, 4), pady=(0, 6))
         self.input_combo.bind("<<ComboboxSelected>>", lambda _e: self.app.update_command_preview())
-        ttk.Button(self, text="参照...", width=7,
-                   command=self._browse).grid(row=0, column=2, pady=(0, 4))
+        ttk.Button(self, text="参照...", width=8,
+                   command=self._browse).grid(row=0, column=2, padx=(0, 4), pady=(0, 6))
+        ttk.Button(self, text="冒頭を確認", width=10,
+                   command=self._open_input_preview).grid(row=0, column=3, pady=(0, 6))
 
-        ttk.Label(self, text="お気に入り").grid(row=1, column=0, sticky="w", pady=(0, 4))
-        self.preset_var = tk.StringVar(value=_NO_PRESET)
-        self.preset_combo = ttk.Combobox(self, textvariable=self.preset_var, state="readonly")
-        self.preset_combo.grid(row=1, column=1, sticky="ew", padx=(8, 4), pady=(0, 4))
-        self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_selected)
-        preset_btns = ttk.Frame(self)
-        preset_btns.grid(row=1, column=2, pady=(0, 4))
-        ttk.Button(preset_btns, text="保存...", width=6,
-                   command=self._save_preset).pack(side="left")
-        ttk.Button(preset_btns, text="削除", width=5,
-                   command=self._delete_preset).pack(side="left", padx=(4, 0))
-        self._presets = {}
-
+        # 実行設定は config.json の1本（お気に入りの適用・保存・削除は設定ダイアログ内）
         self.config_label = ttk.Label(self, text="", foreground="#888888")
-        self.config_label.grid(row=2, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        self.config_label.grid(row=1, column=0, columnspan=4, sticky="w", pady=(0, 8))
 
         btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=3, column=0, columnspan=3, sticky="w")
-        ttk.Button(btn_frame, text="冒頭を確認",
-                   command=self._open_input_preview).pack(side="left", padx=(0, 8))
+        btn_frame.grid(row=2, column=0, columnspan=4, sticky="ew")
         ttk.Button(btn_frame, text="設定 (config.json)",
-                   command=self._open_config_editor).pack(side="left", padx=(0, 8))
+                   command=self._open_config_editor).pack(
+            side="left", fill="x", expand=True, padx=(0, 4))
         ttk.Button(btn_frame, text="単体GUIを開く",
-                   command=self._open_standalone_gui).pack(side="left")
+                   command=self._open_standalone_gui).pack(
+            side="left", fill="x", expand=True, padx=(4, 0))
 
         self._browsed_path = None
         self.refresh()
@@ -623,92 +714,16 @@ class CsvSplitterPanel(ToolPanelBase):
         self.input_combo["values"] = values
         if values and not self.input_var.get():
             self.input_var.set(values[0])
-        self._presets = self._load_presets()
-        preset_values = [_NO_PRESET] + list(self._presets)
-        self.preset_combo["values"] = preset_values
-        if self.preset_var.get() not in preset_values:
-            self.preset_var.set(_NO_PRESET)
         self._refresh_config_label()
         self.app.update_command_preview()
 
-    def _load_presets(self):
-        """config/presets.json を読み込む。無い・壊れている場合は空 dict。"""
-        try:
-            data = json.loads(
-                (self.tool_dir / "config" / "presets.json").read_text(encoding="utf-8"))
-            return data if isinstance(data, dict) else {}
-        except (OSError, json.JSONDecodeError):
-            return {}
-
-    def _on_preset_selected(self, _event=None):
-        self._refresh_config_label()
-        self.app.update_command_preview()
-
-    def _write_presets(self):
-        path = self.tool_dir / "config" / "presets.json"
-        try:
-            path.write_text(json.dumps(self._presets, ensure_ascii=False, indent=2) + "\n",
-                            encoding="utf-8")
-            return True
-        except OSError as exc:
-            messagebox.showerror("エラー", f"プリセットの保存に失敗しました:\n{exc}")
-            return False
-
-    def _save_preset(self):
+    def _refresh_config_label(self):
         try:
             config = json.loads(
                 (self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            messagebox.showerror("エラー", f"config.json を読み込めません:\n{exc}")
+        except (OSError, json.JSONDecodeError):
+            self.config_label.config(text="設定: config.json を読み込めません")
             return
-        current = self.preset_var.get()
-        name = simpledialog.askstring(
-            "お気に入り保存",
-            "プリセット名を入力してください\n（現在の config.json の設定を保存します）:",
-            initialvalue="" if current == _NO_PRESET else current, parent=self.app)
-        if name is None:
-            return
-        name = name.strip()
-        if not name:
-            return
-        if name in self._presets and not messagebox.askyesno(
-                "確認", f"プリセット「{name}」は既に存在します。上書きしますか？"):
-            return
-        self._presets[name] = {key: config.get(key) for key in
-                               ("rows_per_file", "encoding", "has_header", "delimiter")}
-        if not self._write_presets():
-            return
-        self.refresh()
-        self.preset_var.set(name)
-        self._on_preset_selected()
-
-    def _delete_preset(self):
-        name = self.preset_var.get()
-        if name == _NO_PRESET or name not in self._presets:
-            messagebox.showinfo("情報", "削除するプリセットを選択してください。")
-            return
-        if not messagebox.askyesno("確認", f"プリセット「{name}」を削除しますか？"):
-            return
-        self._presets.pop(name, None)
-        if not self._write_presets():
-            return
-        self.preset_var.set(_NO_PRESET)
-        self.refresh()
-        self._on_preset_selected()
-
-    def _refresh_config_label(self):
-        preset_name = self.preset_var.get()
-        if preset_name != _NO_PRESET and preset_name in self._presets:
-            config = self._presets[preset_name]
-            prefix = f"プリセット「{preset_name}」"
-        else:
-            try:
-                config = json.loads(
-                    (self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                self.config_label.config(text="設定: config.json を読み込めません")
-                return
-            prefix = "設定"
         delim = config.get("delimiter")
         delim_repr = "自動" if delim in (None, "") else repr(delim)
         try:
@@ -716,7 +731,7 @@ class CsvSplitterPanel(ToolPanelBase):
         except (TypeError, ValueError):
             rows_disp = "?"
         self.config_label.config(text=(
-            f"{prefix}: {rows_disp} 行ごと / "
+            f"設定: {rows_disp} 行ごと / "
             f"{config.get('encoding', '?')} / 区切り={delim_repr} / "
             f"ヘッダー複製={'あり' if config.get('has_header') else 'なし'}"))
 
@@ -740,8 +755,9 @@ class CsvSplitterPanel(ToolPanelBase):
         InputPreviewWindow(self.app, path)
 
     def _open_config_editor(self):
+        # on_saved=refresh: config保存だけでなくお気に入りの保存・削除もコンボに即反映する
         ConfigEditorWindow(self.app, self.tool_dir / "config" / "config.json",
-                           on_saved=self._refresh_config_label)
+                           on_saved=self.refresh)
 
     def _open_standalone_gui(self):
         gui_py = self.tool_dir / "src" / "gui.py"
@@ -769,9 +785,6 @@ class CsvSplitterPanel(ToolPanelBase):
         if not input_path.exists():
             raise ValueError(f"入力ファイルが見つかりません:\n{input_path}")
         cmd = [sys.executable, "-u", str(self.tool_dir / "src" / "run.py"), str(input_path)]
-        preset_name = self.preset_var.get()
-        if preset_name != _NO_PRESET and preset_name in self._presets:
-            cmd += ["--preset", preset_name]
         return cmd, self.tool_dir
 
 
