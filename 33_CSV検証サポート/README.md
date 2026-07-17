@@ -1,6 +1,6 @@
 # launcher_gui.py — CSV検証サポート ランチャー GUI
 
-`text_splitter` / `diff_csv` を1つのウィンドウから起動・監視できる内蔵型ランチャー。
+`text_splitter` / `fixed_length_formatter` / `diff_csv` を1つのウィンドウから起動・監視できる内蔵型ランチャー。
 Python 標準ライブラリ（Tkinter）のみで動作する。
 `e2e/run/run_gui.py`（テストランナーGUI）の設計を踏襲している。
 
@@ -35,6 +35,7 @@ run.bat をダブルクリック（または 00_ランチャーから起動）
 | ツール | パラメータ |
 |---|---|
 | **text_splitter** | 入力ファイル行（`data/input/` 自動スキャンのコンボ + 参照... + 冒頭を確認 = 先頭10行とエンコードをプレビューし、バックグラウンドで総行数・推奨分割行数も解析表示）、設定ボタン（`config/config.json` を GUI 編集。分割行数は1000刻み。お気に入り＝`config/presets.json` の選択反映・保存・削除もこのダイアログ内で行い、実行は常に config.json の内容）、単体GUI起動ボタン |
+| **fixed_length_formatter** | 入力ファイル選択（`data/input/` 自動スキャン + 参照）、レコード長（バイト）Spinbox、改行コード（crlf/lf）、「変換後、結果を text_splitter の入力にセットする」トグル（ONなら完了後に自動でtext_splitterへ切替） |
 | **diff_csv** | 新旧ファイルの存在チェック表示（ファイル名は `src/postcode_diff.py` に定義） |
 
 ### 実行まわり
@@ -98,5 +99,6 @@ class MyToolPanel(ToolPanelBase):
 ├── launcher.json      # 00_ランチャー登録マニフェスト
 ├── logs/              # 実行ログ（gitignore対象、30日で自動アーカイブ）
 ├── text_splitter/     # 巨大区切りテキスト分割ツール（CSV/TSV/TXT/DAT）
+├── fixed_length_formatter/  # 固定長レコード改行付与ツール（改行なしファイル対応）
 └── diff_csv/          # 郵便番号差分比較ツール
 ```

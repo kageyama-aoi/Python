@@ -1,6 +1,6 @@
 {
   "name": "CSV検証サポート",
-  "description": "巨大な区切りテキスト（CSV/TSV/TXT/DAT）の分割（text_splitter）とCSV差分比較（diff_csv）を、リアルタイムログ付きの専用ランチャーから実行する",
+  "description": "巨大な区切りテキストの分割（text_splitter）・固定長レコードの改行付与（fixed_length_formatter）・CSV差分比較（diff_csv）を、リアルタイムログ付きの専用ランチャーから実行する",
   "actions": [
     {
       "label": "ランチャーGUIを起動",

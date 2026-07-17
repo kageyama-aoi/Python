@@ -707,6 +707,9 @@ class ToolPanelBase(ttk.Frame):
         """実行結果サマリーに表示する入力の表示名。不明なら None。"""
         return None
 
+    def on_run_finished(self, new_files):
+        """実行完了後（メインスレッド）に呼ばれるフック。new_files は今回の出力（新しい順）。"""
+
     def refresh(self):
         """パネル表示時・↻ボタンで呼ばれる。ファイル一覧などを再スキャンする。"""
 
@@ -834,6 +837,133 @@ class TextSplitterPanel(ToolPanelBase):
         return cmd, self.tool_dir
 
 
+class FixedLengthFormatterPanel(ToolPanelBase):
+    name = "fixed_length_formatter"
+    title = "fixed_length_formatter — 固定長レコード改行付与"
+    description = "改行なしの固定長ファイルを、指定バイト数ごとに改行して読みやすくする。"
+    input_subdir = "data/input"
+    output_subdir = "data/output"
+
+    def __init__(self, master, app):
+        super().__init__(master, app)
+        self.columnconfigure(1, weight=1)
+
+        ttk.Label(self, text="入力ファイル").grid(row=0, column=0, sticky="w", pady=(0, 6))
+        self.input_var = tk.StringVar()
+        self.input_combo = ttk.Combobox(self, textvariable=self.input_var, state="readonly")
+        self.input_combo.grid(row=0, column=1, sticky="ew", padx=(8, 4), pady=(0, 6))
+        self.input_combo.bind("<<ComboboxSelected>>", lambda _e: self.app.update_command_preview())
+        ttk.Button(self, text="参照...", width=8, style=BTN_SECONDARY,
+                   command=self._browse).grid(row=0, column=2, pady=(0, 6))
+
+        config = self._load_config()
+        ttk.Label(self, text="レコード長 (バイト)").grid(row=1, column=0, sticky="w", pady=(0, 6))
+        param_frame = ttk.Frame(self)
+        param_frame.grid(row=1, column=1, columnspan=2, sticky="w", padx=(8, 0), pady=(0, 6))
+        self.record_var = tk.StringVar(value=str(config.get("record_bytes", 120)))
+        spin = ttk.Spinbox(param_frame, from_=1, to=1_000_000, textvariable=self.record_var, width=9)
+        spin.pack(side="left")
+        spin.bind("<KeyRelease>", lambda _e: self.app.update_command_preview())
+        ttk.Label(param_frame, text="　改行コード").pack(side="left")
+        self.newline_var = tk.StringVar(value=config.get("newline", "crlf"))
+        ttk.Combobox(param_frame, values=["crlf", "lf"], textvariable=self.newline_var,
+                     state="readonly", width=6).pack(side="left", padx=(8, 0))
+
+        self.handoff_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(self, text="変換後、結果を text_splitter の入力にセットする",
+                        variable=self.handoff_var,
+                        style="Switch.TCheckbutton" if _SV_TTK else "TCheckbutton",
+                        ).grid(row=2, column=0, columnspan=3, sticky="w", pady=(0, 8))
+
+        self._browsed_path = None
+        self.refresh()
+
+    def _load_config(self):
+        try:
+            return json.loads(
+                (self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def refresh(self):
+        files = []
+        if self.input_dir.is_dir():
+            files = sorted(p.name for p in self.input_dir.iterdir()
+                           if p.is_file() and p.suffix.lower() in (".dat", ".txt", ".csv", ".tsv"))
+        values = list(files)
+        if self._browsed_path:
+            values.append(str(self._browsed_path))
+        self.input_combo["values"] = values
+        if values and not self.input_var.get():
+            self.input_var.set(values[0])
+        self.app.update_command_preview()
+
+    def _browse(self):
+        path = filedialog.askopenfilename(
+            initialdir=str(self.input_dir if self.input_dir.is_dir() else self.tool_dir),
+            filetypes=[("固定長/テキスト", "*.dat;*.txt;*.csv;*.tsv"), ("すべて", "*.*")])
+        if path:
+            self._browsed_path = Path(path)
+            self.refresh()
+            self.input_var.set(str(self._browsed_path))
+            self.app.update_command_preview()
+
+    def run_input_label(self):
+        selected = self.input_var.get().strip()
+        return Path(selected).name if selected else None
+
+    def _resolve_input_path(self):
+        selected = self.input_var.get().strip()
+        if not selected:
+            return None
+        path = Path(selected)
+        if not path.is_absolute():
+            path = self.input_dir / selected
+        return path
+
+    def build_command(self):
+        input_path = self._resolve_input_path()
+        if input_path is None:
+            raise ValueError("入力ファイルを選択してください。\n"
+                             f"（{self.input_dir} にファイルを置くか、参照ボタンで指定）")
+        if not input_path.exists():
+            raise ValueError(f"入力ファイルが見つかりません:\n{input_path}")
+        try:
+            record_bytes = int(self.record_var.get())
+            if record_bytes < 1:
+                raise ValueError
+        except ValueError:
+            raise ValueError("レコード長は1以上の整数で指定してください。")
+        cmd = [sys.executable, "-u", str(self.tool_dir / "src" / "run.py"), str(input_path),
+               "--record-bytes", str(record_bytes), "--newline", self.newline_var.get()]
+        return cmd, self.tool_dir
+
+    def on_run_finished(self, new_files):
+        # 実行時の設定を次回の初期値として保存する
+        try:
+            (self.tool_dir / "config" / "config.json").write_text(json.dumps({
+                "record_bytes": int(self.record_var.get()),
+                "newline": self.newline_var.get(),
+                "encoding": self._load_config().get("encoding", "cp932"),
+            }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        except (OSError, ValueError):
+            pass
+        # 案A導線: 変換結果を text_splitter の入力にセットしてツールを切り替える
+        if not (self.handoff_var.get() and new_files):
+            return
+        target = new_files[0]
+        ts_panel = self.app.panels.get("text_splitter")
+        if ts_panel is None:
+            return
+        ts_panel._browsed_path = target
+        ts_panel.refresh()
+        ts_panel.input_var.set(str(target))
+        self.app._select_tool(_PANEL_CLASSES.index(TextSplitterPanel))
+        self.app._append_log(
+            f"[launcher] 変換結果を text_splitter の入力にセットしました: {target.name}\n",
+            tag="debug")
+
+
 class DiffCsvPanel(ToolPanelBase):
     name = "diff_csv"
     title = "diff_csv — 郵便番号差分比較"
@@ -884,7 +1014,7 @@ class DiffCsvPanel(ToolPanelBase):
         return [sys.executable, "-u", str(run_py)], self.tool_dir
 
 
-_PANEL_CLASSES = [TextSplitterPanel, DiffCsvPanel]
+_PANEL_CLASSES = [TextSplitterPanel, FixedLengthFormatterPanel, DiffCsvPanel]
 
 
 # ------------------------------------------------------------------
@@ -1138,7 +1268,10 @@ class LauncherApp(tk.Tk):
             self._append_log(f"=== 終了 (exit code: {exit_code}) ===\n", tag="fail")
         self._set_running(False)
         self._autosave_log(tool_name)
-        self._show_run_summary(_detect_new_files(output_dir, snapshot), output_dir, input_label)
+        new_files = _detect_new_files(output_dir, snapshot)
+        self._show_run_summary(new_files, output_dir, input_label)
+        if exit_code == 0 and tool_name in self.panels:
+            self.panels[tool_name].on_run_finished(new_files)
 
     def _on_stop(self):
         proc = self.proc
