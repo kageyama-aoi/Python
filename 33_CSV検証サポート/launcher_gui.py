@@ -36,9 +36,21 @@ UI_FONT_FAMILY = "Yu Gothic UI"
 UI_FONT = (UI_FONT_FAMILY, 9)
 UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
 HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")   # 左ペインの見出し
-RUN_FONT = (UI_FONT_FAMILY, 10, "bold")      # Run / Stop ボタン
 LOG_FONT = ("Consolas", 10)                  # ログ・冒頭プレビュー
 CMD_FONT = ("Consolas", 9)                   # コマンドプレビュー
+
+# ボタン3段階の共通スタイル（全ボタンは必ずこの3種のどれかで生成する）
+#   Primary   : 主操作（▶ Run のみ）。14pt bold・高さ40px・アクセントカラー背景（sv_ttk時）
+#   Secondary : 標準操作。11pt・高さ32px・ボーダーのみの標準ボタン外観
+#   Tertiary  : 補助操作（↻・閉じる・キャンセル）。10pt・高さ26px・枠なしグレーのリンク風
+BTN_PRIMARY = "Primary.Accent.TButton"   # Accent.* を継承→sv_ttk のアクセント背景が乗る
+BTN_SECONDARY = "Secondary.TButton"
+BTN_TERTIARY = "Tertiary.Toolbutton"     # Toolbutton ベース＝フラット（ホバー時のみ反応）
+_BUTTON_SPECS = {
+    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 40, "hpad": 20},
+    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 32, "hpad": 12},
+    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 26, "hpad": 6},
+}
 
 # ログ行の色定義（foreground / font を指定）
 _LOG_TAGS = {
@@ -322,9 +334,9 @@ class ConfigEditorWindow(tk.Toplevel):
                                          state="readonly", width=24)
         self.preset_combo.pack(side="left", padx=8)
         self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_selected)
-        ttk.Button(preset_frame, text="保存...", width=7,
+        ttk.Button(preset_frame, text="保存...", width=7, style=BTN_SECONDARY,
                    command=self._save_preset).pack(side="left")
-        ttk.Button(preset_frame, text="削除", width=6,
+        ttk.Button(preset_frame, text="削除", width=6, style=BTN_SECONDARY,
                    command=self._delete_preset).pack(side="left", padx=(4, 0))
         self._presets = {}
         self._reload_presets()
@@ -354,8 +366,10 @@ class ConfigEditorWindow(tk.Toplevel):
 
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=6, column=0, columnspan=2, sticky="e", pady=(12, 0))
-        ttk.Button(btn_frame, text="保存", command=self._save).pack(side="left", padx=(0, 8))
-        ttk.Button(btn_frame, text="キャンセル", command=self.destroy).pack(side="left")
+        ttk.Button(btn_frame, text="保存", style=BTN_SECONDARY,
+                   command=self._save).pack(side="left", padx=(0, 8))
+        ttk.Button(btn_frame, text="キャンセル", style=BTN_TERTIARY,
+                   command=self.destroy).pack(side="left")
 
     @staticmethod
     def _delim_label(delim_value):
@@ -527,7 +541,7 @@ class InputPreviewWindow(tk.Toplevel):
         hint = ttk.Label(frame, foreground="#888888",
                          text="※ 1行目が列名（ヘッダー）かどうかを確認し、設定の has_header に反映してください。")
         hint.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
-        ttk.Button(frame, text="閉じる", command=self.destroy).grid(
+        ttk.Button(frame, text="閉じる", style=BTN_TERTIARY, command=self.destroy).grid(
             row=5, column=0, columnspan=2, sticky="e", pady=(8, 0))
 
         threading.Thread(target=self._analyze_worker, args=(path,), daemon=True).start()
@@ -592,10 +606,12 @@ class OutputDetailWindow(tk.Toplevel):
 
         btns = ttk.Frame(frame)
         btns.grid(row=1, column=0, columnspan=2, sticky="e", pady=(8, 0))
-        ttk.Button(btns, text="フォルダを開く",
+        ttk.Button(btns, text="フォルダを開く", style=BTN_SECONDARY,
                    command=lambda: _open_in_explorer(base_dir)).pack(side="left", padx=(0, 8))
-        ttk.Button(btns, text="開く", command=self._open_selected).pack(side="left", padx=(0, 8))
-        ttk.Button(btns, text="閉じる", command=self.destroy).pack(side="left")
+        ttk.Button(btns, text="開く", style=BTN_SECONDARY,
+                   command=self._open_selected).pack(side="left", padx=(0, 8))
+        ttk.Button(btns, text="閉じる", style=BTN_TERTIARY,
+                   command=self.destroy).pack(side="left")
 
         def display_name(path):
             try:
@@ -682,9 +698,9 @@ class TextSplitterPanel(ToolPanelBase):
         self.input_combo = ttk.Combobox(self, textvariable=self.input_var, state="readonly")
         self.input_combo.grid(row=0, column=1, sticky="ew", padx=(8, 4), pady=(0, 6))
         self.input_combo.bind("<<ComboboxSelected>>", lambda _e: self.app.update_command_preview())
-        ttk.Button(self, text="参照...", width=8,
+        ttk.Button(self, text="参照...", width=8, style=BTN_SECONDARY,
                    command=self._browse).grid(row=0, column=2, padx=(0, 4), pady=(0, 6))
-        ttk.Button(self, text="冒頭を確認", width=10,
+        ttk.Button(self, text="冒頭を確認", width=10, style=BTN_SECONDARY,
                    command=self._open_input_preview).grid(row=0, column=3, pady=(0, 6))
 
         # 実行設定は config.json の1本（お気に入りの適用・保存・削除は設定ダイアログ内）
@@ -693,10 +709,10 @@ class TextSplitterPanel(ToolPanelBase):
 
         btn_frame = ttk.Frame(self)
         btn_frame.grid(row=2, column=0, columnspan=4, sticky="ew")
-        ttk.Button(btn_frame, text="設定 (config.json)",
+        ttk.Button(btn_frame, text="設定 (config.json)", style=BTN_SECONDARY,
                    command=self._open_config_editor).pack(
             side="left", fill="x", expand=True, padx=(0, 4))
-        ttk.Button(btn_frame, text="単体GUIを開く",
+        ttk.Button(btn_frame, text="単体GUIを開く", style=BTN_SECONDARY,
                    command=self._open_standalone_gui).pack(
             side="left", fill="x", expand=True, padx=(4, 0))
 
@@ -877,7 +893,7 @@ class LauncherApp(tk.Tk):
     # -------------------------------------------------- UI 構築
 
     def _setup_style(self):
-        """フォントの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
+        """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
         style = ttk.Style(self)
         for name in ("TLabel", "TButton", "TCheckbutton", "TRadiobutton",
                      "TEntry", "TCombobox", "TSpinbox", "Treeview"):
@@ -885,7 +901,21 @@ class LauncherApp(tk.Tk):
         style.configure("TLabelframe.Label", font=UI_FONT_BOLD)   # セクションタイトル
         style.configure("Treeview.Heading", font=UI_FONT_BOLD)    # 一覧のヘッダー
         style.configure("Treeview", rowheight=24)                 # 行間をゆったりに
-        style.configure("Run.TButton", font=RUN_FONT)             # Run / Stop 用
+
+        # ボタン3段階: 目標高さ(px)に合わせて縦paddingを実測較正する。
+        # フォント行高やテーマのchrome（枠線・フォーカスリング）はDPI・テーマ依存のため、
+        # padding=0 のプローブボタンで素の高さを測り、不足分を上下paddingに配分する。
+        for style_name, spec in _BUTTON_SPECS.items():
+            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
+            probe = ttk.Button(self, text="あ", style=style_name)
+            self.update_idletasks()
+            base_h = probe.winfo_reqheight()
+            probe.destroy()
+            extra = max(0, spec["height"] - base_h)
+            top, bottom = extra // 2, extra - extra // 2
+            style.configure(style_name,
+                            padding=(spec["hpad"], top, spec["hpad"], bottom))
+        style.configure(BTN_TERTIARY, foreground="#888888")
 
     def _build_ui(self):
         paned = ttk.PanedWindow(self, orient="horizontal")
@@ -916,21 +946,21 @@ class LauncherApp(tk.Tk):
         run_frame = ttk.Frame(left)
         run_frame.pack(fill="x", pady=(4, 8))
         self.run_btn = ttk.Button(run_frame, text="▶ Run", command=self._on_run,
-                                  style="Run.TButton")
+                                  style=BTN_PRIMARY)
         self.run_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
         self.stop_btn = ttk.Button(run_frame, text="■ Stop", command=self._on_stop,
-                                   state="disabled", style="Run.TButton")
+                                   state="disabled", style=BTN_SECONDARY)
         self.stop_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
 
         folder_frame = ttk.Frame(left)
         folder_frame.pack(fill="x")
-        ttk.Button(folder_frame, text="入力フォルダ",
+        ttk.Button(folder_frame, text="入力フォルダ", style=BTN_SECONDARY,
                    command=lambda: _open_in_explorer(self._current_panel().input_dir)
                    ).pack(side="left", fill="x", expand=True, padx=(0, 4))
-        ttk.Button(folder_frame, text="出力フォルダ",
+        ttk.Button(folder_frame, text="出力フォルダ", style=BTN_SECONDARY,
                    command=lambda: _open_in_explorer(self._current_panel().output_dir)
                    ).pack(side="left", fill="x", expand=True, padx=(4, 0))
-        ttk.Button(folder_frame, text="↻", width=3,
+        ttk.Button(folder_frame, text="↻", width=3, style=BTN_TERTIARY,
                    command=lambda: self._current_panel().refresh()).pack(side="left", padx=(8, 0))
 
         self.status_label = ttk.Label(left, text="待機中", foreground="#888888")
@@ -973,9 +1003,10 @@ class LauncherApp(tk.Tk):
         self.summary_label.grid(row=0, column=0, sticky="ew")
         self._summary_flash_job = None  # 点滅タイマー（after id）
         self.detail_btn = ttk.Button(out_frame, text="詳細...", state="disabled",
+                                     style=BTN_SECONDARY,
                                      command=self._open_output_detail)
         self.detail_btn.grid(row=0, column=1, padx=(6, 0))
-        ttk.Button(out_frame, text="フォルダを開く",
+        ttk.Button(out_frame, text="フォルダを開く", style=BTN_SECONDARY,
                    command=lambda: _open_in_explorer(self._current_panel().output_dir)
                    ).grid(row=0, column=2, padx=(6, 0))
 
