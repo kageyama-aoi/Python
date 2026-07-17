@@ -176,6 +176,28 @@ def _startup_cleanup():
     cleanup_old_outputs()
 
 
+def _read_head_lines(path, max_lines=10, max_bytes=64 * 1024):
+    """入力ファイルの先頭 max_lines 行を (行リスト, エンコード表示名) で返す。
+    先頭 max_bytes だけ読むため巨大ファイルでも高速。"""
+    with open(path, "rb") as f:
+        raw = f.read(max_bytes)
+    has_bom = raw.startswith(b"\xef\xbb\xbf")
+    for enc, label in (("utf-8-sig", "UTF-8(BOM)" if has_bom else "UTF-8"),
+                       ("cp932", "Shift-JIS")):
+        try:
+            text = raw.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        text, label = raw.decode("utf-8", errors="replace"), "不明"
+    # 末尾はバイト境界で切れている可能性があるため、最終行は捨てる（max_lines行あれば影響なし）
+    lines = text.splitlines()
+    if len(raw) == max_bytes and lines:
+        lines = lines[:-1]
+    return lines[:max_lines], label
+
+
 def _open_in_explorer(path):
     """フォルダまたはファイルを既定の方法で開く。"""
     try:
@@ -283,7 +305,8 @@ class ConfigEditorWindow(tk.Toplevel):
 
         ttk.Label(frame, text="分割単位の行数 (rows_per_file)").grid(row=0, column=0, sticky="w", pady=4)
         self.rows_var = tk.StringVar(value=str(config.get("rows_per_file", 45000)))
-        ttk.Spinbox(frame, from_=1, to=10_000_000, textvariable=self.rows_var,
+        ttk.Spinbox(frame, from_=1000, to=10_000_000, increment=1000,
+                    textvariable=self.rows_var,
                     width=12).grid(row=0, column=1, sticky="w", padx=(12, 0), pady=4)
 
         ttk.Label(frame, text="エンコード (encoding)").grid(row=1, column=0, sticky="w", pady=4)
@@ -331,6 +354,52 @@ class ConfigEditorWindow(tk.Toplevel):
         if self.on_saved:
             self.on_saved()
         self.destroy()
+
+
+# ------------------------------------------------------------------
+# 入力ファイル冒頭プレビューサブウィンドウ
+# ------------------------------------------------------------------
+
+class InputPreviewWindow(tk.Toplevel):
+    """選択中の入力ファイルの先頭数行を表示する。has_header 判断の材料にする。"""
+
+    def __init__(self, master, path):
+        super().__init__(master)
+        self.title(f"冒頭プレビュー — {path.name}")
+        self.geometry("860x320")
+        self.minsize(600, 220)
+
+        try:
+            lines, enc_label = _read_head_lines(path)
+        except OSError as exc:
+            messagebox.showerror("エラー", f"読み込めませんでした:\n{path}\n\n{exc}", parent=master)
+            self.destroy()
+            return
+
+        frame = ttk.Frame(self, padding=8)
+        frame.pack(fill="both", expand=True)
+        frame.rowconfigure(1, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        ttk.Label(frame, text=f"エンコード: {enc_label}　（先頭 {len(lines)} 行）").grid(
+            row=0, column=0, sticky="w", pady=(0, 4))
+
+        text = tk.Text(frame, font=LOG_FONT, wrap="none", height=12)
+        text.grid(row=1, column=0, sticky="nsew")
+        sb_y = ttk.Scrollbar(frame, command=text.yview)
+        sb_y.grid(row=1, column=1, sticky="ns")
+        sb_x = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        sb_x.grid(row=2, column=0, sticky="ew")
+        text.configure(yscrollcommand=sb_y.set, xscrollcommand=sb_x.set)
+        for i, line in enumerate(lines, start=1):
+            text.insert("end", f"{i:>3}: {line}\n")
+        text.configure(state="disabled")
+
+        hint = ttk.Label(frame, foreground="#888888",
+                         text="※ 1行目が列名（ヘッダー）かどうかを確認し、設定の has_header に反映してください。")
+        hint.grid(row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        ttk.Button(frame, text="閉じる", command=self.destroy).grid(
+            row=4, column=0, columnspan=2, sticky="e", pady=(8, 0))
 
 
 # ------------------------------------------------------------------
@@ -470,6 +539,8 @@ class CsvSplitterPanel(ToolPanelBase):
 
         btn_frame = ttk.Frame(self)
         btn_frame.grid(row=2, column=0, columnspan=3, sticky="w")
+        ttk.Button(btn_frame, text="冒頭を確認",
+                   command=self._open_input_preview).pack(side="left", padx=(0, 8))
         ttk.Button(btn_frame, text="設定 (config.json)",
                    command=self._open_config_editor).pack(side="left", padx=(0, 8))
         ttk.Button(btn_frame, text="単体GUIを開く",
@@ -513,6 +584,15 @@ class CsvSplitterPanel(ToolPanelBase):
             self.refresh()
             self.input_var.set(str(self._browsed_path))
             self.app.update_command_preview()
+
+    def _open_input_preview(self):
+        path = self._resolve_input_path()
+        if path is None or not path.exists():
+            messagebox.showerror(
+                "エラー", "入力ファイルを選択してください。" if path is None
+                else f"入力ファイルが見つかりません:\n{path}")
+            return
+        InputPreviewWindow(self.app, path)
 
     def _open_config_editor(self):
         ConfigEditorWindow(self.app, self.tool_dir / "config" / "config.json",
