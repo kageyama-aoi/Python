@@ -273,6 +273,7 @@ class SplashScreen(tk.Toplevel):
 # ------------------------------------------------------------------
 
 _ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
+_NO_PRESET = "（config.json の設定）"
 _DELIMITER_CHOICES = {
     "自動判定": None,
     "カンマ (,)": ",",
@@ -534,11 +535,19 @@ class CsvSplitterPanel(ToolPanelBase):
         ttk.Button(self, text="参照...", width=7,
                    command=self._browse).grid(row=0, column=2, pady=(0, 4))
 
+        ttk.Label(self, text="お気に入り").grid(row=1, column=0, sticky="w", pady=(0, 4))
+        self.preset_var = tk.StringVar(value=_NO_PRESET)
+        self.preset_combo = ttk.Combobox(self, textvariable=self.preset_var, state="readonly")
+        self.preset_combo.grid(row=1, column=1, columnspan=2, sticky="ew",
+                               padx=(8, 0), pady=(0, 4))
+        self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_selected)
+        self._presets = {}
+
         self.config_label = ttk.Label(self, text="", foreground="#888888")
-        self.config_label.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        self.config_label.grid(row=2, column=0, columnspan=3, sticky="w", pady=(0, 8))
 
         btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=2, column=0, columnspan=3, sticky="w")
+        btn_frame.grid(row=3, column=0, columnspan=3, sticky="w")
         ttk.Button(btn_frame, text="冒頭を確認",
                    command=self._open_input_preview).pack(side="left", padx=(0, 8))
         ttk.Button(btn_frame, text="設定 (config.json)",
@@ -560,20 +569,50 @@ class CsvSplitterPanel(ToolPanelBase):
         self.input_combo["values"] = values
         if values and not self.input_var.get():
             self.input_var.set(values[0])
+        self._presets = self._load_presets()
+        preset_values = [_NO_PRESET] + list(self._presets)
+        self.preset_combo["values"] = preset_values
+        if self.preset_var.get() not in preset_values:
+            self.preset_var.set(_NO_PRESET)
+        self._refresh_config_label()
+        self.app.update_command_preview()
+
+    def _load_presets(self):
+        """config/presets.json を読み込む。無い・壊れている場合は空 dict。"""
+        try:
+            data = json.loads(
+                (self.tool_dir / "config" / "presets.json").read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def _on_preset_selected(self, _event=None):
         self._refresh_config_label()
         self.app.update_command_preview()
 
     def _refresh_config_label(self):
+        preset_name = self.preset_var.get()
+        if preset_name != _NO_PRESET and preset_name in self._presets:
+            config = self._presets[preset_name]
+            prefix = f"プリセット「{preset_name}」"
+        else:
+            try:
+                config = json.loads(
+                    (self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                self.config_label.config(text="設定: config.json を読み込めません")
+                return
+            prefix = "設定"
+        delim = config.get("delimiter")
+        delim_repr = "自動" if delim in (None, "") else repr(delim)
         try:
-            config = json.loads((self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
-            delim = config.get("delimiter")
-            delim_repr = "自動" if delim is None else repr(delim)
-            self.config_label.config(text=(
-                f"設定: {config.get('rows_per_file', '?'):,} 行ごと / "
-                f"{config.get('encoding', '?')} / 区切り={delim_repr} / "
-                f"ヘッダー複製={'あり' if config.get('has_header') else 'なし'}"))
-        except (OSError, json.JSONDecodeError, ValueError):
-            self.config_label.config(text="設定: config.json を読み込めません")
+            rows_disp = f"{int(config.get('rows_per_file')):,}"
+        except (TypeError, ValueError):
+            rows_disp = "?"
+        self.config_label.config(text=(
+            f"{prefix}: {rows_disp} 行ごと / "
+            f"{config.get('encoding', '?')} / 区切り={delim_repr} / "
+            f"ヘッダー複製={'あり' if config.get('has_header') else 'なし'}"))
 
     def _browse(self):
         path = filedialog.askopenfilename(
@@ -624,6 +663,9 @@ class CsvSplitterPanel(ToolPanelBase):
         if not input_path.exists():
             raise ValueError(f"入力ファイルが見つかりません:\n{input_path}")
         cmd = [sys.executable, "-u", str(self.tool_dir / "src" / "run.py"), str(input_path)]
+        preset_name = self.preset_var.get()
+        if preset_name != _NO_PRESET and preset_name in self._presets:
+            cmd += ["--preset", preset_name]
         return cmd, self.tool_dir
 
 
