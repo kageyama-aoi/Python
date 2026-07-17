@@ -30,7 +30,15 @@ LOGS_DIR = BASE_DIR / "logs"
 
 LOG_CLEANUP_DAYS = 30
 OUTPUT_CLEANUP_DAYS = 30
-LOG_FONT = ("Courier New", 9)
+
+# フォント定義（ここで一元管理。レイアウトは各ウィジェット側）
+UI_FONT_FAMILY = "Yu Gothic UI"
+UI_FONT = (UI_FONT_FAMILY, 9)
+UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
+HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")   # 左ペインの見出し
+RUN_FONT = (UI_FONT_FAMILY, 10, "bold")      # Run / Stop ボタン
+LOG_FONT = ("Consolas", 10)                  # ログ・冒頭プレビュー
+CMD_FONT = ("Consolas", 9)                   # コマンドプレビュー
 
 # ログ行の色定義（foreground / font を指定）
 _LOG_TAGS = {
@@ -843,6 +851,7 @@ class LauncherApp(tk.Tk):
 
         if _SV_TTK:
             _sv_ttk.set_theme("dark")
+        self._setup_style()  # フォント統一はテーマ適用後に行う（sv_ttkの上書きを防ぐ）
 
         self._select_tool(0)
         self.after(100, self._drain_log_queue)
@@ -854,6 +863,17 @@ class LauncherApp(tk.Tk):
 
     # -------------------------------------------------- UI 構築
 
+    def _setup_style(self):
+        """フォントの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
+        style = ttk.Style(self)
+        for name in ("TLabel", "TButton", "TCheckbutton", "TRadiobutton",
+                     "TEntry", "TCombobox", "TSpinbox", "Treeview"):
+            style.configure(name, font=UI_FONT)
+        style.configure("TLabelframe.Label", font=UI_FONT_BOLD)   # セクションタイトル
+        style.configure("Treeview.Heading", font=UI_FONT_BOLD)    # 一覧のヘッダー
+        style.configure("Treeview", rowheight=24)                 # 行間をゆったりに
+        style.configure("Run.TButton", font=RUN_FONT)             # Run / Stop 用
+
     def _build_ui(self):
         paned = ttk.PanedWindow(self, orient="horizontal")
         paned.pack(fill="both", expand=True, padx=8, pady=8)
@@ -862,8 +882,9 @@ class LauncherApp(tk.Tk):
         left = ttk.Frame(paned, padding=(0, 0, 8, 0))
         paned.add(left, weight=0)
 
-        ttk.Label(left, text="ツール", font=("Yu Gothic UI", 10, "bold")).pack(anchor="w")
-        self.tool_list = tk.Listbox(left, height=len(_PANEL_CLASSES) + 1, exportselection=False)
+        ttk.Label(left, text="ツール", font=HEADER_FONT).pack(anchor="w")
+        self.tool_list = tk.Listbox(left, height=len(_PANEL_CLASSES) + 1, exportselection=False,
+                                    font=(UI_FONT_FAMILY, 10))
         for cls in _PANEL_CLASSES:
             self.tool_list.insert("end", f" {cls.title}")
         self.tool_list.pack(fill="x", pady=(4, 4))
@@ -881,9 +902,11 @@ class LauncherApp(tk.Tk):
 
         run_frame = ttk.Frame(left)
         run_frame.pack(fill="x", pady=(4, 8))
-        self.run_btn = ttk.Button(run_frame, text="▶ Run", command=self._on_run)
+        self.run_btn = ttk.Button(run_frame, text="▶ Run", command=self._on_run,
+                                  style="Run.TButton")
         self.run_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
-        self.stop_btn = ttk.Button(run_frame, text="■ Stop", command=self._on_stop, state="disabled")
+        self.stop_btn = ttk.Button(run_frame, text="■ Stop", command=self._on_stop,
+                                   state="disabled", style="Run.TButton")
         self.stop_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
 
         folder_frame = ttk.Frame(left)
@@ -911,8 +934,8 @@ class LauncherApp(tk.Tk):
         cmd_frame.columnconfigure(1, weight=1)
         ttk.Label(cmd_frame, text="Command").grid(row=0, column=0, padx=(0, 8))
         self.cmd_var = tk.StringVar()
-        ttk.Entry(cmd_frame, textvariable=self.cmd_var, state="readonly").grid(
-            row=0, column=1, sticky="ew")
+        ttk.Entry(cmd_frame, textvariable=self.cmd_var, state="readonly",
+                  font=CMD_FONT).grid(row=0, column=1, sticky="ew")
 
         self.log_text = ScrolledText(right, font=LOG_FONT, state="disabled",
                                      background="#1e1e1e", foreground="#e0e0e0",
@@ -932,7 +955,7 @@ class LauncherApp(tk.Tk):
 
         self.summary_var = tk.StringVar(value="（まだ実行していません）")
         self.summary_label = ttk.Label(out_frame, textvariable=self.summary_var,
-                                       anchor="w", justify="left",
+                                       anchor="w", justify="left", font=UI_FONT_BOLD,
                                        foreground=_SUMMARY_COLORS["idle"])
         self.summary_label.grid(row=0, column=0, sticky="ew")
         self._summary_flash_job = None  # 点滅タイマー（after id）
