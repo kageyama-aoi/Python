@@ -73,7 +73,7 @@ class TestPresets(unittest.TestCase):
 
     def test_example_template_is_loadable(self):
         """同梱の presets.example.json が正しい形式である"""
-        example = Path(__file__).parent.parent / "presets.example.json"
+        example = Path(__file__).parent.parent / "config" / "presets.example.json"
         presets = load_presets(example)
         self.assertGreater(len(presets), 0)
         for name in presets:

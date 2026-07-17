@@ -406,7 +406,7 @@ class CsvSplitterPanel(ToolPanelBase):
 
     def _refresh_config_label(self):
         try:
-            config = json.loads((self.tool_dir / "config.json").read_text(encoding="utf-8"))
+            config = json.loads((self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
             delim = config.get("delimiter")
             delim_repr = "自動" if delim is None else repr(delim)
             self.config_label.config(text=(
@@ -427,7 +427,7 @@ class CsvSplitterPanel(ToolPanelBase):
             self.app.update_command_preview()
 
     def _open_config_editor(self):
-        ConfigEditorWindow(self.app, self.tool_dir / "config.json",
+        ConfigEditorWindow(self.app, self.tool_dir / "config" / "config.json",
                            on_saved=self._refresh_config_label)
 
     def _open_standalone_gui(self):

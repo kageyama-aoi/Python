@@ -12,8 +12,9 @@ csv_splitter/
 │  ├ presets.py   # 名前付きプリセットの読み書き
 │  └ gui.py       # 単体GUI（tkinter）
 ├ tests/          # ユニットテスト（仕様は tests/TESTS.md）
-├ config.json     # 最後に使った設定
-├ presets.json    # 名前付きプリセット（gitignore対象。形式は presets.example.json 参照）
+├ config/
+│  ├ config.json   # 最後に使った設定
+│  └ presets.json  # 名前付きプリセット（gitignore対象。形式は presets.example.json 参照）
 ├ README.md
 ├ input/          # 入力置き場（任意。CLIは任意パスを直接指定可能）
 ├ output/
@@ -79,7 +80,7 @@ graph TB
 
 ## 使い方
 
-1. `config.json` を編集
+1. `config/config.json` を編集
 
 ```json
 {
@@ -106,7 +107,7 @@ graph TB
 python src/run.py <入力CSVファイルパス>
 ```
 
-`config.json` のパスを変更する場合は第2引数で指定できます。
+`config.json` のパスを変更する場合は第2引数で指定できます（省略時は `config/config.json`）。
 
 ```bash
 python src/run.py /path/to/input.csv /path/to/config.json
@@ -120,7 +121,7 @@ python src/run.py /path/to/input.csv /path/to/config.json
 python src/run.py /path/to/input.csv --preset "大容量分割（45,000行・ヘッダーなし）"
 ```
 
-- 初回は `presets.example.json` をコピーして `presets.json` を作成（または GUI の「保存...」で作成）
+- 初回は `config/presets.example.json` をコピーして `config/presets.json` を作成（または GUI の「保存...」で作成）
 - GUI では「お気に入り」コンボボックスで選択 → フォームに即反映。「保存...」で現在のフォーム内容を名前を付けて登録、「削除」で削除
 - `presets.json` は gitignore 対象（実案件名を入れても公開リポジトリに載らない）
 

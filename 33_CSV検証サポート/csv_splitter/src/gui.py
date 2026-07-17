@@ -19,7 +19,7 @@ from presets import load_presets, save_presets
 from run import SplitOptions, _detect_delimiter, split_csv
 
 BASE_DIR = Path(__file__).parent.parent
-CONFIG_PATH = BASE_DIR / "config.json"
+CONFIG_PATH = BASE_DIR / "config" / "config.json"
 
 ENCODINGS = ["utf-8", "shift_jis", "cp932", "utf-8-sig"]
 

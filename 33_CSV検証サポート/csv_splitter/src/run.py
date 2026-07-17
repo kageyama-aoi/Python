@@ -8,6 +8,7 @@ from typing import Callable, Optional
 
 
 BASE_DIR = Path(__file__).parent.parent
+CONFIG_DIR = BASE_DIR / "config"
 OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
 
@@ -225,7 +226,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CSV/TSVファイルを指定件数ごとに分割する")
     parser.add_argument("input", help="入力CSV/TSVファイルパス")
     parser.add_argument("config", nargs="?", default=None,
-                        help="config.json のパス（省略時はツール直下の config.json）")
+                        help="config.json のパス（省略時は config/config.json）")
     parser.add_argument("--preset", metavar="名前",
                         help="presets.json に登録した名前付きプリセットで実行する")
     args = parser.parse_args()
@@ -240,7 +241,7 @@ if __name__ == "__main__":
             print(f"[ERROR] {message}")
             sys.exit(1)
     else:
-        config_path = Path(args.config) if args.config else BASE_DIR / "config.json"
+        config_path = Path(args.config) if args.config else CONFIG_DIR / "config.json"
         options = SplitOptions.from_config_file(config_path)
 
     result = split_csv(input_path, options, progress=lambda msg: print(msg, flush=True))

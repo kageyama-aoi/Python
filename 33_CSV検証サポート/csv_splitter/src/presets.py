@@ -1,7 +1,7 @@
 """名前付きプリセット（お気に入り設定）の読み書き。
 
-presets.json はツールルートに置く。実案件の名前が入り得るため gitignore 対象
-（形式は presets.example.json を参照）。tkinter 非依存のロジック層。
+presets.json は config/ に置く。実案件の名前が入り得るため gitignore 対象
+（形式は config/presets.example.json を参照）。tkinter 非依存のロジック層。
 """
 import json
 from pathlib import Path
@@ -10,7 +10,7 @@ from typing import Optional
 from run import SplitOptions
 
 BASE_DIR = Path(__file__).parent.parent
-PRESETS_PATH = BASE_DIR / "presets.json"
+PRESETS_PATH = BASE_DIR / "config" / "presets.json"
 
 
 def load_presets(path: Optional[Path] = None) -> dict[str, dict]:

@@ -23,7 +23,7 @@ python src/gui.py
 python -m pytest tests
 ```
 
-## 設定ファイル (config.json)
+## 設定ファイル (config/config.json)
 
 | キー | 型 | 説明 |
 |---|---|---|
@@ -32,13 +32,13 @@ python -m pytest tests
 | `has_header` | bool | `true`: 各分割ファイルにヘッダーを複製、`false`: 全行データとして扱う |
 | `delimiter` | string \| null | 区切り文字。`null` または空文字で自動判定（先頭20行の `,` `\t` `;` 出現数 → 拡張子フォールバック） |
 
-GUIは実行時にフォーム内容を config.json へ保存する（次回起動時の初期値になる）。
+GUIは実行時にフォーム内容を config/config.json へ保存する（次回起動時の初期値になる）。
 
-## プリセット (presets.json)
+## プリセット (config/presets.json)
 
-`{"プリセット名": {config.jsonと同じ4キー}}` 形式でツールルートに置く。
+`{"プリセット名": {config.jsonと同じ4キー}}` 形式で `config/` に置く。
 GUIの「お気に入り」コンボボックス（保存/削除ボタン付き）と CLI の `--preset` から使う。
-実案件名が入り得るため **gitignore 対象**。形式サンプルは `presets.example.json`（コミット対象）。
+実案件名が入り得るため **gitignore 対象**。形式サンプルは `config/presets.example.json`（コミット対象）。
 
 ## アーキテクチャ
 
@@ -48,7 +48,8 @@ GUIの「お気に入り」コンボボックス（保存/削除ボタン付き�
 - `src/analyze.py` — 入力ファイルの事前解析ヘルパー（エンコード判定・行数カウント・先頭行プレビュー・推奨分割行数）。tkinter 非依存。
 - `src/presets.py` — 名前付きプリセットの読み書き（`load_presets`/`save_presets`/`get_preset_options`）。
 - `src/gui.py` — 単体GUI（tkinter）。入出力に徹し、処理は `run.py` / `analyze.py` / `presets.py` を呼ぶ。
-- `config.json` — 実行パラメータ（最後に使った設定）。ツールルートに必置。
+- `config/` — 設定ファイル置き場。`config.json`（実行パラメータ、必置）、
+  `presets.json`（名前付きプリセット、gitignore対象）、`presets.example.json`（形式サンプル）。
 - `output/` — 分割済みCSV出力先。**実行ごとに `{stem}_{YYYYMMDD_HHMMSS}/` サブディレクトリを作り**、
   その中に `{stem}_split_{001}{ext}` 形式で出力する（再実行で上書きされない）。
 - `logs/` — 実行ログ。`split_log_YYYYMMDD_HHMMSS.log` 形式で毎回生成。
