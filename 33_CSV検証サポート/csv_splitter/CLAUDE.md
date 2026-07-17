@@ -10,7 +10,7 @@ CLI・単体GUI・親フォルダのランチャー（`../launcher_gui.py`）の
 ## 実行方法
 
 ```bash
-# CLI（入力ファイルは引数で直接指定。input/ 配置は不要）
+# CLI（入力ファイルは引数で直接指定。data/input/ 配置は不要）
 python src/run.py <入力CSVファイルパス> [config.json]
 
 # 名前付きプリセットで実行（presets.json に登録した設定を使う）
@@ -50,9 +50,10 @@ GUIの「お気に入り」コンボボックス（保存/削除ボタン付き�
 - `src/gui.py` — 単体GUI（tkinter）。入出力に徹し、処理は `run.py` / `analyze.py` / `presets.py` を呼ぶ。
 - `config/` — 設定ファイル置き場。`config.json`（実行パラメータ、必置）、
   `presets.json`（名前付きプリセット、gitignore対象）、`presets.example.json`（形式サンプル）。
-- `output/` — 分割済みCSV出力先。**実行ごとに `{stem}_{YYYYMMDD_HHMMSS}/` サブディレクトリを作り**、
-  その中に `{stem}_split_{001}{ext}` 形式で出力する（再実行で上書きされない）。
-- `logs/` — 実行ログ。`split_log_YYYYMMDD_HHMMSS.log` 形式で毎回生成。
+- `data/` — 実行データ置き場（`input/` `output/` `logs/` を内包、丸ごと gitignore 対象）。
+  - `data/output/` — 分割済みCSV出力先。**実行ごとに `{stem}_{YYYYMMDD_HHMMSS}/` サブディレクトリを作り**、
+    その中に `{stem}_split_{001}{ext}` 形式で出力する（再実行で上書きされない）。
+  - `data/logs/` — 実行ログ。`split_log_YYYYMMDD_HHMMSS.log` 形式で毎回生成。
 - `tests/` — pytest/unittest（`TESTS.md` に仕様一覧）。
 
 ## 処理の仕組み
@@ -68,4 +69,4 @@ GUIの「お気に入り」コンボボックス（保存/削除ボタン付き�
 
 - 親フォルダの `launcher_gui.py` が `python src/run.py <input>` を subprocess で呼ぶため、
   **CLI インターフェース（引数の並び・進捗/完了メッセージの形式）を変える場合はランチャー側も確認する**。
-- `input/` `output/` `logs/` は実データが入るため gitignore 対象（実データはコミット禁止）。
+- `data/`（input/output/logs）は実データが入るため丸ごと gitignore 対象（実データはコミット禁止）。

@@ -9,8 +9,9 @@ from typing import Callable, Optional
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_DIR = BASE_DIR / "config"
-OUTPUT_DIR = BASE_DIR / "output"
-LOG_DIR = BASE_DIR / "logs"
+DATA_DIR = BASE_DIR / "data"
+OUTPUT_DIR = DATA_DIR / "output"
+LOG_DIR = DATA_DIR / "logs"
 
 # 進捗メッセージを受け取るコールバック（CLIはprint、GUIはキュー投入を渡す）
 ProgressCallback = Callable[[str], None]

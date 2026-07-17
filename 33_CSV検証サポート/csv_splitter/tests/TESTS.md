@@ -9,7 +9,7 @@ python -m unittest discover -s tests
 
 標準ライブラリのみ（`unittest` + `tempfile`）。
 出力先は `split_csv()` の `output_dir` / `log_dir` 引数で一時ディレクトリに向けるため、
-実際の `output/` / `logs/` を汚染しない。
+実際の `data/output/` / `data/logs/` を汚染しない。
 
 ---
 

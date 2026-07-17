@@ -144,7 +144,7 @@ def cleanup_old_outputs():
     csv_splitter の実行ごとサブディレクトリはディレクトリ単位で 1 つの zip にまとめる。"""
     cutoff = datetime.now() - timedelta(days=OUTPUT_CLEANUP_DAYS)
     for cls in _PANEL_CLASSES:
-        output_dir = BASE_DIR / cls.name / "output"
+        output_dir = BASE_DIR / cls.name / cls.output_subdir
         if not output_dir.is_dir():
             continue
         archive_dir = output_dir / "archive"
@@ -335,6 +335,8 @@ class ToolPanelBase(ttk.Frame):
     name = ""         # 内部名（ログファイル名等に使用）
     title = ""        # 一覧表示名
     description = ""  # 説明文
+    input_subdir = "input"    # 入力フォルダのツール内相対パス（サブクラスで上書き可）
+    output_subdir = "output"  # 出力フォルダのツール内相対パス（サブクラスで上書き可）
 
     def __init__(self, master, app):
         super().__init__(master)
@@ -346,11 +348,11 @@ class ToolPanelBase(ttk.Frame):
 
     @property
     def input_dir(self):
-        return self.tool_dir / "input"
+        return self.tool_dir / self.input_subdir
 
     @property
     def output_dir(self):
-        return self.tool_dir / "output"
+        return self.tool_dir / self.output_subdir
 
     def build_command(self):
         """(コマンドリスト, 作業ディレクトリ) を返す。実行不可なら ValueError。"""
@@ -364,6 +366,8 @@ class CsvSplitterPanel(ToolPanelBase):
     name = "csv_splitter"
     title = "csv_splitter — 巨大CSV分割"
     description = "巨大CSV/TSVを指定件数ごとに分割する。入力ファイルを選んで Run。"
+    input_subdir = "data/input"
+    output_subdir = "data/output"
 
     def __init__(self, master, app):
         super().__init__(master, app)

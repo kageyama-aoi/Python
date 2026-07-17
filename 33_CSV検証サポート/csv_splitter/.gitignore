@@ -1,6 +1,4 @@
-input/
-output/
-logs/
+data/
 config/presets.json
 __pycache__/
 .pytest_cache/
