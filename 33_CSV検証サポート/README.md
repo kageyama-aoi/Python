@@ -33,7 +33,7 @@ run.bat をダブルクリック（または 00_ランチャーから起動）
 
 | ツール | パラメータ |
 |---|---|
-| **csv_splitter** | 入力ファイル選択（`data/input/` 自動スキャン + 参照ボタン）、お気に入り選択（`config/presets.json` のプリセットで実行 = CLI `--preset`。保存・削除は単体GUI側）、冒頭を確認ボタン（先頭10行とエンコードをプレビューし has_header 判断の材料に）、設定ボタン（`config/config.json` を GUI 編集。分割行数は1000刻み）、単体GUI起動ボタン |
+| **csv_splitter** | 入力ファイル選択（`data/input/` 自動スキャン + 参照ボタン）、お気に入り（`config/presets.json` のプリセットで実行 = CLI `--preset`。保存...ボタンで現在の config.json 設定を名前付き保存、削除ボタン付き）、冒頭を確認ボタン（先頭10行とエンコードをプレビューし、バックグラウンドで総行数・推奨分割行数も解析表示）、設定ボタン（`config/config.json` を GUI 編集。分割行数は1000刻み）、単体GUI起動ボタン |
 | **diff_csv** | 新旧ファイルの存在チェック表示（ファイル名は `src/postcode_diff.py` に定義） |
 
 ### 実行まわり

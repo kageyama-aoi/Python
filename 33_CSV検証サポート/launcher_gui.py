@@ -3,6 +3,7 @@
 # Python 標準ライブラリ（Tkinter）のみで動作する。
 # Optional: pip install sv-ttk → Windows 11 スタイルのテーマが有効になる
 
+import importlib.util
 import json
 import os
 import re
@@ -13,7 +14,7 @@ import zipfile
 import threading
 import subprocess
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, simpledialog
 from tkinter.scrolledtext import ScrolledText
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -357,6 +358,21 @@ class ConfigEditorWindow(tk.Toplevel):
         self.destroy()
 
 
+_analyze_module = None
+
+
+def _load_analyze_module():
+    """csv_splitter/src/analyze.py（tkinter非依存）を読み込む。推奨分割行数ロジックを共用する。"""
+    global _analyze_module
+    if _analyze_module is None:
+        path = BASE_DIR / "csv_splitter" / "src" / "analyze.py"
+        spec = importlib.util.spec_from_file_location("csv_splitter_analyze", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _analyze_module = module
+    return _analyze_module
+
+
 # ------------------------------------------------------------------
 # 入力ファイル冒頭プレビューサブウィンドウ
 # ------------------------------------------------------------------
@@ -396,11 +412,36 @@ class InputPreviewWindow(tk.Toplevel):
             text.insert("end", f"{i:>3}: {line}\n")
         text.configure(state="disabled")
 
+        self._analyze_label = ttk.Label(
+            frame, text="解析中...（総行数をカウントしています）", foreground="#4a9eff")
+        self._analyze_label.grid(row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
+
         hint = ttk.Label(frame, foreground="#888888",
                          text="※ 1行目が列名（ヘッダー）かどうかを確認し、設定の has_header に反映してください。")
-        hint.grid(row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        hint.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Button(frame, text="閉じる", command=self.destroy).grid(
-            row=4, column=0, columnspan=2, sticky="e", pady=(8, 0))
+            row=5, column=0, columnspan=2, sticky="e", pady=(8, 0))
+
+        threading.Thread(target=self._analyze_worker, args=(path,), daemon=True).start()
+
+    def _analyze_worker(self, path):
+        """バックグラウンドで総行数をカウントする。UI反映は after(0,...) でメインスレッドに渡す。"""
+        try:
+            analyze = _load_analyze_module()
+            total = analyze._count_rows(path)
+            suggest = analyze._suggest_rows(total)
+            size = _format_filesize(path.stat().st_size)
+            text = f"サイズ: {size} ／ 総行数: {total:,} 行 ／ 推奨分割行数: {suggest}"
+        except Exception as exc:
+            text = f"解析に失敗しました: {exc}"
+        try:
+            self.after(0, self._show_analysis, text)
+        except (RuntimeError, tk.TclError):
+            pass  # 解析中にウィンドウが閉じられた
+
+    def _show_analysis(self, text):
+        if self.winfo_exists():
+            self._analyze_label.config(text=text, foreground="")
 
 
 # ------------------------------------------------------------------
@@ -538,9 +579,14 @@ class CsvSplitterPanel(ToolPanelBase):
         ttk.Label(self, text="お気に入り").grid(row=1, column=0, sticky="w", pady=(0, 4))
         self.preset_var = tk.StringVar(value=_NO_PRESET)
         self.preset_combo = ttk.Combobox(self, textvariable=self.preset_var, state="readonly")
-        self.preset_combo.grid(row=1, column=1, columnspan=2, sticky="ew",
-                               padx=(8, 0), pady=(0, 4))
+        self.preset_combo.grid(row=1, column=1, sticky="ew", padx=(8, 4), pady=(0, 4))
         self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_selected)
+        preset_btns = ttk.Frame(self)
+        preset_btns.grid(row=1, column=2, pady=(0, 4))
+        ttk.Button(preset_btns, text="保存...", width=6,
+                   command=self._save_preset).pack(side="left")
+        ttk.Button(preset_btns, text="削除", width=5,
+                   command=self._delete_preset).pack(side="left", padx=(4, 0))
         self._presets = {}
 
         self.config_label = ttk.Label(self, text="", foreground="#888888")
@@ -589,6 +635,58 @@ class CsvSplitterPanel(ToolPanelBase):
     def _on_preset_selected(self, _event=None):
         self._refresh_config_label()
         self.app.update_command_preview()
+
+    def _write_presets(self):
+        path = self.tool_dir / "config" / "presets.json"
+        try:
+            path.write_text(json.dumps(self._presets, ensure_ascii=False, indent=2) + "\n",
+                            encoding="utf-8")
+            return True
+        except OSError as exc:
+            messagebox.showerror("エラー", f"プリセットの保存に失敗しました:\n{exc}")
+            return False
+
+    def _save_preset(self):
+        try:
+            config = json.loads(
+                (self.tool_dir / "config" / "config.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            messagebox.showerror("エラー", f"config.json を読み込めません:\n{exc}")
+            return
+        current = self.preset_var.get()
+        name = simpledialog.askstring(
+            "お気に入り保存",
+            "プリセット名を入力してください\n（現在の config.json の設定を保存します）:",
+            initialvalue="" if current == _NO_PRESET else current, parent=self.app)
+        if name is None:
+            return
+        name = name.strip()
+        if not name:
+            return
+        if name in self._presets and not messagebox.askyesno(
+                "確認", f"プリセット「{name}」は既に存在します。上書きしますか？"):
+            return
+        self._presets[name] = {key: config.get(key) for key in
+                               ("rows_per_file", "encoding", "has_header", "delimiter")}
+        if not self._write_presets():
+            return
+        self.refresh()
+        self.preset_var.set(name)
+        self._on_preset_selected()
+
+    def _delete_preset(self):
+        name = self.preset_var.get()
+        if name == _NO_PRESET or name not in self._presets:
+            messagebox.showinfo("情報", "削除するプリセットを選択してください。")
+            return
+        if not messagebox.askyesno("確認", f"プリセット「{name}」を削除しますか？"):
+            return
+        self._presets.pop(name, None)
+        if not self._write_presets():
+            return
+        self.preset_var.set(_NO_PRESET)
+        self.refresh()
+        self._on_preset_selected()
 
     def _refresh_config_label(self):
         preset_name = self.preset_var.get()
