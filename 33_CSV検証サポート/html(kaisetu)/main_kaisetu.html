@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>33_CSV検証サポート 設計・解説資料</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+    .warning {
+      background: #fff4e5;
+      border-left: 6px solid #f5a623;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 0.95em;
+    }
+    th {
+      background: #f4f4f4;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>33_CSV検証サポート 解説資料</h1>
+
+<div class="box">
+  <h2>1. このツール群の役割（全体像）</h2>
+  <p>
+    <strong>33_CSV検証サポート</strong> は、CSV/固定長テキストの
+    <strong>「分割」「改行付与」「差分比較」</strong>という3つの独立した検証作業を、
+    <strong>1つのランチャーGUI（launcher_gui.py）から実行・監視できるようにしたツール群</strong>です。
+  </p>
+  <ul>
+    <li><code>text_splitter</code> — 巨大な区切りテキスト（CSV/TSV/TXT/DAT）を指定件数ごとに分割</li>
+    <li><code>fixed_length_formatter</code> — 改行なしの固定長レコードファイルにバイト単位で改行を付与</li>
+    <li><code>diff_csv</code> — 新旧2つの郵便番号CSVを比較し、差分と発行推定情報付きCSVを出力</li>
+  </ul>
+
+  <div class="point">
+    3ツールはそれぞれ<strong>CLIとして単独でも動く独立プログラム</strong>です。
+    ランチャーはそれらを <code>subprocess.Popen</code> で呼び出す「監督役」に徹しており、
+    分割・変換・比較のロジック自体はランチャーの外（各ツールの <code>src/run.py</code>）にあります。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. フォルダ構成と依存関係</h2>
+  <pre>
+33_CSV検証サポート/
+├── launcher_gui.py         : 3ツールを起動・監視する内蔵型ランチャー（本体）
+├── launcher.json            : 00_ランチャー（上位ランチャー）への登録マニフェスト
+├── run.bat                  : ダブルクリック起動用
+├── logs/                    : ランチャーが保存する実行ログ（30日で自動zip化）
+│
+├── text_splitter/
+│   ├── src/run.py            : 分割のコアロジック + CLIエントリポイント
+│   ├── src/analyze.py         : 事前解析（エンコード判定・行数カウント・推奨行数）tkinter非依存
+│   ├── src/presets.py         : お気に入り設定（config/presets.json）の読み書き
+│   ├── src/gui.py              : 単体GUI（run.py/analyze.py/presets.pyを呼ぶだけ）
+│   └── config/config.json      : 実行パラメータ（rows_per_file / encoding / has_header / delimiter）
+│
+├── fixed_length_formatter/
+│   ├── src/run.py             : 変換のコアロジック + CLIエントリポイント
+│   └── config/config.json      : 実行パラメータ（record_bytes / newline / encoding）
+│
+└── diff_csv/
+    ├── run.py                  : エントリポイント（src.postcode_diff.main を呼ぶだけ）
+    ├── src/postcode_diff.py     : 差分比較・発行情報付与のコアロジック
+    ├── src/utils.py             : 郵便番号CSV読み込み共通関数
+    ├── input/                   : 比較対象CSVの置き場（ファイル名はpostcode_diff.pyにハードコード）
+    └── output/                  : 差分結果4ファイルの出力先
+  </pre>
+
+  <div class="point">
+    <strong>「GUI」と「ロジック」が完全に分離</strong>しています。
+    launcher_gui.py はもちろん、各ツールの単体GUI（text_splitter/src/gui.py）ですら
+    ロジックを持たず、<code>run.py</code> の関数を呼ぶだけです。
+    そのため <strong>CLIから直接叩いても、ランチャー経由でも、単体GUIからでも同じ結果になる</strong>
+    ことが設計上保証されています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>3. ToolPanelBase — 差し替え可能なパネル設計</h2>
+  <pre><code>
+class ToolPanelBase(ttk.Frame):
+    name = ""          # BASE_DIR/name がツールフォルダになる
+    title = ""          # 一覧表示名
+    description = ""
+
+    def build_command(self):
+        """(コマンドリスト, 作業ディレクトリ) を返す。実行不可なら ValueError。"""
+        raise NotImplementedError
+
+    def run_input_label(self): ...      # サマリーに出す入力表示名
+    def on_run_finished(self, new_files): ...  # 実行完了フック
+    def refresh(self): ...              # パネル表示時・↻ボタンで再スキャン
+  </code></pre>
+  <p>
+    <code>TextSplitterPanel</code> / <code>FixedLengthFormatterPanel</code> / <code>DiffCsvPanel</code>
+    はいずれもこの基底クラスを継承し、<code>_PANEL_CLASSES</code> リストに登録されているだけです。
+  </p>
+  <div class="point">
+    新しいツールを追加したいときは、<strong><code>build_command()</code> さえ実装すれば
+    ランチャーの実行・ログ・サマリー・出力検知の仕組みにそのまま乗る</strong>設計になっています
+    （README.md の「ツールを追加する」節に手順あり）。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. 実行フロー（Run ボタンを押してから）</h2>
+  <pre>
+_on_run()
+ ├─ panel.build_command()            → コマンド組み立て（失敗ならここでエラー表示して終了）
+ ├─ _snapshot_dir(output_dir)         → 実行前の出力フォルダの状態を記録
+ └─ threading.Thread(_run_process)    → 別スレッドでサブプロセス実行
+      │
+      │  proc.stdout を1行ずつ log_queue に流し込む（tkinterに直接触らない）
+      ▼
+ _drain_log_queue()（100msごとのafterループ、メインスレッド）
+ ├─ 通常行 → _append_log()（色分けして表示）
+ └─ 完了通知(_SENTINEL_RUN_DONE) → _on_run_finished()
+      ├─ ログを logs/&lt;tool&gt;_&lt;日時&gt;.log に自動保存
+      ├─ _detect_new_files()          → スナップショットとの差分で新規/更新ファイルを検知
+      ├─ _show_run_summary()          → サマリー行を色分け表示＋点滅
+      └─ panel.on_run_finished(new_files)  → ツール固有の後処理フック
+  </pre>
+  <div class="point">
+    ワーカースレッドは <strong>ログと完了通知を必ず <code>log_queue</code> 経由でメインスレッドに渡す</strong>
+    という一本のルールを徹底しています。Tkinterウィジェットをスレッドから直接触らないことで、
+    実行中にウィンドウを閉じても壊れない設計です。
+  </div>
+  <div class="warning">
+    「出力ファイルの検知」は<strong>実行前後のスナップショット差分</strong>で行われます。
+    そのためツール側が既存ファイルを実行のたびに上書きする設計だと検知漏れが起きます
+    （実際、3ツールとも出力は「実行ごとのサブディレクトリ」または「新規ファイル」になるよう
+    設計されており、この前提を満たしています）。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. text_splitter のコアロジック（split_csv）</h2>
+  <p>
+    <code>csv.reader</code> / <code>csv.writer</code> によるストリーム処理で、
+    ファイル全体をメモリに載せずに <code>rows_per_file</code> 行ごとに分割します。
+  </p>
+  <ul>
+    <li>区切り文字は <code>delimiter</code> が null なら先頭20行の <code>, \t ;</code> 出現数から自動判定（<code>_detect_delimiter</code>）</li>
+    <li>出力は <code>output_dir/&lt;stem&gt;_&lt;YYYYMMDD_HHMMSS&gt;/</code> という<strong>実行ごとのサブディレクトリ</strong>に生成（再実行しても上書きされない）</li>
+    <li>進捗は10,000行ごとに <code>progress</code> コールバックで通知（CLIはprint、GUIはキュー投入）</li>
+    <li>エラー時も <code>finally</code> で必ずログを書き出してから例外を再送出</li>
+  </ul>
+  <div class="point">
+    <code>SplitOptions</code>（実行パラメータ）と <code>config/config.json</code> は1対1対応で、
+    <code>from_config_file()</code> で読み込み、<code>validate()</code> で検証します。
+    <code>config/presets.json</code> に名前付きで保存すれば、CLIから <code>--preset 名前</code> でも
+    GUIの「お気に入り」からでも同じ設定を呼び出せます。
+  </div>
+</div>
+
+<div class="box">
+  <h2>6. fixed_length_formatter のコアロジック（format_fixed_length）</h2>
+  <p>
+    改行が一切ない固定長レコード（1レコード=<code>record_bytes</code>バイト）に、
+    <strong>バイナリストリーム処理</strong>（1MBチャンク）で改行を挿入します。
+  </p>
+  <ul>
+    <li>CP932の全角2バイトなど、<strong>バイト単位</strong>で区切ることを前提にしている（文字単位では区切らない）</li>
+    <li>先頭のUTF-8 BOMは検出して読み飛ばす（レコード境界がズレないように）</li>
+    <li><code>record_bytes</code> で割り切れない場合、末尾の半端バイトも出力しつつ<strong>警告</strong>を記録する（変換は止めない）</li>
+    <li>先頭レコードを <code>encoding</code>（既定cp932）でデコードできるかを境界チェックとして記録する（<code>boundary_ok</code>）</li>
+  </ul>
+  <div class="point">
+    「変換を止めずに警告だけ出す」という設計により、<strong>レコード長の指定が間違っていても
+    最後まで実行が終わり、結果とログから間違いに気づける</strong>ようになっています。
+    ランチャーの「折り返し確認」プレビューはこの境界チェックをGUI上で事前に試せる機能です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>7. diff_csv のコアロジック（postcode_diff）</h2>
+  <p>
+    新旧2つの郵便番号CSVから <code>postcode</code> 列を <code>set</code> として読み込み、
+    集合演算だけで差分を出します。
+  </p>
+  <pre>
+only_in_old = set_old - set_new   # 廃止候補
+only_in_new = set_new - set_old   # 新規追加
+in_both     = set_old & set_new   # 継続
+  </pre>
+  <p>
+    さらに新ファイルの各行に <code>issue_info</code> / <code>issue_date_estimate</code> / <code>issue_note</code>
+    列を追加した「発行推定情報付きCSV」も出力します。
+  </p>
+  <div class="warning">
+    他の2ツールと違い、<strong>入力ファイル名がソースコードにハードコード</strong>されています
+    （<code>postcode_diff.py</code> の <code>OLD_FILE</code> / <code>NEW_FILE</code>）。
+    ランチャーの <code>DiffCsvPanel</code> はこの定義を正規表現で読み取って存在チェック表示するだけで、
+    <strong>ファイルを差し替えるにはソースコードを編集する必要がある</strong>点が他の2ツールと設計思想が異なります。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. プレビューウィンドウ群の狙い</h2>
+  <table>
+    <tr><th>ウィンドウ</th><th>役割</th></tr>
+    <tr><td>InputPreviewWindow</td><td>入力ファイルの先頭10行とエンコードを表示し、<code>has_header</code>設定の判断材料にする。バックグラウンドで総行数・推奨分割行数も解析する</td></tr>
+    <tr><td>FixedLengthPreviewWindow</td><td>レコード長を変えながら冒頭10レコードの折り返しをリアルタイムプレビュー。全レコードの境界チェック✓/✗付き</td></tr>
+    <tr><td>OutputDetailWindow</td><td>実行で作成・更新された出力ファイルの一覧（サイズ・件数・エンコード）。解析はウィンドウを開いたときだけ実行</td></tr>
+  </table>
+  <div class="point">
+    どのプレビューも「先頭の一部だけ読む」ことで<strong>巨大ファイルでも一瞬で結果が返る</strong>よう
+    徹底されています（<code>_read_head_lines</code> は64KBまで、
+    <code>FixedLengthPreviewWindow</code> は レコード長×10バイトまでしか読みません）。
+    重い処理（全行カウント）だけを別スレッドに逃がし、UIをブロックしないようにしています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. 出力ファイル検知とサマリー表示</h2>
+  <p>
+    実行前に <code>_snapshot_dir()</code> で出力フォルダの {相対パス: mtime} を記録し、
+    実行後に <code>_detect_new_files()</code> で比較することで「今回の実行で作成・更新されたファイル」だけを検知します。
+  </p>
+  <ul>
+    <li>text_splitter/fixed_length_formatter は「実行ごとサブディレクトリ」1階層下まで検知対象</li>
+    <li>サマリーは状態で色分け（実行中=青／出力あり=緑／出力なし=オレンジ）され、完了時に点滅して気づかせる</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>10. 自動クリーンアップ</h2>
+  <p>
+    起動0.3秒後にバックグラウンドで、<code>LOG_CLEANUP_DAYS</code> / <code>OUTPUT_CLEANUP_DAYS</code>
+    （既定30日）より古いログ・出力ファイルを<strong>削除ではなくzip圧縮</strong>してから消します
+    （<code>logs/archive/</code>、各ツールの <code>&lt;出力フォルダ&gt;/archive/</code>）。
+  </p>
+  <div class="point">
+    実行ごとサブディレクトリは<strong>フォルダ単位で1つのzip</strong>にまとめられ、
+    新旧判定は「配下ファイルの最新更新日時」（<code>_latest_mtime</code>）で行われます。
+    <code>archive/</code> 自体や <code>desktop.ini</code> 等の出力拡張子以外のファイルは対象外です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>11. ツール間連携（fixed_length_formatter → text_splitter）</h2>
+  <p>
+    「変換後、結果を text_splitter の入力にセットする」トグルがONの場合、
+    <code>FixedLengthFormatterPanel.on_run_finished()</code> が
+    <code>text_splitter</code> パネルの入力欄に変換結果を直接セットし、
+    ツール選択を自動的に切り替えます。
+  </p>
+  <div class="point">
+    「改行なし固定長 → 改行付与 → 行数分割」という<strong>典型的な作業の流れを1画面内で
+    シームレスに繋ぐ</strong>導線です。パネル同士は <code>self.app.panels</code> 経由で
+    互いを参照できる設計になっています。
+  </div>
+</div>
+
+<div class="box">
+  <h2>12. 設計思想まとめ</h2>
+  <ul>
+    <li>GUIはロジックを持たない（ロジックは常に <code>src/run.py</code> 側）</li>
+    <li>CLI・単体GUI・統合ランチャーの3経路から同じ結果が得られる</li>
+    <li>スレッドとUIは <code>queue</code> 経由でのみやり取りする</li>
+    <li>重い処理（全件解析）は必要になるまで実行しない・別スレッドに逃がす</li>
+    <li>エラー時も必ずログを書き切ってから失敗を伝える</li>
+    <li>削除ではなくzip化して、取り返しのつかない操作を避ける</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>13. 発展・改善余地</h2>
+  <ul>
+    <li>diff_csv の入力ファイル名をGUIから差し替え可能にする（現状はソース編集が必要）</li>
+    <li>text_splitter / fixed_length_formatter の「単体GUI」とランチャー内パネルのUIロジック重複の整理</li>
+    <li>プレビュー系ウィンドウ（Input/FixedLength）の実装パターンの共通化</li>
+  </ul>
+</div>
+
+</body>
+</html>

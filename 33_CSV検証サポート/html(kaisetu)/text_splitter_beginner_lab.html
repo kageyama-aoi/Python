@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>text_splitter を動かして学ぶ実験ノート（IT新人向け）</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+    .warning {
+      background: #fff4e5;
+      border-left: 6px solid #f5a623;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    .try {
+      background: #eefbf0;
+      border: 1px solid #b6e6bf;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 14px 0;
+    }
+    .try h4 {
+      margin: 0 0 8px 0;
+      color: #1e7a34;
+    }
+    .try pre {
+      background: #1e1e1e;
+      color: #e0e0e0;
+      margin: 8px 0;
+    }
+    .output {
+      background: #1e1e1e;
+      color: #b7f7c1;
+      font-family: Consolas, monospace;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 8px 0;
+      white-space: pre-wrap;
+    }
+    .refcode {
+      font-size: 0.9em;
+      color: #888;
+      border-top: 1px dashed #ddd;
+      margin-top: 12px;
+      padding-top: 8px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 0.95em;
+    }
+    th {
+      background: #f4f4f4;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>text_splitter を「動かして学ぶ」実験ノート</h1>
+
+<div class="box">
+  <p>
+    この資料は、<code>33_CSV検証サポート/text_splitter</code> の実際のコードから
+    <strong>「よく使う考え方」だけを短いサンプルに切り出し、実際に動かしながら少しずつ理解する</strong>
+    ための入門編です。専門用語はできるだけ使わず、出てきた場合はその場で説明します。
+  </p>
+  <ul>
+    <li><strong>対象読者</strong>: Python を始めたばかりの方・IT新人の方</li>
+    <li><strong>使い方</strong>: 各セクションのコードをコピーして <code>.py</code> ファイルに貼り付け、
+      <code>python ファイル名.py</code> で実行してみてください（メモ帳＋コマンドプロンプトでOK）</li>
+    <li><strong>ゴール</strong>: 最終的に上級編
+      <a href="text_splitter_tech.html">text_splitter_tech.html</a>（実際のコードそのままの技術解説）を
+      読んで意味がわかるようになること。この資料は<strong>その手前の練習台</strong>で、
+      上級編を消したり簡単な内容に置き換えたりするものではありません。</li>
+  </ul>
+  <div class="point">
+    各セクションの最後に「本物のコードではここ」という欄があります。
+    練習で書いたミニ版のコードが、実際の <code>run.py</code> / <code>analyze.py</code> の
+    どの部分に対応しているかを確認できます。慣れてきたら、実際のファイルをエディタで開いて
+    見比べてみてください。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 1. ファイルを「1行ずつ」読むとはどういうことか</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    Python でファイルを読むとき、<code>for line in ファイル:</code> と書くと、
+    ファイルの中身を全部一気に読み込むのではなく、<strong>1行ずつ順番に</strong>渡してくれます。
+    この「必要な分だけ少しずつ扱う」やり方を、この資料では「ストリーム処理」と呼びます
+    （水道の蛇口から少しずつ水が出てくるイメージです）。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab1.py
+
+# 練習用の大きめファイルを作る（30万行）
+with open("sample.txt", "w", encoding="utf-8") as f:
+    for i in range(300_000):
+        f.write(f"data-{i}\n")
+
+# 1行ずつ処理する
+count = 0
+with open("sample.txt", "r", encoding="utf-8") as f:
+    for line in f:              # ← ここが「1行ずつ渡してもらう」書き方
+        count += 1
+        if count <= 3:
+            print(f"{count}行目: {line.strip()}")
+
+print(f"合計 {count} 行を読みました")
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">1行目: data-0
+2行目: data-1
+3行目: data-2
+合計 300000 行を読みました</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    もしこれが「ファイルの中身を一気に全部メモリ（作業机の広さ）に載せる」やり方だと、
+    ファイルが数GBもあるとパソコンが重くなったり止まったりします。
+    1行ずつ扱えば、机の上にはいつも1行分しか載らないので、ファイルがどれだけ大きくても平気です。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>range(300_000)</code> を <code>range(3_000_000)</code> に増やしても、同じくらいの速さで動くか確認してみましょう</li>
+      <li><code>for line in f:</code> の代わりに <code>lines = f.readlines()</code>
+        （＝一気に全部読み込む書き方）に変えて、行数を増やしたときの違いを感じてみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>split_csv()</code> 関数内、
+    <code>for row in reader:</code>（163〜192行あたり）。CSVを読むときも同じ考え方が使われています。
+    上級編は「技術ポイント1」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 2. 「設定」と「結果」を別の入れ物にする（dataclass）</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    <code>dataclass</code>（データクラス）は、複数の値をひとまとめにして名前を付けて扱うための仕組みです。
+    辞書（<code>{"rows_per_file": 1000, ...}</code>）でも似たことはできますが、
+    <code>dataclass</code> を使うと「何という名前の値が入っているか」がコードを読むだけで分かります。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab2.py
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class MyOptions:
+    rows_per_file: int
+    encoding: str
+    has_header: bool = True
+    delimiter: Optional[str] = None
+
+    def validate(self):
+        if self.rows_per_file <= 0:
+            raise ValueError("rows_per_file は1以上にしてください")
+
+opt = MyOptions(rows_per_file=1000, encoding="utf-8")
+print(opt)
+print("行数:", opt.rows_per_file)
+
+opt2 = MyOptions(rows_per_file=-5, encoding="utf-8")
+opt2.validate()   # ← ここで止まるはず
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">MyOptions(rows_per_file=1000, encoding='utf-8', has_header=True, delimiter=None)
+行数: 1000
+Traceback (most recent call last):
+  ...
+ValueError: rows_per_file は1以上にしてください</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    「まちがった値が入っていないか確認する」処理（<code>validate</code>）を、
+    値そのもの（<code>MyOptions</code>）にくっつけておくと、値を使う人は毎回チェック方法を
+    調べなくても <code>.validate()</code> を呼ぶだけで済みます。
+    「データ」と「そのデータが正しいかを確認するルール」をセットで持たせる、という考え方です。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>validate()</code> に <code>encoding</code> が空文字でないかのチェックも追加してみましょう</li>
+      <li><code>ValueError</code> を <code>try / except</code> で受け止めて、
+        「エラーが起きました:」に続けてメッセージを表示するように書き換えてみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>SplitOptions</code>
+    クラス（20〜44行あたり）。実際にはさらに <code>from_config_file()</code>
+    という「設定ファイルから作る」機能も付いています。
+    上級編は「技術ポイント2」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 3. コンピュータに「区切り文字」を当てさせる</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    CSVファイルはカンマ区切りが多いですが、タブ区切りやセミコロン区切りのこともあります。
+    「先頭の数行を見て、一番たくさん出てきた記号をその区切り文字とみなす」という
+    単純な多数決で、区切り文字を自動的に当てることができます。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab3.py
+def guess_delimiter(sample_lines):
+    candidates = {",": 0, "\t": 0, ";": 0}
+    for line in sample_lines:
+        for d in candidates:
+            candidates[d] += line.count(d)
+    best = max(candidates, key=lambda d: candidates[d])
+    return best if candidates[best] > 0 else ","   # 誰も勝たなければカンマを既定にする
+
+lines_comma = ["a,b,c", "1,2,3"]
+lines_tab = ["a\tb\tc", "1\t2\t3"]
+
+print("カンマ区切りの判定結果:", repr(guess_delimiter(lines_comma)))
+print("タブ区切りの判定結果:", repr(guess_delimiter(lines_tab)))
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">カンマ区切りの判定結果: ','
+タブ区切りの判定結果: '\t'</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    自動で当ててくれると便利ですが、外れることもあります。だから実際のコードでは
+    「利用者が区切り文字を指定していたら、自動判定より必ずそちらを優先する」というルールも
+    セットになっています。「便利な自動機能」には必ず「人間が上書きできる余地」を残す、という
+    考え方は覚えておくと役に立ちます。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>lines_semicolon = ["a;b;c", "1;2;3"]</code> を作って判定させてみましょう</li>
+      <li>カンマとタブが両方ちょっとずつ混ざった行を作って、どちらが勝つか確かめてみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>_detect_delimiter()</code>
+    関数（66〜80行あたり）。実際には先頭20行をサンプリングし、
+    誰も勝たなければ拡張子（<code>.csv</code>ならカンマ）で決めます。
+    上級編は「技術ポイント3」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 4. フォルダは「本当に必要になった瞬間」に作る</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    「これから使うかもしれないフォルダ」を先に作っておくと、結局何も書き込まなかったときに
+    <strong>空っぽのフォルダがゴミとして残ってしまう</strong>ことがあります。
+    それを防ぐために、「最初のファイルを書き込む、まさにその直前」までフォルダ作成を遅らせます。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab4.py
+from pathlib import Path
+
+output_dir = Path("output_lab")
+
+def process(rows):
+    made_dir = False
+    for i, row in enumerate(rows):
+        if not made_dir:
+            output_dir.mkdir(exist_ok=True)
+            made_dir = True
+            print("ここで初めてフォルダを作った！")
+        print(f"{i}行目を書き込むふり: {row}")
+
+print("--- 空のデータで実行 ---")
+process([])
+print("output_lab フォルダはある？:", output_dir.exists())
+
+print("--- 中身ありで実行 ---")
+process(["a", "b"])
+print("output_lab フォルダはある？:", output_dir.exists())
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">--- 空のデータで実行 ---
+output_lab フォルダはある？: False
+--- 中身ありで実行 ---
+ここで初めてフォルダを作った！
+0行目を書き込むふり: a
+1行目を書き込むふり: b
+output_lab フォルダはある？: True</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    「フォルダを作る」「ファイルを開く」のような、パソコンの中身を実際に変える処理を
+    <strong>副作用</strong>と呼びます。副作用は「本当に必要になるまで起こさない」ようにすると、
+    処理が空振りに終わったときにゴミが残らず、後片付けの手間も減ります。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>if not made_dir:</code> の判定を外して、ループの前で毎回 <code>mkdir</code>
+        するように書き換え、空データのときに何が変わるか比べてみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>split_csv()</code> 内、
+    <code>run_output_dir.mkdir(parents=True, exist_ok=True)</code>（173行あたり）が
+    ループの中、最初のファイルを開く直前に置かれています。
+    上級編は「技術ポイント4」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 5. 「進捗の表示方法」を後から差し替えられるようにする</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    <strong>コールバック</strong>とは、「あとで呼び出してもらうために渡しておく関数」のことです。
+    処理の途中経過を「画面に表示する」のか「記録だけしておく」のかを、
+    呼び出す側（使う人）が自由に選べるようにできます。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab5.py
+def count_to(n, on_progress=None):
+    for i in range(1, n + 1):
+        if on_progress and i % 3 == 0:
+            on_progress(i)
+    return n
+
+print("--- 画面に表示するパターン ---")
+count_to(10, on_progress=lambda i: print(f"{i}まで進んだよ"))
+
+print("--- 記録だけするパターン ---")
+log = []
+count_to(10, on_progress=log.append)
+print("記録された進捗:", log)
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">--- 画面に表示するパターン ---
+3まで進んだよ
+6まで進んだよ
+9まで進んだよ
+--- 記録だけするパターン ---
+記録された進捗: [3, 6, 9]</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    <code>count_to</code> という関数自体は「進捗をどう見せるか」を一切知りません。
+    だから同じ <code>count_to</code> を、コマンド画面用にもGUI画面用にも書き換えなしで使い回せます。
+    「表示の仕方」のような呼び出す人ごとに変わる部分は、関数の中に書き込まず外から渡す、
+    という発想です。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>on_progress</code> に、進捗をファイルに書き込む関数を渡してみましょう
+        （<code>open("progress.log", "a")</code> で追記モードにするヒント）</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>split_csv()</code> の
+    <code>progress</code> 引数（10,000行ごとに呼ばれる）。
+    CLI（コマンド実行）では <code>print</code> を渡し、GUIでは画面更新用のキューに積む関数を渡します。
+    上級編は「技術ポイント5」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 6. エラーが起きても「後片付け」だけは必ずやる</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    Pythonで異常事態（エラー）が起きることを<strong>例外</strong>と呼びます。
+    <code>try</code> はまず試したい処理、<code>except</code> はエラーが起きたときの処理、
+    <code>finally</code> は<strong>エラーが起きても起きなくても必ず実行される</strong>処理です。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab6.py
+def risky_divide(a, b):
+    log = []
+    try:
+        result = a / b
+        log.append(f"成功: {a} / {b} = {result}")
+        return result
+    except ZeroDivisionError as e:
+        log.append(f"エラー発生: {e}")
+        raise   # ← ここで「エラーがありました」と呼び出し元に伝える
+    finally:
+        print("ログ:", log)
+        print("(成功でも失敗でも必ずここが実行される)")
+
+risky_divide(10, 2)
+print("---")
+try:
+    risky_divide(10, 0)
+except ZeroDivisionError:
+    print("呼び出し元でエラーを受け取った")
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">ログ: ['成功: 10 / 2 = 5.0']
+(成功でも失敗でも必ずここが実行される)
+---
+ログ: ['エラー発生: division by zero']
+(成功でも失敗でも必ずここが実行される)
+呼び出し元でエラーを受け取った</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    「ログを書く」「開いたファイルを閉じる」のような後片付けは、エラーが起きたかどうかに
+    関係なく必ずやりたい処理です。<code>finally</code> に置いておけば、
+    どんな終わり方をしても後片付け漏れが起きません。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>raise</code> の行を消して実行し、<code>except ZeroDivisionError:</code> が
+        呼び出し元で反応しなくなる（エラーが「握りつぶされる」）ことを確認してみましょう。
+        これは実務でもやってしまいがちな失敗パターンです</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/run.py</code> の <code>split_csv()</code> 全体
+    （162〜219行あたり）。ログをファイルに書き出す <code>write_log()</code> の呼び出しが
+    <code>finally</code> の中にあります。
+    上級編は「技術ポイント6」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 7. 大きいファイルの行数を高速に数える</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    ファイルの行数を数えるだけなら、中身を文字として読む必要はありません。
+    改行記号（<code>\n</code>）が何回出てきたかを、バイトのまま数えるだけで十分です。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす（Lab1で作った sample.txt を使います）</h4>
+    <pre><code>
+# lab7.py
+import time
+
+def count_naive(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return len(f.readlines())
+
+def count_fast(path):
+    count = 0
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            count += chunk.count(b"\n")
+    return count
+
+start = time.time()
+print("素朴な方法:", count_naive("sample.txt"), "行 /", round(time.time() - start, 3), "秒")
+
+start = time.time()
+print("高速な方法:", count_fast("sample.txt"), "行 /", round(time.time() - start, 3), "秒")
+    </code></pre>
+    <p>実行結果イメージ（ファイルサイズによって秒数は変わります）：</p>
+    <div class="output">素朴な方法: 300000 行 / 0.045 秒
+高速な方法: 300000 行 / 0.021 秒</div>
+  </div>
+
+  <div class="point">
+    <strong>なぜ大事？</strong><br>
+    「本当に必要な情報は何か」を考えると、無駄な処理を削れることがあります。
+    ここでは「文字として正しく読む」処理を省き、「バイト列の中の改行の数を数える」
+    だけにすることで速くなっています。ファイルが数百MB〜数GBになるほど差が大きくなります。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li>Lab1の <code>range(300_000)</code> を <code>range(5_000_000)</code> くらいまで増やして
+        <code>sample.txt</code> を作り直し、2つの方法の速度差がどれくらい開くか比べてみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/analyze.py</code> の
+    <code>_count_rows()</code> 関数（26〜31行あたり）。
+    上級編は「技術ポイント8」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>Lab 8. 文字コードを「実際に読めるか試して」当てる</h2>
+  <p>
+    <strong>これは何？</strong><br>
+    日本語のファイルは <code>utf-8</code> や <code>shift_jis</code> など、複数の文字コード
+    （文字をバイト列に変換するルール）で保存されることがあります。
+    正しい文字コードで読まないと文字化けします。「候補のルールを順番に試して、
+    最後まで問題なく読めたものを採用する」というやり方で判定できます。
+  </p>
+
+  <div class="try">
+    <h4>手を動かす</h4>
+    <pre><code>
+# lab8.py
+def guess_encoding(raw_bytes):
+    for enc in ("utf-8", "shift_jis", "cp932"):
+        try:
+            raw_bytes.decode(enc)
+            return enc
+        except UnicodeDecodeError:
+            continue
+    return "不明"
+
+utf8_bytes = "こんにちは".encode("utf-8")
+sjis_bytes = "こんにちは".encode("shift_jis")
+
+print("UTF-8で作ったバイト列 →", guess_encoding(utf8_bytes))
+print("Shift-JISで作ったバイト列 →", guess_encoding(sjis_bytes))
+    </code></pre>
+    <p>実行結果イメージ：</p>
+    <div class="output">UTF-8で作ったバイト列 → utf-8
+Shift-JISで作ったバイト列 → shift_jis</div>
+  </div>
+
+  <div class="warning">
+    <strong>注意点</strong><br>
+    この方法は万能ではありません。バイト列によっては「本当は違う文字コードなのに、
+    たまたまエラーが出ずに読めてしまい、実は文字化けした結果を採用してしまう」ことがあります。
+    「エラーが出なかった＝100%正しい」ではなく「それらしく読めた」程度に考えておきましょう。
+    実際のコードは、さらに確実な手がかり（BOMという目印）も先にチェックしています。
+  </div>
+
+  <div class="try">
+    <h4>発展：試してみよう</h4>
+    <ul>
+      <li><code>guess_encoding</code> の候補リストから <code>"shift_jis"</code> を外して実行し、
+        Shift-JISのバイト列がどう判定されるか（文字化けが起きるか）確認してみましょう</li>
+    </ul>
+  </div>
+
+  <div class="refcode">
+    本物のコードではここ: <code>text_splitter/src/analyze.py</code> の
+    <code>_detect_encoding_from_file()</code> 関数（9〜23行あたり）。
+    上級編は「技術ポイント9」に対応。
+  </div>
+</div>
+
+<div class="box">
+  <h2>ここまでのまとめと次のステップ</h2>
+  <table>
+    <tr><th>Lab</th><th>体験したこと</th><th>上級編の対応</th></tr>
+    <tr><td>1</td><td>1行ずつ処理してメモリを節約する</td><td>技術ポイント1</td></tr>
+    <tr><td>2</td><td>dataclassでデータと検証ルールをセットにする</td><td>技術ポイント2</td></tr>
+    <tr><td>3</td><td>自動判定＋人間が上書きできる余地</td><td>技術ポイント3</td></tr>
+    <tr><td>4</td><td>副作用は必要になるまで起こさない</td><td>技術ポイント4</td></tr>
+    <tr><td>5</td><td>コールバックで振る舞いを外から差し替える</td><td>技術ポイント5</td></tr>
+    <tr><td>6</td><td>try/except/finallyで後片付けを保証する</td><td>技術ポイント6</td></tr>
+    <tr><td>7</td><td>本当に必要な処理だけに絞って高速化する</td><td>技術ポイント8</td></tr>
+    <tr><td>8</td><td>実地に試して確実性を上げる／その限界を知る</td><td>技術ポイント9</td></tr>
+  </table>
+
+  <div class="point">
+    ここまでのLabは、すべて実際の <code>text_splitter</code> のコードから
+    「考え方だけ」を取り出した縮小版です。次にやってほしいことは2つ：
+    <ol>
+      <li>上級編 <a href="text_splitter_tech.html">text_splitter_tech.html</a> を開き、
+        各Labの「本物のコードではここ」に書かれた本物の関数を読んでみる</li>
+      <li>実際に <code>33_CSV検証サポート/text_splitter/src/run.py</code> と
+        <code>analyze.py</code> をエディタで開き、Labで書いたミニ版と見比べてみる</li>
+    </ol>
+    ミニ版で「なぜこう書くか」が分かった状態で本物を読むと、
+    最初に読んだときよりずっと理解しやすくなっているはずです。
+  </div>
+</div>
+
+</body>
+</html>

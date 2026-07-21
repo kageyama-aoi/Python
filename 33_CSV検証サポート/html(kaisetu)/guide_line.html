@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>33_CSV検証サポート コードの読み方ガイド</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.75;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    pre, code {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    .warning {
+      background: #fff4e5;
+      border-left: 6px solid #f5a623;
+      padding: 14px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>33_CSV検証サポートを理解するための読み方ガイド</h1>
+
+<div class="box">
+  <h2>はじめに</h2>
+  <p>
+    本資料は、<strong>launcher_gui.py / text_splitter / fixed_length_formatter / diff_csv</strong>
+    を中心としたコード群を、<strong>「どこから・どう読めば理解できるか」</strong>に特化してまとめたものです。
+    アーキテクチャそのものの解説は <code>main_kaisetu.html</code> を参照してください。
+  </p>
+
+  <div class="point">
+    このフォルダは「1つの巨大なアプリ」ではなく、
+    <strong>3つの独立したCLIツール＋それらをまとめるランチャー</strong>という構成です。
+    どのファイルがどのツールに属するかを意識しないまま読み始めると、すぐ迷子になります。
+  </div>
+</div>
+
+<div class="box">
+  <h2>1. やってはいけない読み方</h2>
+  <ul>
+    <li>launcher_gui.py を1行目から順に読む（1500行超あり、UI詳細に埋もれる）</li>
+    <li>3ツールを同時に並行して読む</li>
+    <li>Tkinterのwidgetオプションを1つ1つ理解しようとする</li>
+  </ul>
+
+  <div class="warning">
+    launcher_gui.py は「サブウィンドウ4種＋パネル3種＋メインウィンドウ」という
+    多数のクラスが1ファイルに並んでいます。先頭から読むと、まだ出てこない
+    <code>ToolPanelBase</code> の存在を知らずに個別サブウィンドウの詳細を追うことになり、
+    全体像を掴む前に消耗します。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. このコード群の正体（最重要）</h2>
+  <p>
+    launcher_gui.py は「3ツールのGUIを実装したアプリ」ではありません。
+  </p>
+
+  <div class="point">
+    <strong>各ツールの <code>src/run.py</code> をサブプロセスとして呼び出し、
+    標準出力をログとして表示するだけの「監督役」</strong>です。
+  </div>
+
+  <ul>
+    <li>分割・変換・比較の実処理はランチャーの外（各ツールの run.py）にある</li>
+    <li>ランチャーが知っているのは「コマンドの組み立て方」と「出力フォルダの場所」だけ</li>
+    <li>ロジックを読みたいなら run.py へ、UIの挙動を読みたいなら launcher_gui.py へ、と目的で読む場所を分ける</li>
+  </ul>
+</div>
+
+<div class="box">
+  <h2>3. 正しい読み順（全体像）</h2>
+  <pre>
+Step1  README.md で世界観を掴む（launcher_gui.py用 / 各ツール用）
+Step2  ToolPanelBase（launcher_gui.py）を仕様書として読む
+Step3  1つのツールに絞り、config用データクラス（Options）を読む
+Step4  そのツールの run.py 本体処理を流れで読む
+Step5  launcher_gui.py の実行フロー（サブプロセス起動〜ログ〜サマリー）を読む
+  </pre>
+
+  <div class="point">
+    「ランチャー全体 → 1ツールのオプション → 1ツールの本体 → ランチャーの実行制御」
+    という<strong>外側→中側→外側</strong>の順で読むのが最短です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. Step1：世界観を掴む</h2>
+  <p>
+    まず読むのはコードではなく <code>README.md</code> です。
+  </p>
+  <ul>
+    <li><code>33_CSV検証サポート/README.md</code> — ランチャーの画面構成・実行の流れ・ログ色分けルール</li>
+    <li><code>text_splitter/CLAUDE.md</code> — アーキテクチャと注意点（ランチャーとのCLIインターフェース契約）</li>
+    <li><code>fixed_length_formatter/README.md</code> / <code>diff_csv/README.md</code> — 各ツール固有の仕様</li>
+  </ul>
+  <div class="point">
+    このプロジェクトはREADME/CLAUDE.mdが「設計判断の理由」まで書かれているため、
+    <strong>コードより先にREADMEを読む方が圧倒的に速い</strong>です。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. Step2：ToolPanelBase を仕様書として読む理由</h2>
+  <p>
+    <code>TextSplitterPanel</code> / <code>FixedLengthFormatterPanel</code> / <code>DiffCsvPanel</code>
+    はすべて <code>ToolPanelBase</code> の契約に従っています。
+  </p>
+  <ul>
+    <li><code>build_command()</code> — 実行するコマンドラインを返す（唯一の必須メソッド）</li>
+    <li><code>run_input_label()</code> / <code>on_run_finished()</code> / <code>refresh()</code> — 任意のフック</li>
+  </ul>
+  <div class="point">
+    この4メソッドの役割を先に知っておくと、3つのパネルクラスの実装は
+    <strong>「このメソッドで何をしているか」という差分だけ</strong>を追えばよくなります。
+  </div>
+</div>
+
+<div class="box">
+  <h2>6. Step3：Options データクラスは仕様書</h2>
+  <p>
+    各ツールの <code>run.py</code> にある <code>SplitOptions</code> / <code>FormatOptions</code> は
+    ロジックではありません。
+  </p>
+  <div class="point">
+    <strong>そのツールが受け付けるパラメータの一覧表</strong>であり、
+    <code>config.json</code> のキーと1対1で対応しています。
+  </div>
+  <p>
+    本体処理（<code>if</code> 文や分岐）を読む前に、
+    「何が入力として渡ってきうるか」を <code>from_config_file()</code> と <code>validate()</code>
+    から先に把握しておくと、本体処理の意図が読みやすくなります。
+  </p>
+</div>
+
+<div class="box">
+  <h2>7. Step4：run.py 本体は「ストリーム処理」として読む</h2>
+  <p>
+    3ツールの本体処理はどれも共通の型を持っています。
+  </p>
+  <pre>
+ファイルを開く
+ ↓
+先頭から少しずつ読む（全部をメモリに載せない）
+ ↓
+読んだ分だけ処理して都度書き出す・集計する
+ ↓
+finally で必ずログを書き出す
+  </pre>
+  <div class="point">
+    <code>split_csv</code>（行単位）、<code>format_fixed_length</code>（バイト単位）、
+    <code>postcode_diff.load_postcodes</code>（集合演算）と手段は違いますが、
+    <strong>「巨大ファイルでもメモリに全展開しない」という制約</strong>が3つとも共通の設計軸です。
+    知らずに読むと、なぜチャンク処理や <code>set</code> を使っているのか分かりません。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. Step5：launcher_gui.py の実行フローは「キュー越しの1本道」</h2>
+  <p>
+    ここでようやく launcher_gui.py の中核（<code>_on_run</code> 〜 <code>_on_run_finished</code>）を読みます。
+  </p>
+  <pre>
+_on_run（メインスレッド）
+ → threading.Thread で _run_process を起動
+    → サブプロセスのstdoutを1行ずつ log_queue に put するだけ
+ → _drain_log_queue（100msごとのafterループ、メインスレッド）が
+    log_queue から取り出して画面に反映
+  </pre>
+  <div class="point">
+    「ワーカースレッドは <code>log_queue</code> に put するだけで、
+    tkinterウィジェットには一切触らない」というルールさえ押さえれば、
+    サブウィンドウ4種の実装詳細を追わなくても実行フロー全体が理解できます。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. ムズカシイと感じる正体</h2>
+  <p>
+    このコードが難しく感じるとしたら、能力の問題ではありません。
+  </p>
+  <div class="point">
+    <ul>
+      <li>1ファイルに複数の独立したクラス（サブウィンドウ×4、パネル×3）が並んでいる</li>
+      <li>「今読んでいるのはランチャー側か、ツール本体側か」を意識しないと迷子になる</li>
+      <li>スレッド跨ぎの非同期処理（queue経由）が随所にある</li>
+    </ul>
+    <p>
+      規模は小さく見えて、<strong>「複数プロセス・複数スレッドを1画面にまとめる」という
+      実質フレームワーク的な設計</strong>です。
+    </p>
+  </div>
+</div>
+
+<div class="box">
+  <h2>10. 実践的な読み方（おすすめ）</h2>
+  <ol>
+    <li>まず1つのツール（例: fixed_length_formatter、最も小さい）の README.md を読む</li>
+    <li>そのツールの run.py だけを、CLIのentry point（<code>if __name__ == "__main__"</code>）から遡って読む</li>
+    <li>launcher_gui.py の該当パネルクラス（例: FixedLengthFormatterPanel）だけを読む</li>
+    <li>build_command() が組み立てるコマンドと、run.py の argparse がどう対応しているかを照合する</li>
+  </ol>
+  <div class="point">
+    <strong>「1ツールを縦に貫通して読む」</strong>のが最短です。
+    3ツールを横断的に理解しようとするより、1本理解できれば残り2本は同じパターンの繰り返しだと分かります。
+  </div>
+</div>
+
+<div class="box">
+  <h2>11. まとめ</h2>
+  <ul>
+    <li>launcher_gui.py は「監督役」であり、ロジック本体ではない</li>
+    <li>3ツールはそれぞれ独立したCLIとして完結している（ランチャーはその上に乗るだけ）</li>
+    <li>read順は「README → ToolPanelBase → Options → run.py本体 → 実行フロー」</li>
+    <li>迷ったら「これはランチャー側の話か、ツール本体側の話か」を自問する</li>
+  </ul>
+  <div class="point">
+    「分からない」のではなく<strong>「まだ正しい入口に立っていないだけ」</strong>です。
+    まずは1ツールを縦に読み切ることから始めてください。
+  </div>
+</div>
+
+</body>
+</html>

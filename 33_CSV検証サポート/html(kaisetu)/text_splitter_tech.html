@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>text_splitter/src 技術解説（教材）</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 32px;
+      background: #fafafa;
+      color: #222;
+    }
+    h1, h2, h3 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #f4f4f4;
+      border-radius: 6px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .point {
+      background: #eef6ff;
+      border-left: 6px solid #4a90e2;
+      padding: 12px;
+      margin: 16px 0;
+    }
+    .warning {
+      background: #fff4e5;
+      border-left: 6px solid #f5a623;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 12px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 0.95em;
+    }
+    th {
+      background: #f4f4f4;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>text_splitter/src 技術解説（教材）</h1>
+
+<div class="box">
+  <p>
+    対象: <code>text_splitter/src/run.py</code>（コアロジック＋CLI）、
+    <code>analyze.py</code>（事前解析）、<code>presets.py</code>（プリセット管理）、
+    <code>gui.py</code>（単体GUI）。全体のアーキテクチャは
+    <a href="main_kaisetu.html">main_kaisetu.html</a> を参照。
+    本資料は<strong>他のコードを書くときにも転用できる汎用的な技術パターン</strong>を、
+    実装箇所を示しながら1テーマ1セクションで解説する「技術ポイント集」です。
+  </p>
+</div>
+
+<div class="box">
+  <h2>1. ストリーム処理でメモリを使い切らない（split_csv）</h2>
+  <pre><code>
+with open(input_path, ...) as infile:
+    reader = csv.reader(infile, delimiter=delimiter)
+    for row in reader:
+        ...
+        writer.writerow(row)
+        if rows_in_file >= options.rows_per_file:
+            _close_current_file()
+  </code></pre>
+  <p>
+    ファイル全体を <code>list()</code> や <code>read()</code> で一括ロードせず、
+    <code>csv.reader</code> が1行ずつ読み進めるイテレータであることを利用して、
+    読む→書く→捨てる、を行単位で繰り返している。
+  </p>
+  <div class="point">
+    <strong>「数GBのファイルでも数MBのメモリで処理できる」</strong>のは、
+    データ構造の工夫ではなく<em>一度に持つデータ量を1行分に保つ</em>という設計判断の結果。
+    巨大データを扱うコードを書くときは、まず「今、メモリ上に何行分のデータがあるか」を意識する癖をつけると良い。
+    <code>fixed_length_formatter/src/run.py</code> も同じ発想をバイト単位（1MBチャンク）で実践している。
+  </div>
+</div>
+
+<div class="box">
+  <h2>2. dataclassで「入力」と「結果」を型として分離する</h2>
+  <pre><code>
+@dataclass
+class SplitOptions:
+    rows_per_file: int
+    encoding: str
+    has_header: bool = True
+    delimiter: Optional[str] = None
+
+    @classmethod
+    def from_config_file(cls, config_path: Path) -> "SplitOptions": ...
+    def validate(self) -> None: ...
+
+@dataclass
+class SplitResult:
+    status: str
+    total_rows: int
+    output_summaries: list
+    ...
+  </code></pre>
+  <p>
+    「これから実行するパラメータ」（<code>SplitOptions</code>）と
+    「実行し終わった結果」（<code>SplitResult</code>）を、別々の dataclass として定義している。
+  </p>
+  <div class="point">
+    dict を使い回すと「このキーは今どちらの意味か」が読み手にもIDEにも分からなくなる。
+    <strong>型を分けるだけで、関数のシグネチャ（<code>split_csv(input_path, options) -> SplitResult</code>）
+    が「何を渡すと何が返るか」の仕様書になる</strong>。
+    <code>from_config_file()</code>（生成方法）と <code>validate()</code>（正当性検証）を
+    データクラス自身に持たせている点も、「データとその整合性ルールをセットで管理する」という一貫した考え方。
+  </div>
+</div>
+
+<div class="box">
+  <h2>3. 「賢い自動判定＋常に上書き可能」の二段構え（_detect_delimiter）</h2>
+  <pre><code>
+def _detect_delimiter(path, encoding, ext) -> str:
+    candidates = {",": 0, "\t": 0, ";": 0}
+    for line in 先頭20行:
+        for delim in candidates:
+            candidates[delim] += line.count(delim)
+    best = max(candidates, key=lambda d: candidates[d])
+    if candidates[best] > 0:
+        return best
+    return "," if ext.lower() == ".csv" else "\t"
+  </code></pre>
+  <p>
+    区切り文字が指定されていない（<code>None</code>）ときだけこの関数が呼ばれる。
+    先頭20行だけをサンプリングして出現回数を数え、それでも判定できなければ拡張子に頼る、
+    という<strong>2段階のフォールバック</strong>になっている。
+  </p>
+  <div class="point">
+    自動判定機能を作るときの型: 「まず自動で便利にする」→「自動判定が外れても、
+    明示指定（<code>options.delimiter</code>）があれば必ずそちらを優先する」。
+    このコードでも <code>delimiter = options.delimiter or _detect_delimiter(...)</code>
+    という1行で、<strong>ユーザーの明示指定が常に自動判定より優先される</strong>ことが保証されている。
+    「賢い機能」は必ず「利用者が上書きできる余地」とセットで設計する。
+  </div>
+</div>
+
+<div class="box">
+  <h2>4. 遅延ディレクトリ作成 — 空振りの痕跡を残さない</h2>
+  <pre><code>
+run_output_dir = output_dir / f"{base_name}_{started_at:%Y%m%d_%H%M%S}"
+...
+for row in reader:
+    if outfile is None:
+        file_index += 1
+        run_output_dir.mkdir(parents=True, exist_ok=True)   # ← ここで初めて作る
+        output_path = run_output_dir / f"...split_{file_index:03}{ext}"
+  </code></pre>
+  <p>
+    出力用のサブディレクトリのパスは実行開始時点で決まっているが、
+    実際に <code>mkdir()</code> するのは<strong>最初の1行を書き込む直前</strong>まで遅延させている。
+  </p>
+  <div class="point">
+    もし入力ファイルが0行だったり途中でエラーが起きたりした場合、パスだけ計算して即 <code>mkdir</code>
+    していると「中身が空のフォルダ」がゴミとして残る。
+    <strong>「作る」という副作用は、それが本当に必要になった瞬間まで遅らせる</strong>という考え方は、
+    ファイル生成以外（DB接続、一時ファイル、ロック取得など）にも応用が効く。
+  </div>
+</div>
+
+<div class="box">
+  <h2>5. 進捗通知をコールバックとして外部から注入する</h2>
+  <pre><code>
+ProgressCallback = Callable[[str], None]
+
+def split_csv(input_path, options, *, progress: Optional[ProgressCallback] = None):
+    ...
+    if progress and total_rows % 10_000 == 0:
+        progress(f"  処理中: {total_rows:,} 行 ...")
+  </code></pre>
+  <p>
+    <code>split_csv</code> 自体は「進捗をどう表示するか」を一切知らない。
+    ただ <code>progress</code> という関数を呼ぶだけで、その関数の中身（<code>print</code> するか、
+    GUIのキューに積むか）は呼び出し側が決める。
+  </p>
+  <div class="point">
+    CLI（<code>__main__</code> ブロック）は <code>progress=lambda msg: print(msg, flush=True)</code>、
+    GUI（<code>gui.py</code>）は <code>progress=self._log_queue.put</code> を渡す想定で、
+    <strong>同じコアロジックをCLIでもGUIでも書き換えずに再利用</strong>できている。
+    「表示方法」のような呼び出し元ごとに変わる関心事は、関数の中に埋め込まずコールバックとして
+    外から渡す、という依存性注入の最小形。
+  </div>
+</div>
+
+<div class="box">
+  <h2>6. try/except/finally で「エラー時も後始末は必ず行う」</h2>
+  <pre><code>
+try:
+    ...本処理...
+except Exception as exc:
+    status = "ERROR"
+    error_message = str(exc)
+    raise                      # ← 揉み消さず再送出
+finally:
+    if outfile is not None:
+        outfile.close()
+    write_log(log_path, result)  # ← 成功・失敗どちらでも必ず実行
+</code></pre>
+  <div class="point">
+    <code>except</code> ではステータスの記録だけ行い、<code>raise</code> で例外を握りつぶさずに
+    呼び出し元へ伝える。一方で「ログを書く」「開いたファイルを閉じる」という<strong>後始末は
+    成功・失敗に関わらず必ず行いたい処理</strong>なので <code>finally</code> に置く。
+    「異常を伝える」ことと「後始末をする」ことは別の関心事であり、
+    <code>except</code> と <code>finally</code> の役割分担として書き分けるのが定石。
+  </div>
+  <div class="warning">
+    <code>except Exception: raise</code> だけを見ると「何のためにexceptしているのか」と
+    思うかもしれないが、これは <strong><code>status</code>/<code>error_message</code> という
+    「ログに残すための状態」を書き込むためだけの捕捉</strong>であり、エラー処理自体は
+    呼び出し元に委ねている。except節が短いからといって不要とは限らない。
+  </div>
+</div>
+
+<div class="box">
+  <h2>7. tkinter非依存の「解析専用モジュール」を切り出す（analyze.py）</h2>
+  <pre><code>
+"""入力ファイルの事前解析ヘルパー（エンコード判定・行数カウント・先頭行プレビュー等）。
+GUI から使う純粋なロジック層。tkinter に依存しない。
+"""
+import csv
+from pathlib import Path
+  </code></pre>
+  <p>
+    <code>analyze.py</code> は import 文を見ても分かる通り <code>tkinter</code> を一切importしていない。
+    GUIから呼ばれることを前提にした処理でありながら、GUIそのものへの依存を持たない。
+  </p>
+  <div class="point">
+    <strong>「GUIから使われるロジック」と「GUIそのもの」は別モジュールに分ける</strong>と、
+    GUIを起動しなくてもロジック単体でテストできる（実際 <code>tests/test_analyze.py</code>
+    がある）。この分離のおかげで、ランチャー側（<code>33_CSV検証サポート/launcher_gui.py</code>）も
+    <code>importlib</code> でこのモジュールだけを動的ロードして再利用できている
+    （<code>_load_analyze_module()</code>）。「UIに依存しない層」を作ることは、
+    テスト容易性だけでなく再利用性にも直結する。
+  </div>
+</div>
+
+<div class="box">
+  <h2>8. 巨大ファイルの行数カウントを「文字列化せず」高速に行う</h2>
+  <pre><code>
+def _count_rows(path: Path) -> int:
+    count = 0
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            count += chunk.count(b"\n")
+    return count
+  </code></pre>
+  <p>
+    テキストとしてデコードせず、<strong>バイナリのまま</strong> 1MBずつ読んで
+    <code>b"\n"</code> の出現回数を数えるだけで行数を数えている。
+  </p>
+  <div class="point">
+    <code>iter(lambda: f.read(N), b"")</code> は「N バイトずつ読み、空バイト列が返るまで繰り返す」
+    という定番のチャンク読み込みイディオム。文字コードのデコードという重い処理を省略し、
+    <code>bytes.count()</code>（C実装で高速）だけで済ませているため、
+    数百MB〜数GBのファイルでも実用的な速度で行数を数えられる。
+    「本当に必要な情報は何か」を突き詰めると処理を減らせる、という良い例。
+  </div>
+</div>
+
+<div class="box">
+  <h2>9. エンコード判定は「候補を順に試して例外で振るい落とす」</h2>
+  <pre><code>
+def _detect_encoding_from_file(path: Path) -> str:
+    raw = ...先頭4バイト...
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return "utf-8-sig"
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return "utf-16"
+    for enc in ("utf-8", "shift_jis", "cp932"):
+        try:
+            with open(path, "r", encoding=enc, errors="strict") as f:
+                f.read(65536)
+            return enc
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return "不明"
+  </code></pre>
+  <div class="point">
+    BOM（バイト順マーク）という<strong>確実な手がかりを最優先</strong>で見て、
+    それがなければ候補エンコードを順番に「厳格モード（<code>errors="strict"</code>）で
+    実際に読んでみて例外が出るか」で判定している。
+    正規表現や統計的推定に頼らず、<strong>「本当にそのエンコードとして最後まで読めるか」を
+    実地で試す</strong>のが最も確実、という割り切り。候補の並び順（utf-8 → shift_jis → cp932）にも、
+    日本語Windows環境で遭遇しやすい順という実務的な意図がある。
+  </div>
+  <div class="warning">
+    <code>read(65536)</code> と読む量を制限しているのは全文を読まないための配慮だが、
+    裏を返すと<strong>先頭65536バイトより後ろに不正なバイト列があっても検出できない</strong>。
+    「サンプリングによる判定は万能ではない」ことは、この種の高速化手法とセットで意識しておく必要がある。
+  </div>
+</div>
+
+<div class="box">
+  <h2>10. プリセットは「薄いI/O層」として実装する（presets.py）</h2>
+  <pre><code>
+def load_presets(path=None) -> dict[str, dict]: ...
+def save_presets(presets: dict[str, dict], path=None) -> None: ...
+def get_preset_options(name: str, path=None) -> SplitOptions:
+    presets = load_presets(path)
+    if name not in presets:
+        raise KeyError(f"プリセット '{name}' が見つかりません。登録済み: {available}")
+    ...
+    return SplitOptions(...)
+  </code></pre>
+  <div class="point">
+    <code>presets.py</code> は「JSON形式のバリデーション」と「dictからSplitOptionsへの変換」しか
+    行っていない。分割ロジックには一切踏み込まず、<strong>最終的に <code>run.py</code> の
+    <code>SplitOptions</code> という同じ型を返す</strong>ことで、config.jsonから読んだ場合と
+    プリセットから読んだ場合の後続処理を完全に同一にしている。
+    「新しい入力経路を増やす」ときは、既存の型に変換するアダプタを1つ足すだけでよい、という
+    型駆動の拡張しやすさの例。
+  </div>
+  <div class="point">
+    <code>KeyError</code> のメッセージに<strong>「登録済みのプリセット一覧」</strong>を含めている点も
+    地味だが重要。エラーメッセージは「何が悪かったか」だけでなく
+    「次に何をすればよいか」まで含めると、利用者（未来の自分を含む）の手間を大きく減らせる。
+  </div>
+</div>
+
+<div class="box">
+  <h2>11. GUIはロジックを持たず、3つのモジュールを「呼ぶだけ」にする（gui.py）</h2>
+  <pre><code>
+from analyze import _count_rows, _detect_encoding_from_file, _fmt_size, ...
+from presets import load_presets, save_presets
+from run import SplitOptions, _detect_delimiter, split_csv
+  </code></pre>
+  <div class="point">
+    <code>gui.py</code> のimport文を見るだけで、このファイルが「分割・解析・プリセットの
+    ロジックを持たず、既存モジュールを組み合わせて画面を作るだけ」という設計方針が読み取れる。
+    <strong>importの並びは設計意図を最も雄弁に語る場所</strong>であり、依存関係を追うときは
+    まずここを見るとファイル全体の見通しが立つ。
+  </div>
+  <div class="warning">
+    ただし <code>launcher_gui.py</code> は <code>text_splitter</code> パネルの実行を
+    <strong>サブプロセス（<code>python src/run.py &lt;input&gt;</code>）として</strong>呼び出しており、
+    <code>gui.py</code> のように直接importして呼ぶ方式とは経路が異なる。
+    同じロジックでも「同一プロセス内でimportして呼ぶ」か「別プロセスとしてsubprocessで呼ぶ」かは
+    別の設計判断であり、この2つを混同すると「なぜこっちの改修がランチャーに反映されないのか」で
+    ハマる（CLIの引数仕様を変えたら両方の呼び出し側を確認する必要がある、と
+    <code>text_splitter/CLAUDE.md</code> にも明記されている）。
+  </div>
+</div>
+
+<div class="box">
+  <h2>まとめ — ここで学べる技術パターンの一覧</h2>
+  <table>
+    <tr><th>パターン</th><th>効果</th></tr>
+    <tr><td>ストリーム処理（1行/1チャンクずつ）</td><td>メモリ使用量を入力サイズに依存させない</td></tr>
+    <tr><td>入力/結果を別dataclassに分離</td><td>関数シグネチャが仕様書になる</td></tr>
+    <tr><td>自動判定＋明示指定で常に上書き可能</td><td>賢さと制御可能性の両立</td></tr>
+    <tr><td>副作用（mkdir等）の遅延実行</td><td>失敗時にゴミを残さない</td></tr>
+    <tr><td>進捗通知をコールバックとして注入</td><td>同じロジックをCLI/GUI両方で使い回せる</td></tr>
+    <tr><td>except+raise / finally の役割分担</td><td>異常伝播と後始末を独立に保証する</td></tr>
+    <tr><td>UI非依存のロジック層を切り出す</td><td>テストしやすく、他所からも再利用しやすい</td></tr>
+    <tr><td>実地に読んでみて判定する（エンコード検出）</td><td>統計的推定より確実な判定</td></tr>
+    <tr><td>薄いアダプタで入力経路を増やす</td><td>コアロジックを変えずに拡張できる</td></tr>
+    <tr><td>エラーメッセージに次の一手を含める</td><td>利用者の調査コストを減らす</td></tr>
+  </table>
+  <div class="point">
+    どれも「text_splitterだから使える」特殊な技ではなく、
+    <strong>データ処理系のツールを書くときに繰り返し使える基本形</strong>。
+    次に自分でCLI/GUI両対応のツールを書くときは、まず「コア処理」「解析」「設定管理」「UI」の
+    4層に分けられないかを検討する所から始めると、このコードと同じ土俵に立てる。
+  </div>
+</div>
+
+</body>
+</html>
