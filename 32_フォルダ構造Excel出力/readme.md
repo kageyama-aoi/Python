@@ -9,10 +9,11 @@
 - Excel出力
   - アイテムのフルパス（フォルダはクリックで開けるハイパーリンク）
   - タイプ（フォルダ/ファイル、行の色分けで判別しやすく）
+  - ファイルサイズ（バイト数列と「1.2 MB」のような読みやすい表記列の2列。フォルダ行は空欄、配下合計は計算しない）
   - 階層構造をLevel1, Level2... の列で表示
   - 各列幅は内容に合わせて自動調整
+- 実行時にフォルダ選択ダイアログでスキャン対象のルートディレクトリ (`root_dir`) を指定（選択内容は `config.json` に自動保存され、次回の初期表示になる）
 - `config.json` によるカスタマイズ
-  - スキャン対象のルートディレクトリ (`root_dir`)
   - 出力先ディレクトリ (`output_base_dir`) とファイル名 (`output_filename`)
   - 除外する拡張子 (`excluded_extensions`)
   - 除外するフォルダ名 (`excluded_folder_names`、大文字小文字区別なし）
@@ -30,9 +31,12 @@ pip install pandas xlsxwriter
 
 ## 使い方
 
-1. `config.json` の `root_dir` に、スキャンしたいフォルダの絶対パスを指定する。
-   - 未編集のデフォルト値 `"."` はこのツール自身のフォルダをスキャンする動作確認用。
+1. `config.example.json` を `config.json` としてコピーする（初回のみ）。
+   - `config.json` は案件パスなどの実データが入るため `.gitignore` 対象。git管理されるのは `config.example.json` のみ。
 2. `run.bat` をダブルクリックして実行する。
+   - フォルダ選択ダイアログが開くので、スキャンしたいフォルダを選ぶ（初期表示は前回選んだフォルダ）。
+   - ダイアログでキャンセルすると処理は中断される。
+   - 選んだフォルダは `config.json` の `root_dir` に自動で保存され、次回のダイアログの初期表示に使われる（`root_dir` を手動編集する必要はない）。
    - `output_base_dir` が相対パスの場合、このツールのフォルダ基準（`config.json`と同じ場所）で解決される。デフォルトは `output/`。
 3. `output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。
 
@@ -40,13 +44,15 @@ pip install pandas xlsxwriter
 
 ```json
 {
-  "root_dir": "G:\\マイドライブ\\作業フォルダ\\WORK\\1234_案件名",
+  "root_dir": "G:/マイドライブ/作業フォルダ/WORK/1234_案件名",
   "output_base_dir": "output",
   "output_filename": "drive_structure.xlsx",
   "excluded_extensions": [".log", ".tmp", ".bak", ".DS_Store", "desktop.ini"],
   "excluded_folder_names": ["OLD", "old", "backup", "アーカイブ", "不要", "output", "logs", "__pycache__"]
 }
 ```
+
+Google共有ドライブ（デスクトップ版でローカル同期しているパス、例: `G:/.shortcut-targets-by-id/<ID>/フォルダ名`）もローカルフォルダと同様に指定可能。
 
 ## ファイル構成
 
@@ -57,10 +63,11 @@ pip install pandas xlsxwriter
 | `config.json` | スキャン対象・出力先・除外条件を指定する設定ファイル |
 | `output/` | 出力Excelファイルの格納先（初回実行時に自動生成） |
 | `logs/` | 実行ログの格納先（初回実行時に自動生成） |
+| `tests/` | pytestによる静的テスト（`pytest` コマンドで実行） |
 
 ## 案件ごとに使う場合
 
-複数案件で使い回す際は、案件ごとに `config.json` の `root_dir` を書き換えて実行する。
+複数案件で使い回す際は、実行時のフォルダ選択ダイアログで案件ごとのフォルダを選べばよい（`config.json` を手動編集する必要はない）。
 過去の出力（案件名入りのファイル名にリネームして保管する運用を推奨）と混ざらないよう、`output/` の中身は都度整理する。
 
 ## 同梱ツール: show_tree

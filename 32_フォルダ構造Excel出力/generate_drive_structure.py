@@ -4,6 +4,8 @@ import json
 import datetime
 import re
 import logging
+import tkinter as tk
+from tkinter import filedialog
 
 # === 🔧 設定ファイルのパス ===
 # スクリプトと同じディレクトリにある config.json を参照
@@ -72,6 +74,13 @@ class ConfigManager:
     def root_dir(self):
         return self._config["root_dir"]
 
+    def save_root_dir(self, new_root_dir):
+        """root_dir を更新し、次回のデフォルト選択先として config.json に書き戻す"""
+        self._config["root_dir"] = new_root_dir
+        with open(self.config_path, 'w', encoding='utf-8') as f:
+            json.dump(self._config, f, ensure_ascii=False, indent=2)
+        logging.info(f"config.json の root_dir を更新しました: {new_root_dir}")
+
     @property
     def output_base_dir(self):
         path = os.path.expanduser(self._config["output_base_dir"])
@@ -89,6 +98,29 @@ class ConfigManager:
     def get_excluded_folder_names(self):
         return [name.lower() for name in self._config.get("excluded_folder_names", [])]
 
+def format_size(size_bytes):
+    """バイト数を人が読みやすい単位（B/KB/MB/GB/TB）の文字列に変換する"""
+    if size_bytes is None:
+        return ''
+    size = float(size_bytes)
+    for unit in ('B', 'KB', 'MB', 'GB'):
+        if size < 1024:
+            return f"{size:.0f} {unit}" if unit == 'B' else f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} TB"
+
+class ScannedItem:
+    """スキャンで見つかった1件のファイル/フォルダを表す"""
+    __slots__ = ('full_path', 'parent_dir', 'levels', 'name', 'item_type', 'size_bytes')
+
+    def __init__(self, full_path, parent_dir, levels, name, item_type, size_bytes=None):
+        self.full_path = full_path
+        self.parent_dir = parent_dir
+        self.levels = levels
+        self.name = name
+        self.item_type = item_type
+        self.size_bytes = size_bytes
+
 class DirectoryScanner:
     def __init__(self, root_path, excluded_extensions=None, excluded_folder_names=None):
         self.root_path = root_path
@@ -98,9 +130,8 @@ class DirectoryScanner:
 
     def scan(self):
         """
-        指定されたディレクトリをスキャンし、ファイル構造データを収集する。
-        収集されたデータは self.scanned_data に格納され、リストとして返される。
-        各行は [アイテム自身のフルパス(リンク先用), 親ディレクトリフルパス(表示用), level1, ..., アイテム名, タイプ('file'/'folder')] の形式。
+        指定されたディレクトリをスキャンし、ファイル構造データを ScannedItem のリストとして収集する。
+        収集されたデータは self.scanned_data にも格納される。
         """
         if not os.path.isdir(self.root_path):
             # logging.warning は残しつつ、呼び出し元で処理できるように例外も発生させるか検討
@@ -125,8 +156,8 @@ class DirectoryScanner:
 
             for dirname in dirnames:
                 item_full_path = os.path.join(dirpath, dirname)
-                row = [item_full_path, dirpath] + parent_levels + [dirname, 'folder']
-                file_structure.append(row)
+                # フォルダの配下合計サイズは計算しない（処理速度とシンプルさを優先）
+                file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, dirname, 'folder'))
 
             for filename in filenames:
                 _name, ext = os.path.splitext(filename)
@@ -136,48 +167,45 @@ class DirectoryScanner:
                     continue
 
                 item_full_path = os.path.join(dirpath, filename)
-                row = [item_full_path, dirpath] + parent_levels + [filename, 'file']
-                file_structure.append(row)
-        
+                try:
+                    size_bytes = os.path.getsize(item_full_path)
+                except OSError as e:
+                    logging.warning(f"サイズを取得できませんでした: {item_full_path} ({e})")
+                    size_bytes = None
+                file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, filename, 'file', size_bytes))
+
         self.scanned_data = file_structure
         return self.scanned_data
 
-def create_dataframe_with_fullpath(file_structure_data):
-    """収集したデータからPandas DataFrameを作成する。フルパス列とタイプ列を含む。"""
-    if not file_structure_data:
+def create_dataframe_with_fullpath(scanned_items):
+    """収集した ScannedItem のリストから Pandas DataFrame を作成する。フルパス列・タイプ列・サイズ列を含む。"""
+    if not scanned_items:
         return pd.DataFrame()
 
-    # 各行の形式: [item_self_fullpath, parent_dir_fullpath, level1, ..., item_name, item_type]
-    # item_self_fullpath, parent_dir_fullpath, item_type を除いた部分 (levels + item_name) の最大長を計算
-    max_levels_plus_name_len = 0
-    if file_structure_data:
-        # row[0]=item_self, row[1]=parent_dir, row[-1]=type
-        lengths = [len(row[2:-1]) for row in file_structure_data if len(row) > 3]
-        if lengths:
-            max_levels_plus_name_len = max(lengths)
+    max_levels_plus_name_len = max(
+        (len(item.levels) + 1 for item in scanned_items), default=0
+    )
 
     processed_data = []
-    for row_data in file_structure_data:
-        full_path_part = row_data[0]
-        item_type = row_data[-1]
-        parent_dir_fullpath_display = row_data[1]
-
+    for item in scanned_items:
         # アイテムが 'file' の場合、表示する親のフルパスを空にする
-        if item_type == 'file':
-            parent_dir_fullpath_display = ''
+        parent_dir_fullpath_display = '' if item.item_type == 'file' else item.parent_dir
 
-        # levels_and_name_parts: [level1, ..., アイテム名]
-        levels_and_name_parts = row_data[2:-1] if len(row_data) > 3 else []
-
+        levels_and_name_parts = item.levels + [item.name]
         padded_parts = levels_and_name_parts + [''] * (max_levels_plus_name_len - len(levels_and_name_parts))
-        # 最初にアイテム自身のフルパス、次に表示用の親ディレクトリフルパス
-        processed_data.append([full_path_part, item_type, parent_dir_fullpath_display] + padded_parts)
-    # 列名を生成
+
+        size_bytes_display = item.size_bytes if item.size_bytes is not None else ''
+        size_display = format_size(item.size_bytes)
+
+        processed_data.append(
+            [item.full_path, item.item_type, parent_dir_fullpath_display, size_bytes_display, size_display] + padded_parts
+        )
+
     level_columns = [] # type: ignore
     if max_levels_plus_name_len > 1: # Level列が存在する場合 (アイテム名列以外にレベル列がある)
         level_columns = [f"Level{i+1}" for i in range(max_levels_plus_name_len - 1)]
-    
-    final_columns = ['_item_self_path', 'タイプ', 'フルパス'] # タイプを先頭に移動
+
+    final_columns = ['_item_self_path', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ']
     if max_levels_plus_name_len > 0: # アイテム名またはLevel列が存在する場合
         final_columns.extend(level_columns)
         final_columns.append('アイテム名') # 以前は 'ファイル名'
@@ -295,6 +323,19 @@ def manage_old_output_files(output_dir: str, base_filename_config: str, current_
         else:
             logging.info("古いファイルは保持されます。")
 
+def ask_directory(initial_dir):
+    """フォルダ選択ダイアログを表示し、選択されたパスを返す（キャンセル時は空文字）"""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)  # ランチャー経由でも背面に隠れないように
+    try:
+        return filedialog.askdirectory(
+            title="スキャンするフォルダを選択してください",
+            initialdir=initial_dir if os.path.isdir(initial_dir) else os.path.expanduser("~"),
+        )
+    finally:
+        root.destroy()
+
 def main():
     """スクリプトのメイン処理"""
     setup_logging() # ロギング設定を呼び出し
@@ -302,8 +343,13 @@ def main():
         logging.info("スクリプト実行開始")
 
         config_manager = ConfigManager(CONFIG_FILE_PATH)
-        
-        root_dir_path = config_manager.root_dir
+
+        root_dir_path = ask_directory(config_manager.root_dir)
+        if not root_dir_path:
+            logging.info("フォルダが選択されなかったため、処理を中断します。")
+            return
+        if root_dir_path != config_manager.root_dir:
+            config_manager.save_root_dir(root_dir_path)
 
         logging.info(f"スキャンを開始します: {root_dir_path}")
         excluded_exts = config_manager.get_excluded_extensions()
@@ -312,7 +358,7 @@ def main():
         file_data = scanner.scan()
 
         if file_data:
-            file_data.sort(key=lambda x: x[0])
+            file_data.sort(key=lambda item: item.full_path)
         
         if not file_data:
             # scanner.scan()内でroot_dirが存在しない場合は警告ログが出ている
