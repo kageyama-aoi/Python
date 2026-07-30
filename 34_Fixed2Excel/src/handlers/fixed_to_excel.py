@@ -104,9 +104,13 @@ def convert_all(ctx):
 
         out_name = f"解析結果_{os.path.splitext(txt_name)[0]}.xlsx"
         out_path = os.path.join(output_dir, out_name)
-        with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
-            df_result.to_excel(writer, index=False, sheet_name="Sheet1")
-            style_output_sheet(writer.sheets["Sheet1"], df_result, _flatten_field_rules(config_rules))
+        try:
+            with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+                df_result.to_excel(writer, index=False, sheet_name="Sheet1")
+                style_output_sheet(writer.sheets["Sheet1"], df_result, _flatten_field_rules(config_rules))
+        except PermissionError:
+            logger.error(f"書き込み不可（Excelで開いている可能性）: {out_path}")
+            continue
         logger.info(f"出力: {out_path}")
 
     log_end(logger, "固定長→Excel変換完了")

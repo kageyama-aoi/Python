@@ -7,6 +7,8 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.app_context import AppContext
+from src.handlers import excel_to_fixed as excel_to_fixed_module
+from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import build_or_update_mapping
@@ -262,3 +264,94 @@ def test_comment_text_omits_label_when_unambiguous():
     entries = [("データ", {"start": 0, "length": 1})]
     text = _comment_text(entries)
     assert text == "開始位置:1 文字数:1"
+
+
+# ---- 出力先ファイルが他アプリ（Excel等）で開いている場合のエラーハンドリング ----
+# 実際に開発中、出力Excelをexcelで開いたまま再変換してPermissionErrorでクラッシュした。
+# 1ファイルの書き込み/読み込み失敗で処理全体を止めず、他のファイルは続行できるようにする。
+
+def _write_simple_config(config_path):
+    data_sheet = pd.DataFrame([["開始位置", 1], ["文字数", 1]], columns=["区分", "値"])
+    with pd.ExcelWriter(config_path, engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)
+
+
+def test_convert_all_skips_locked_output_and_continues_other_files(tmp_path, monkeypatch):
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    configs_dir.mkdir()
+    input_dir.mkdir()
+
+    _write_simple_config(configs_dir / "config.xlsx")
+    for name in ("LOCKED.txt", "OK.txt"):
+        with open(input_dir / name, "wb") as f:
+            f.write(b"2A\r\n")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg"}
+    pd.DataFrame([
+        {"kw": "LOCKED", "cfg": "config.xlsx"},
+        {"kw": "OK", "cfg": "config.xlsx"},
+    ]).to_csv(mapping_csv, index=False, encoding=ENCODING)
+
+    dirs = {
+        "configs": str(configs_dir), "input": str(input_dir),
+        "output": str(output_dir), "recreated": str(tmp_path / "recreated"),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+
+    real_excel_writer = pd.ExcelWriter
+
+    def flaky_excel_writer(path, *args, **kwargs):
+        if "LOCKED" in str(path):
+            raise PermissionError("mock: file is open in Excel")
+        return real_excel_writer(path, *args, **kwargs)
+
+    monkeypatch.setattr(fixed_to_excel_module.pd, "ExcelWriter", flaky_excel_writer)
+
+    convert_all(ctx)  # 例外を送出せず完走すること
+
+    assert not (output_dir / "解析結果_LOCKED.xlsx").exists()
+    assert (output_dir / "解析結果_OK.xlsx").exists()
+
+
+def test_restore_all_skips_locked_input_and_continues_other_files(tmp_path, monkeypatch):
+    configs_dir = tmp_path / "configs"
+    output_dir = tmp_path / "output"
+    recreated_dir = tmp_path / "recreated"
+    configs_dir.mkdir()
+    output_dir.mkdir()
+
+    _write_simple_config(configs_dir / "config.xlsx")
+    for name in ("解析結果_LOCKED.xlsx", "解析結果_OK.xlsx"):
+        pd.DataFrame([{"レコード種別": "データ", "区分": "2", "値": "A"}]).to_excel(
+            output_dir / name, index=False
+        )
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg"}
+    pd.DataFrame([
+        {"kw": "LOCKED", "cfg": "config.xlsx"},
+        {"kw": "OK", "cfg": "config.xlsx"},
+    ]).to_csv(mapping_csv, index=False, encoding=ENCODING)
+
+    dirs = {
+        "configs": str(configs_dir), "input": str(tmp_path / "input"),
+        "output": str(output_dir), "recreated": str(recreated_dir),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+
+    real_read_excel = pd.read_excel
+
+    def flaky_read_excel(path, *args, **kwargs):
+        if "LOCKED" in str(path):
+            raise PermissionError("mock: file is open in Excel")
+        return real_read_excel(path, *args, **kwargs)
+
+    monkeypatch.setattr(excel_to_fixed_module.pd, "read_excel", flaky_read_excel)
+
+    restore_all(ctx)  # 例外を送出せず完走すること
+
+    assert not (recreated_dir / "RESTORED_LOCKED.txt").exists()
+    assert (recreated_dir / "RESTORED_OK.txt").exists()

@@ -27,19 +27,22 @@ def main():
         print(MENU)
         choice = input("番号を選択してください: ").strip()
 
-        if choice == "1":
-            setup_handler.init_environment(ctx)
-        elif choice == "2":
-            mapping_handler.build_or_update_mapping(ctx)
-        elif choice == "3":
-            fixed_to_excel.convert_all(ctx)
-        elif choice == "4":
-            excel_to_fixed.restore_all(ctx)
-        elif choice == "0":
-            logger.info("終了")
-            break
-        else:
-            print("無効な選択です。もう一度入力してください。")
+        try:
+            if choice == "1":
+                setup_handler.init_environment(ctx)
+            elif choice == "2":
+                mapping_handler.build_or_update_mapping(ctx)
+            elif choice == "3":
+                fixed_to_excel.convert_all(ctx)
+            elif choice == "4":
+                excel_to_fixed.restore_all(ctx)
+            elif choice == "0":
+                logger.info("終了")
+                break
+            else:
+                print("無効な選択です。もう一度入力してください。")
+        except Exception:
+            logger.exception("処理中にエラーが発生しました。")
 
 
 if __name__ == "__main__":

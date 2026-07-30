@@ -89,9 +89,14 @@ def restore_all(ctx):
         rules_by_type = load_config_rules(config_path)
         rules_dict = {REC_TYPE_LABELS[k]: v for k, v in rules_by_type.items()}
 
-        # dtype=str必須: 既定の型推論だと桁数の多い数字文字列(会員番号等)が
-        # float64に変換され、有効桁を超えた分が丸められて値が壊れる。
-        df_target = pd.read_excel(excel_path, dtype=str)
+        try:
+            # dtype=str必須: 既定の型推論だと桁数の多い数字文字列(会員番号等)が
+            # float64に変換され、有効桁を超えた分が丸められて値が壊れる。
+            df_target = pd.read_excel(excel_path, dtype=str)
+        except PermissionError:
+            logger.error(f"読み込み不可（Excelで開いている可能性）: {excel_path}")
+            continue
+
         output_lines = []
         for _, row in df_target.iterrows():
             rec_type = str(row.get("レコード種別", REC_TYPE_DATA)).strip()
@@ -116,9 +121,13 @@ def restore_all(ctx):
         out_txt_name = f"RESTORED_{raw_base_name}.txt"
         out_txt_path = os.path.join(recreated_dir, out_txt_name)
 
-        with open(out_txt_path, "wb") as f:
-            for line in output_lines:
-                f.write(line + b"\r\n")
+        try:
+            with open(out_txt_path, "wb") as f:
+                for line in output_lines:
+                    f.write(line + b"\r\n")
+        except PermissionError:
+            logger.error(f"書き込み不可（他アプリで開いている可能性）: {out_txt_path}")
+            continue
 
         logger.info(f"生成: {out_txt_path}")
 
