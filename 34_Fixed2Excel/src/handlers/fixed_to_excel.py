@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from src.utils.excel_style import style_output_sheet
+from src.utils.excel_style import insert_group_separators, style_output_sheet
 from src.utils.fixed_format import (
     REC_TYPE_DATA,
     REC_TYPE_HEADER,
@@ -101,13 +101,15 @@ def convert_all(ctx):
 
         config_rules = load_config_rules(config_path)
         df_result = process_file(txt_path, config_rules, ctx.encoding, ctx.record_type_codes)
+        field_rules = _flatten_field_rules(config_rules)
+        df_display = insert_group_separators(df_result, field_rules)
 
         out_name = f"解析結果_{os.path.splitext(txt_name)[0]}.xlsx"
         out_path = os.path.join(output_dir, out_name)
         try:
             with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
-                df_result.to_excel(writer, index=False, sheet_name="Sheet1")
-                style_output_sheet(writer.sheets["Sheet1"], df_result, _flatten_field_rules(config_rules))
+                df_display.to_excel(writer, index=False, sheet_name="Sheet1")
+                style_output_sheet(writer.sheets["Sheet1"], df_display, field_rules)
         except PermissionError:
             logger.error(f"書き込み不可（Excelで開いている可能性）: {out_path}")
             continue

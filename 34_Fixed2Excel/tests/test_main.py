@@ -13,7 +13,14 @@ from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import build_or_update_mapping
-from src.utils.excel_style import _comment_text, _group_row_ranges, style_output_sheet
+from src.utils.excel_style import (
+    _comment_text,
+    _group_column_ranges,
+    _group_row_ranges,
+    insert_group_separators,
+    is_separator_column,
+    style_output_sheet,
+)
 from src.utils.fixed_format import match_config
 
 ENCODING = "cp932"
@@ -439,3 +446,141 @@ def test_style_output_sheet_applies_border_and_groups_data_rows(tmp_path):
     assert ws.row_dimensions[3].outlineLevel == 1  # データ1行目
     assert ws.row_dimensions[4].outlineLevel == 1  # データ2行目
     assert ws.row_dimensions[5].outlineLevel == 0  # トレーラー単独行
+
+
+# ---- 出力Excelの列グループ化（同じレコード種別が連続する項目列を折りたたむ） ----
+
+def test_group_column_ranges_groups_contiguous_same_type_columns():
+    columns = ["行番号", "区分", "レコード種別", "作成年月日", "送信元コード", "会員番号", "有効期限", "合計件数"]
+    field_rules = {
+        "作成年月日": [("ヘッダー", {"start": 1, "length": 8})],
+        "送信元コード": [("ヘッダー", {"start": 9, "length": 10})],
+        "会員番号": [("データ", {"start": 1, "length": 16})],
+        "有効期限": [("データ", {"start": 17, "length": 4})],
+        "合計件数": [("トレーラー", {"start": 1, "length": 10})],
+    }
+    # 作成年月日・送信元コード(4,5列目)がヘッダー連続、会員番号・有効期限(6,7列目)がデータ連続。
+    # 合計件数(8列目)は単独なので対象外。行番号・区分・レコード種別はfield_rulesに無く区切り扱い。
+    assert _group_column_ranges(columns, field_rules) == [(4, 5), (6, 7)]
+
+
+def test_group_column_ranges_empty_field_rules_groups_nothing():
+    columns = ["行番号", "区分", "レコード種別", "値"]
+    assert _group_column_ranges(columns, {}) == []
+
+
+def test_style_output_sheet_groups_columns_by_record_type(tmp_path):
+    df = pd.DataFrame([
+        {"行番号": 1, "区分": "1", "レコード種別": "ヘッダー", "作成年月日": "20260730",
+         "送信元コード": "SRC001", "会員番号": None, "有効期限": None},
+        {"行番号": 2, "区分": "2", "レコード種別": "データ", "作成年月日": None,
+         "送信元コード": None, "会員番号": "1", "有効期限": "2801"},
+    ])
+    field_rules = {
+        "作成年月日": [("ヘッダー", {"start": 1, "length": 8})],
+        "送信元コード": [("ヘッダー", {"start": 9, "length": 10})],
+        "会員番号": [("データ", {"start": 1, "length": 16})],
+        "有効期限": [("データ", {"start": 17, "length": 4})],
+    }
+    out_path = tmp_path / "styled_cols.xlsx"
+    with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Sheet1")
+        style_output_sheet(writer.sheets["Sheet1"], df, field_rules)
+
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    for letter in ("A", "B", "C"):  # 行番号/区分/レコード種別は種別を持たず区切り扱い
+        assert ws.column_dimensions[letter].outlineLevel == 0
+    assert ws.column_dimensions["D"].outlineLevel == 1  # 作成年月日
+    assert ws.column_dimensions["E"].outlineLevel == 1  # 送信元コード
+    assert ws.column_dimensions["F"].outlineLevel == 1  # 会員番号
+    assert ws.column_dimensions["G"].outlineLevel == 1  # 有効期限
+
+
+# ---- 区切り列の挿入（列グループを隙間なしの1範囲に融合させないため） ----
+# Excelのアウトライン機能は、隙間なく隣接する同レベルの列を1つの折りたたみ範囲に融合して
+# しまい、種別ごとに個別開閉できない（実機のExcelで確認済み）。ブロック間に空白列を挟むことで
+# 独立して開閉できるグループにする。
+
+def _sample_df_for_separator_test():
+    return pd.DataFrame([
+        {"行番号": 1, "区分": "1", "レコード種別": "ヘッダー", "作成年月日": "20260730",
+         "送信元コード": "SRC001", "会員番号": None, "有効期限": None, "合計件数": None},
+        {"行番号": 2, "区分": "2", "レコード種別": "データ", "作成年月日": None,
+         "送信元コード": None, "会員番号": "1", "有効期限": "2801", "合計件数": None},
+        {"行番号": 3, "区分": "9", "レコード種別": "トレーラー", "作成年月日": None,
+         "送信元コード": None, "会員番号": None, "有効期限": None, "合計件数": "1"},
+    ])
+
+
+def _sample_field_rules_for_separator_test():
+    return {
+        "作成年月日": [("ヘッダー", {"start": 1, "length": 8})],
+        "送信元コード": [("ヘッダー", {"start": 9, "length": 10})],
+        "会員番号": [("データ", {"start": 1, "length": 16})],
+        "有効期限": [("データ", {"start": 17, "length": 4})],
+        "合計件数": [("トレーラー", {"start": 1, "length": 10})],
+    }
+
+
+def test_insert_group_separators_no_gap_before_first_block():
+    df = _sample_df_for_separator_test()
+    field_rules = _sample_field_rules_for_separator_test()
+    result = insert_group_separators(df, field_rules)
+    columns = list(result.columns)
+    # レコード種別(識別列, 種別なし) の直後がすぐ最初のブロック(作成年月日)であること
+    idx = columns.index("レコード種別")
+    assert columns[idx + 1] == "作成年月日"
+
+
+def test_insert_group_separators_adds_gap_only_between_blocks():
+    df = _sample_df_for_separator_test()
+    field_rules = _sample_field_rules_for_separator_test()
+    result = insert_group_separators(df, field_rules)
+    columns = list(result.columns)
+
+    seps = [c for c in columns if is_separator_column(c)]
+    assert len(seps) == 2  # ヘッダー→データ、データ→トレーラーの境目にそれぞれ1つ
+
+    idx = columns.index("送信元コード")
+    assert is_separator_column(columns[idx + 1])
+    idx = columns.index("有効期限")
+    assert is_separator_column(columns[idx + 1])
+
+
+def test_insert_group_separators_preserves_values():
+    df = _sample_df_for_separator_test()
+    field_rules = _sample_field_rules_for_separator_test()
+    result = insert_group_separators(df, field_rules)
+    assert list(result["会員番号"]) == list(df["会員番号"])
+    assert list(result["合計件数"]) == list(df["合計件数"])
+
+
+def test_group_column_ranges_after_separators_are_independent_blocks():
+    df = _sample_df_for_separator_test()
+    field_rules = _sample_field_rules_for_separator_test()
+    result = insert_group_separators(df, field_rules)
+    ranges = _group_column_ranges(list(result.columns), field_rules)
+    # 各グループの間に区切り列(未グループ)を挟み、範囲同士が連続していないこと
+    for (_, end), (next_start, _) in zip(ranges, ranges[1:]):
+        assert next_start - end >= 2
+
+
+def test_style_output_sheet_with_separators_creates_independent_outline_gaps(tmp_path):
+    df = _sample_df_for_separator_test()
+    field_rules = _sample_field_rules_for_separator_test()
+    df_display = insert_group_separators(df, field_rules)
+
+    out_path = tmp_path / "styled_sep.xlsx"
+    with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+        df_display.to_excel(writer, index=False, sheet_name="Sheet1")
+        style_output_sheet(writer.sheets["Sheet1"], df_display, field_rules)
+
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    # D,E=ヘッダー(outline1) / F=区切り(outline0) / G,H=データ(outline1) という
+    # 「1-0-1」の並びになっていれば、Excel上で独立した折りたたみグループとして認識される
+    levels = [ws.column_dimensions[l].outlineLevel for l in ("D", "E", "F", "G", "H")]
+    assert levels == [1, 1, 0, 1, 1]
