@@ -1,0 +1,22 @@
+app_name: "34_Fixed2Excel"
+version: "0.1.0"
+log_level: "INFO"
+
+encoding: "cp932"
+
+dirs:
+  configs: "data/configs"
+  input: "data/input"
+  output: "data/output"
+  recreated: "data/recreated_input"
+
+mapping_csv: "data/configs/mapping.csv"
+mapping_columns:
+  keyword: "判定キーワード(input側)"
+  config_name: "設定ファイル名(configs内)"
+  note: "備考"
+
+# 固定長レコードの先頭1バイトから種別を判定するためのコード
+record_type_codes:
+  header: ["1"]
+  trailer: ["8", "9"]

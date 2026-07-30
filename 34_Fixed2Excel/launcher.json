@@ -1,0 +1,18 @@
+{
+  "name": "Fixed2Excel",
+  "description": "固定長テキストとExcelを設定Excel（開始位置・文字数定義）に基づいて相互変換する",
+  "actions": [
+    {
+      "label": "起動（GUI）",
+      "kind": "gui",
+      "entry": "run.bat",
+      "note": "ウィンドウのボタンで「環境初期化」「mapping.csv更新」「固定長→Excel変換」「Excel→固定長復元」を実行し、ログを画面に表示する"
+    },
+    {
+      "label": "起動（CUI）",
+      "kind": "cli",
+      "entry": "run_cli.bat",
+      "note": "コンソールでメニュー番号を選ぶ対話式"
+    }
+  ]
+}
