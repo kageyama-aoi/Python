@@ -5,7 +5,7 @@ from openpyxl.comments import Comment
 from openpyxl.styles import Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from src.utils.fixed_format import REC_TYPE_HEADER, REC_TYPE_TRAILER
+from src.utils.fixed_format import REC_TYPE_END, REC_TYPE_HEADER, REC_TYPE_TRAILER
 
 # 区切り列の見出し文字列（表示上は空白。列ごとに空白の個数を変えて一意な列名にする）
 SEPARATOR_FILL = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
@@ -18,6 +18,7 @@ HEADER_FONT = Font(color="FFFFFF", bold=True)
 ROW_FILLS = {
     REC_TYPE_HEADER: PatternFill(start_color="DDEBF7", end_color="DDEBF7", fill_type="solid"),
     REC_TYPE_TRAILER: PatternFill(start_color="FCE4D6", end_color="FCE4D6", fill_type="solid"),
+    REC_TYPE_END: PatternFill(start_color="E2D9F3", end_color="E2D9F3", fill_type="solid"),
 }
 
 THIN_SIDE = Side(style="thin", color="B7B7B7")

@@ -5,6 +5,7 @@ import pandas as pd
 from src.utils.excel_style import insert_group_separators, style_output_sheet
 from src.utils.fixed_format import (
     REC_TYPE_DATA,
+    REC_TYPE_END,
     REC_TYPE_HEADER,
     REC_TYPE_LABELS,
     REC_TYPE_TRAILER,
@@ -45,6 +46,9 @@ def process_file(txt_file_path, config_rules, encoding, record_type_codes):
             elif rec_code in record_type_codes["trailer"] and config_rules["T"]:
                 rules = config_rules["T"]
                 rec_type = REC_TYPE_TRAILER
+            elif rec_code in record_type_codes.get("end", []) and config_rules.get("E"):
+                rules = config_rules["E"]
+                rec_type = REC_TYPE_END
             else:
                 rules = config_rules["D"]
                 rec_type = REC_TYPE_DATA

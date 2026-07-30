@@ -13,6 +13,7 @@ from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import build_or_update_mapping
+from src.handlers.setup_handler import init_environment
 from src.utils.excel_style import (
     _comment_text,
     _group_column_ranges,
@@ -639,3 +640,87 @@ def test_roundtrip_works_with_data_sheet_only_config(tmp_path):
         restored_lines = [l.rstrip(b"\r\n").decode(ENCODING) for l in f if l.strip()]
 
     assert restored_lines == lines
+
+
+# ---- 第4のレコード種別「エンドレコード」（ヘッダー/データ/トレーラーとは別に、ファイル終端の
+# ほぼ空白のみのレコードを扱う） ----
+
+END_RECORD_TYPE_CODES = {"header": ["1"], "trailer": ["8"], "end": ["9"]}
+
+
+def test_process_file_classifies_end_record():
+    config_rules = {
+        "D": [{"name": "値", "start": 0, "length": 5}],
+        "H": None,
+        "T": None,
+        "E": [{"name": "予備", "start": 0, "length": 5}],
+    }
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        txt_path = os.path.join(tmp, "sample.txt")
+        with open(txt_path, "wb") as f:
+            f.write(b"9EMPTY\r\n")
+        df = process_file(txt_path, config_rules, ENCODING, END_RECORD_TYPE_CODES)
+
+    assert list(df["レコード種別"]) == ["エンドレコード"]
+
+
+def test_process_file_end_code_falls_back_to_data_when_no_end_sheet():
+    config_rules = {"D": [{"name": "値", "start": 0, "length": 6}], "H": None, "T": None, "E": None}
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        txt_path = os.path.join(tmp, "sample.txt")
+        with open(txt_path, "wb") as f:
+            f.write(b"9EMPTY\r\n")
+        df = process_file(txt_path, config_rules, ENCODING, END_RECORD_TYPE_CODES)
+
+    assert list(df["レコード種別"]) == ["データ"]  # Eシートが無ければ従来通りデータ扱い
+
+
+def test_setup_handler_generates_four_record_types_with_distinct_lengths(tmp_path):
+    dirs = {
+        "configs": str(tmp_path / "configs"), "input": str(tmp_path / "input"),
+        "output": str(tmp_path / "output"), "recreated": str(tmp_path / "recreated"),
+    }
+    mapping_csv = tmp_path / "configs" / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg", "note": "note"}
+    ctx = _make_ctx(dirs, mapping_csv, columns, record_type_codes=END_RECORD_TYPE_CODES)
+
+    init_environment(ctx)
+
+    input_path = tmp_path / "input" / "KAIIN_SAMPLE.txt"
+    with open(input_path, "rb") as f:
+        lines = [l.rstrip(b"\r\n") for l in f if l.strip()]
+
+    assert [len(l) for l in lines] == [60, 80, 80, 80, 40, 20]
+    assert [l[0:1].decode(ENCODING) for l in lines] == ["1", "2", "2", "2", "8", "9"]
+
+
+def test_full_roundtrip_with_generated_sample_includes_end_record(tmp_path):
+    dirs = {
+        "configs": str(tmp_path / "configs"), "input": str(tmp_path / "input"),
+        "output": str(tmp_path / "output"), "recreated": str(tmp_path / "recreated"),
+    }
+    mapping_csv = tmp_path / "configs" / "mapping.csv"
+    columns = {
+        "keyword": "判定キーワード(input側)", "config_name": "設定ファイル名(configs内)", "note": "備考",
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns, record_type_codes=END_RECORD_TYPE_CODES)
+
+    init_environment(ctx)
+    build_or_update_mapping(ctx)
+    convert_all(ctx)
+
+    df = pd.read_excel(tmp_path / "output" / "解析結果_KAIIN_SAMPLE.xlsx", dtype=str)
+    assert list(df["レコード種別"]) == ["ヘッダー", "データ", "データ", "データ", "トレーラー", "エンドレコード"]
+
+    restore_all(ctx)
+
+    input_path = tmp_path / "input" / "KAIIN_SAMPLE.txt"
+    restored_path = tmp_path / "recreated" / "RESTORED_KAIIN_SAMPLE.txt"
+    with open(input_path, "rb") as f:
+        original_lines = [l.rstrip(b"\r\n") for l in f if l.strip()]
+    with open(restored_path, "rb") as f:
+        restored_lines = [l.rstrip(b"\r\n") for l in f if l.strip()]
+
+    assert restored_lines == original_lines  # エンドレコード込みで完全一致

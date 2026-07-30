@@ -5,8 +5,9 @@ import pandas as pd
 REC_TYPE_DATA = "データ"
 REC_TYPE_HEADER = "ヘッダー"
 REC_TYPE_TRAILER = "トレーラー"
+REC_TYPE_END = "エンドレコード"
 
-REC_TYPE_LABELS = {"D": REC_TYPE_DATA, "H": REC_TYPE_HEADER, "T": REC_TYPE_TRAILER}
+REC_TYPE_LABELS = {"D": REC_TYPE_DATA, "H": REC_TYPE_HEADER, "T": REC_TYPE_TRAILER, "E": REC_TYPE_END}
 
 
 def parse_sheet_rules(excel_file, sheet_name):
@@ -33,13 +34,14 @@ def parse_sheet_rules(excel_file, sheet_name):
 
 
 def load_config_rules(config_path):
-    """Config Excelを読み込み、レコード種別(D/H/T)ごとのルール辞書を返す"""
+    """Config Excelを読み込み、レコード種別(D/H/T/E)ごとのルール辞書を返す"""
     excel_file = pd.ExcelFile(config_path)
     sheets = excel_file.sheet_names
     return {
         "D": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_DATA in s), sheets[0])),
         "H": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_HEADER in s), None)),
         "T": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_TRAILER in s), None)),
+        "E": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_END in s), None)),
     }
 
 

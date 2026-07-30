@@ -3,16 +3,18 @@ import os
 import pandas as pd
 
 from src.handlers.excel_to_fixed import build_fixed_line
-from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_HEADER, REC_TYPE_TRAILER
+from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_END, REC_TYPE_HEADER, REC_TYPE_TRAILER
 from src.utils.log_tags import log_end, log_start
 
 # サンプルConfig（Excel）とサンプル固定長テキストを同じ定義から生成する。
 # 区分(1バイト目)は各シートに含めず、レコード種別コードとして別途付与する。
+# レコード種別ごとに総バイト数が異なる（60/80/40/20）実物に近い構成にしている。
+# 末尾の「予備」は残りバイトを埋める空白フィラーで、エンドレコードはこの予備だけで構成される。
 HEADER_FIELDS = [
     {"name": "作成年月日", "start": 2, "length": 8},
     {"name": "送信元コード", "start": 10, "length": 10},
     {"name": "送信元名称", "start": 20, "length": 30},
-    {"name": "予備", "start": 50, "length": 20},
+    {"name": "予備", "start": 50, "length": 11},  # 総バイト数60
 ]
 
 DATA_FIELDS = [
@@ -21,13 +23,17 @@ DATA_FIELDS = [
     {"name": "店舗名", "start": 22, "length": 20},
     {"name": "店舗仕様", "start": 42, "length": 15},
     {"name": "金額", "start": 57, "length": 10},
-    {"name": "予備", "start": 67, "length": 4},
+    {"name": "予備", "start": 67, "length": 14},  # 総バイト数80
 ]
 
 TRAILER_FIELDS = [
     {"name": "合計件数", "start": 2, "length": 10},
     {"name": "合計金額", "start": 12, "length": 12},
-    {"name": "予備", "start": 24, "length": 16},
+    {"name": "予備", "start": 24, "length": 17},  # 総バイト数40
+]
+
+END_FIELDS = [
+    {"name": "予備", "start": 2, "length": 19},  # 総バイト数20。区分コード以外はほぼ空白のみ
 ]
 
 SAMPLE_DATA_ROWS = [
@@ -74,6 +80,7 @@ def init_environment(ctx):
             _sheet_df(DATA_FIELDS).to_excel(writer, sheet_name=REC_TYPE_DATA, index=False)
             _sheet_df(HEADER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_HEADER, index=False)
             _sheet_df(TRAILER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_TRAILER, index=False)
+            _sheet_df(END_FIELDS).to_excel(writer, sheet_name=REC_TYPE_END, index=False)
 
         logger.info(f"ひな形Excel作成: {sample_config_path}")
 
@@ -89,13 +96,15 @@ def init_environment(ctx):
 
         record_count = len(SAMPLE_DATA_ROWS)
         total_amount = sum(int(row["金額"]) for row in SAMPLE_DATA_ROWS)
-        t_line = _build_line("9", TRAILER_FIELDS, {
+        t_line = _build_line("8", TRAILER_FIELDS, {
             "合計件数": str(record_count),
             "合計金額": str(total_amount),
         }, encoding)
 
+        e_line = _build_line("9", END_FIELDS, {}, encoding)
+
         with open(sample_input_path, "wb") as f:
-            for line in [h_line, *d_lines, t_line]:
+            for line in [h_line, *d_lines, t_line, e_line]:
                 f.write(line + b"\r\n")
 
         logger.info(f"サンプル固定長テキスト作成: {sample_input_path}（データ{record_count}件 / 合計金額{total_amount}）")
