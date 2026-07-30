@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+import openpyxl
 import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,7 +13,7 @@ from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import build_or_update_mapping
-from src.utils.excel_style import _comment_text
+from src.utils.excel_style import _comment_text, _group_row_ranges, style_output_sheet
 from src.utils.fixed_format import match_config
 
 ENCODING = "cp932"
@@ -355,3 +356,44 @@ def test_restore_all_skips_locked_input_and_continues_other_files(tmp_path, monk
 
     assert not (recreated_dir / "RESTORED_LOCKED.txt").exists()
     assert (recreated_dir / "RESTORED_OK.txt").exists()
+
+
+# ---- 出力Excelの行グループ化・罫線 ----
+
+def test_group_row_ranges_groups_contiguous_runs_of_length_2_or_more():
+    rec_types = ["ヘッダー", "データ", "データ", "データ", "トレーラー"]
+    assert _group_row_ranges(rec_types) == [(3, 5)]
+
+
+def test_group_row_ranges_skips_single_row_runs():
+    rec_types = ["ヘッダー", "データ", "トレーラー"]
+    assert _group_row_ranges(rec_types) == []
+
+
+def test_group_row_ranges_handles_multiple_groups():
+    rec_types = ["データ", "データ", "ヘッダー", "データ", "データ", "データ"]
+    assert _group_row_ranges(rec_types) == [(2, 3), (5, 7)]
+
+
+def test_style_output_sheet_applies_border_and_groups_data_rows(tmp_path):
+    df = pd.DataFrame([
+        {"行番号": 1, "区分": "1", "レコード種別": "ヘッダー", "値": "H"},
+        {"行番号": 2, "区分": "2", "レコード種別": "データ", "値": "D1"},
+        {"行番号": 3, "区分": "2", "レコード種別": "データ", "値": "D2"},
+        {"行番号": 4, "区分": "9", "レコード種別": "トレーラー", "値": "T"},
+    ])
+    out_path = tmp_path / "styled.xlsx"
+    with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Sheet1")
+        style_output_sheet(writer.sheets["Sheet1"], df, {})
+
+    wb = openpyxl.load_workbook(out_path)
+    ws = wb.active
+
+    assert ws.cell(row=1, column=1).border.left.style == "thin"
+    assert ws.cell(row=3, column=1).border.right.style == "thin"
+
+    assert ws.row_dimensions[2].outlineLevel == 0  # ヘッダー単独行
+    assert ws.row_dimensions[3].outlineLevel == 1  # データ1行目
+    assert ws.row_dimensions[4].outlineLevel == 1  # データ2行目
+    assert ws.row_dimensions[5].outlineLevel == 0  # トレーラー単独行
