@@ -21,7 +21,7 @@ MENU = """
 def main():
     logger = setup_logger()
     ctx = create_context(logger)
-    logger.info(f"{ctx.app_name} を起動しました。")
+    logger.info(f"{ctx.app_name} 起動")
 
     while True:
         print(MENU)
@@ -36,7 +36,7 @@ def main():
         elif choice == "4":
             excel_to_fixed.restore_all(ctx)
         elif choice == "0":
-            logger.info("終了します。")
+            logger.info("終了")
             break
         else:
             print("無効な選択です。もう一度入力してください。")

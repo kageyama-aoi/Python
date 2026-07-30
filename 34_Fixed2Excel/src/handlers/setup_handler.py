@@ -4,6 +4,7 @@ import pandas as pd
 
 from src.handlers.excel_to_fixed import build_fixed_line
 from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_HEADER, REC_TYPE_TRAILER
+from src.utils.log_tags import log_end, log_start
 
 # サンプルConfig（Excel）とサンプル固定長テキストを同じ定義から生成する。
 # 区分(1バイト目)は各シートに含めず、レコード種別コードとして別途付与する。
@@ -58,14 +59,14 @@ def init_environment(ctx):
     encoding = ctx.encoding
     logger = ctx.logger
 
-    logger.info("Fixed2Excel 開発環境のセットアップを開始します...")
+    log_start(logger, "Fixed2Excel 開発環境 セットアップ開始")
 
     for folder in dirs.values():
         if not os.path.exists(folder):
             os.makedirs(folder)
-            logger.info(f"フォルダを作成しました: {folder}/")
+            logger.info(f"フォルダ作成: {folder}/")
         else:
-            logger.info(f"既存フォルダを使用します: {folder}/")
+            logger.info(f"既存フォルダ使用: {folder}/")
 
     sample_config_path = os.path.join(dirs["configs"], "config_サンプル会員データ.xlsx")
     if not os.path.exists(sample_config_path):
@@ -74,7 +75,7 @@ def init_environment(ctx):
             _sheet_df(HEADER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_HEADER, index=False)
             _sheet_df(TRAILER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_TRAILER, index=False)
 
-        logger.info(f"ひな形Excelを作成しました: {sample_config_path}")
+        logger.info(f"ひな形Excel作成: {sample_config_path}")
 
     sample_input_path = os.path.join(dirs["input"], "KAIIN_SAMPLE.txt")
     if not os.path.exists(sample_input_path):
@@ -97,6 +98,6 @@ def init_environment(ctx):
             for line in [h_line, *d_lines, t_line]:
                 f.write(line + b"\r\n")
 
-        logger.info(f"テスト用固定長テキストを作成しました: {sample_input_path}（データ{record_count}件、合計金額{total_amount}）")
+        logger.info(f"サンプル固定長テキスト作成: {sample_input_path}（データ{record_count}件 / 合計金額{total_amount}）")
 
-    logger.info("環境構築が完了しました。")
+    log_end(logger, "Fixed2Excel 開発環境 セットアップ完了")

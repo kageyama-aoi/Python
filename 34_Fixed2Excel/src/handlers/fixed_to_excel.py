@@ -11,6 +11,7 @@ from src.utils.fixed_format import (
     load_config_rules,
     match_config,
 )
+from src.utils.log_tags import log_end, log_start
 
 
 def _flatten_field_rules(config_rules):
@@ -71,8 +72,11 @@ def convert_all(ctx):
     output_dir = dirs["output"]
     logger = ctx.logger
 
+    log_start(logger, "固定長→Excel変換開始")
+
     if not os.path.exists(ctx.mapping_csv):
-        logger.warning("mapping.csv が見つかりません。先に mapping.csv 更新を実行してください。")
+        logger.warning("mapping.csv未検出（先にmapping.csv更新を実行）")
+        log_end(logger, "固定長→Excel変換完了")
         return
 
     df_map = pd.read_csv(ctx.mapping_csv, encoding=ctx.encoding)
@@ -85,15 +89,15 @@ def convert_all(ctx):
 
         matched_config_name = match_config(txt_name, df_map, ctx.mapping_columns)
         if not matched_config_name:
-            logger.info(f"スキップ: '{txt_name}' (mapping.csv に合致するキーワードがありません)")
+            logger.info(f"スキップ: {txt_name}（キーワード不一致）")
             continue
 
         config_path = os.path.join(configs_dir, matched_config_name)
         if not os.path.exists(config_path):
-            logger.error(f"設定ファイル '{matched_config_name}' が configs/ に存在しません。")
+            logger.error(f"設定ファイル不明: {matched_config_name}")
             continue
 
-        logger.info(f"解析中: '{txt_name}' -> 適用Config: [{matched_config_name}]")
+        logger.info(f"解析: {txt_name} → {matched_config_name}")
 
         config_rules = load_config_rules(config_path)
         df_result = process_file(txt_path, config_rules, ctx.encoding, ctx.record_type_codes)
@@ -103,4 +107,6 @@ def convert_all(ctx):
         with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
             df_result.to_excel(writer, index=False, sheet_name="Sheet1")
             style_output_sheet(writer.sheets["Sheet1"], df_result, _flatten_field_rules(config_rules))
-        logger.info(f"出力完了: {out_path}")
+        logger.info(f"出力: {out_path}")
+
+    log_end(logger, "固定長→Excel変換完了")

@@ -21,13 +21,16 @@ class QueueLogHandler(logging.Handler):
         self.log_queue = log_queue
 
     def emit(self, record):
-        self.log_queue.put((record.levelname, self.format(record)))
+        tag = getattr(record, "tag", record.levelname)
+        self.log_queue.put((tag, self.format(record)))
 
 
 LOG_TAG_COLORS = {
     "INFO": "#1a1a1a",
     "WARNING": "#b36b00",
     "ERROR": "#c0392b",
+    "START": "#0969da",
+    "END": "#1a7f37",
 }
 
 

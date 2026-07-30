@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_LABELS, load_config_rules, match_config
+from src.utils.log_tags import log_end, log_start
 
 
 def pad_value_to_bytes(val, length, encoding):
@@ -54,8 +55,11 @@ def restore_all(ctx):
     encoding = ctx.encoding
     logger = ctx.logger
 
+    log_start(logger, "Excel→固定長復元開始")
+
     if not os.path.exists(ctx.mapping_csv):
-        logger.warning("mapping.csv が見つかりません。")
+        logger.warning("mapping.csv未検出")
+        log_end(logger, "Excel→固定長復元完了")
         return
 
     os.makedirs(recreated_dir, exist_ok=True)
@@ -63,7 +67,8 @@ def restore_all(ctx):
 
     output_files = [f for f in os.listdir(output_dir) if f.endswith(".xlsx") and not f.startswith("~$")]
     if not output_files:
-        logger.info("output/ フォルダに逆変換対象のExcelファイルがありません。")
+        logger.info("復元対象なし（output/ にExcelファイルなし）")
+        log_end(logger, "Excel→固定長復元完了")
         return
 
     for excel_name in output_files:
@@ -71,15 +76,15 @@ def restore_all(ctx):
 
         matched_config_name = match_config(excel_name, df_map, ctx.mapping_columns)
         if not matched_config_name:
-            logger.info(f"スキップ: '{excel_name}' (合致するキーワードがありません)")
+            logger.info(f"スキップ: {excel_name}（キーワード不一致）")
             continue
 
         config_path = os.path.join(configs_dir, matched_config_name)
         if not os.path.exists(config_path):
-            logger.error(f"設定ファイル '{matched_config_name}' が見つかりません。")
+            logger.error(f"設定ファイル不明: {matched_config_name}")
             continue
 
-        logger.info(f"逆変換中: '{excel_name}' -> 適用Config: [{matched_config_name}]")
+        logger.info(f"逆変換: {excel_name} → {matched_config_name}")
 
         rules_by_type = load_config_rules(config_path)
         rules_dict = {REC_TYPE_LABELS[k]: v for k, v in rules_by_type.items()}
@@ -115,4 +120,6 @@ def restore_all(ctx):
             for line in output_lines:
                 f.write(line + b"\r\n")
 
-        logger.info(f"生成完了: {out_txt_path}")
+        logger.info(f"生成: {out_txt_path}")
+
+    log_end(logger, "Excel→固定長復元完了")

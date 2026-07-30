@@ -2,6 +2,8 @@ import os
 
 import pandas as pd
 
+from src.utils.log_tags import log_end, log_start
+
 
 def build_or_update_mapping(ctx):
     """input内のファイル名からキーワード候補を拾い、mapping.csvに未登録分を追記する"""
@@ -20,12 +22,14 @@ def build_or_update_mapping(ctx):
     config_col = columns["config_name"]
     note_col = columns.get("note", "備考")
 
+    log_start(logger, "mapping.csv 更新開始")
+
     if os.path.exists(mapping_csv):
         df_map = pd.read_csv(mapping_csv, encoding=encoding)
-        logger.info("既存の mapping.csv を読み込みました。")
+        logger.info("既存mapping.csv読み込み")
     else:
         df_map = pd.DataFrame(columns=[keyword_col, config_col, note_col])
-        logger.info("新しい mapping.csv を作成します。")
+        logger.info("新規mapping.csv作成")
 
     mapping_csv_name = os.path.basename(mapping_csv)
     input_files = [f for f in os.listdir(input_dir) if not f.startswith(".")]
@@ -49,12 +53,14 @@ def build_or_update_mapping(ctx):
     if new_rows:
         df_map = pd.concat([df_map, pd.DataFrame(new_rows)], ignore_index=True)
         df_map.to_csv(mapping_csv, index=False, encoding=encoding)
-        logger.info(f"{len(new_rows)} 件の新しいファイルを mapping.csv に追記しました。")
+        logger.info(f"新規ファイル追記: {len(new_rows)}件")
     else:
-        logger.info("すべての input ファイルは登録済みです。更新はありません。")
+        logger.info("新規ファイルなし（登録済み）")
 
-    logger.info("現在の configs フォルダ内の設定ファイル一覧:")
+    logger.info("configsフォルダ 設定ファイル一覧:")
     for cfg in config_files:
         logger.info(f" - {cfg}")
+
+    log_end(logger, "mapping.csv 更新完了")
 
     return len(new_rows)
