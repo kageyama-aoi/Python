@@ -1,8 +1,19 @@
 import os
+import shutil
+from datetime import datetime
 
 import pandas as pd
 
 from src.utils.log_tags import log_end, log_start
+
+
+def _backup_existing_file(path, logger):
+    """上書き前に既存ファイルをタイムスタンプ付きでバックアップする"""
+    if not os.path.exists(path):
+        return
+    backup_path = f"{path}.bak_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    shutil.copy2(path, backup_path)
+    logger.info(f"バックアップ作成: {backup_path}")
 
 
 def build_or_update_mapping(ctx):
@@ -51,6 +62,7 @@ def build_or_update_mapping(ctx):
             })
 
     if new_rows:
+        _backup_existing_file(mapping_csv, logger)
         df_map = pd.concat([df_map, pd.DataFrame(new_rows)], ignore_index=True)
         df_map.to_csv(mapping_csv, index=False, encoding=encoding)
         logger.info(f"新規ファイル追記: {len(new_rows)}件")

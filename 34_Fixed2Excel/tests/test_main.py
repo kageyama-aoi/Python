@@ -185,6 +185,48 @@ def test_build_or_update_mapping_skips_already_registered(tmp_path):
     assert added == 0
 
 
+def test_build_or_update_mapping_backs_up_existing_file_before_overwrite(tmp_path):
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    configs_dir.mkdir()
+    input_dir.mkdir()
+    (input_dir / "NEW_FILE.txt").write_bytes(b"")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg", "note": "note"}
+    pd.DataFrame([{"kw": "EXISTING", "cfg": "x.xlsx", "note": ""}]).to_csv(
+        mapping_csv, index=False, encoding=ENCODING
+    )
+
+    ctx = _make_ctx({"configs": str(configs_dir), "input": str(input_dir)}, mapping_csv, columns)
+    build_or_update_mapping(ctx)
+
+    backups = list(tmp_path.glob("mapping.csv.bak_*"))
+    assert len(backups) == 1, f"バックアップが作成されていない: {list(tmp_path.iterdir())}"
+
+    backup_df = pd.read_csv(backups[0], encoding=ENCODING)
+    assert list(backup_df["kw"]) == ["EXISTING"]  # バックアップは追記前の内容を保持
+
+
+def test_build_or_update_mapping_no_backup_when_nothing_to_add(tmp_path):
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    configs_dir.mkdir()
+    input_dir.mkdir()
+    (input_dir / "EXISTING.txt").write_bytes(b"")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg", "note": "note"}
+    pd.DataFrame([{"kw": "EXISTING", "cfg": "x.xlsx", "note": ""}]).to_csv(
+        mapping_csv, index=False, encoding=ENCODING
+    )
+
+    ctx = _make_ctx({"configs": str(configs_dir), "input": str(input_dir)}, mapping_csv, columns)
+    build_or_update_mapping(ctx)  # 追記対象なし
+
+    assert list(tmp_path.glob("mapping.csv.bak_*")) == []
+
+
 # ---- 固定長 -> Excel -> 固定長 の往復変換（回帰テスト） ----
 # 過去に見つかったバグ: (1) 16桁の数字文字列がpd.read_excelの型推論でfloatに
 # 化けて桁が欠落する、(2) 先頭1バイトのレコード種別コードが復元時に失われる。

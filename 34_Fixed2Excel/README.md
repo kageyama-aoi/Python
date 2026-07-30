@@ -26,7 +26,9 @@ pip install -r requirements.txt
 ```bash
 python src/gui.py
 ```
-ウィンドウのボタンから下記4操作を実行する。ログはウィンドウ内に表示される。
+よく使う **固定長テキスト → Excel 変換** / **Excel → 固定長テキスト 復元** は上部に大きめのボタンで配置。
+使用頻度の低い **環境初期化** / **mapping.csv 更新** は下部にまとめ、実行前に「どんなときに使うか」の
+確認ダイアログを出す。ログはウィンドウ内に表示される。
 
 ### CUI
 ```bash
@@ -34,10 +36,10 @@ python src/main.py
 ```
 メニュー番号を入力して選択する。
 
-いずれも操作内容は共通：
+操作内容：
 
 1. **環境初期化** — `data/configs` `data/input` `data/output` `data/recreated_input` を作成し、サンプル設定Excel・サンプル固定長テキストを生成する（初回のみ）
-2. **mapping.csv 更新** — `data/input`内の新規ファイル名からキーワード候補を拾い、`data/configs/mapping.csv`に未登録分を追記する（既定の設定ファイル名は要手動確認）
+2. **mapping.csv 更新** — `data/input`内の新規ファイル名からキーワード候補を拾い、`data/configs/mapping.csv`に未登録分を追記する（既定の設定ファイル名は要手動確認）。既存のmapping.csvを上書きする前に自動でタイムスタンプ付きバックアップ（`mapping.csv.bak_YYYYMMDD_HHMMSS`）を同じフォルダに作成する
 3. **固定長テキスト → Excel 変換**
 4. **Excel → 固定長テキスト 復元**
 

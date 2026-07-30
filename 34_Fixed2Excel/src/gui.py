@@ -4,7 +4,7 @@ import queue
 import sys
 import threading
 import tkinter as tk
-from tkinter import scrolledtext, ttk
+from tkinter import messagebox, scrolledtext, ttk
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -33,19 +33,41 @@ LOG_TAG_COLORS = {
     "END": "#1a7f37",
 }
 
+# 実行頻度が低い操作は、押す前に「どんなときに使うか」を確認する
+CONFIRM_MESSAGES = {
+    "init": (
+        "環境初期化はどんなとき？",
+        "初回セットアップ時、または data/configs・data/input 等のフォルダを\n"
+        "作り直したいときに実行します。\n"
+        "既存のサンプルファイルは上書きしません（未作成のものだけ生成します）。\n\n"
+        "実行しますか？",
+    ),
+    "mapping": (
+        "mapping.csv更新はどんなとき？",
+        "input内に新しい種類の固定長ファイルを追加したときに実行します。\n"
+        "既存の対応関係は保持され、新規ファイル分だけ追記されます\n"
+        "（実行前に既存のmapping.csvを自動でバックアップします）。\n\n"
+        "実行しますか？",
+    ),
+}
+
 
 class Fixed2ExcelApp(tk.Tk):
-    ACTIONS = [
-        ("環境初期化", "init"),
-        ("mapping.csv 更新", "mapping"),
+    # よく使う変換操作: 押しやすい上部に大きめのボタンで配置
+    PRIMARY_ACTIONS = [
         ("固定長テキスト → Excel 変換", "to_excel"),
         ("Excel → 固定長テキスト 復元", "to_fixed"),
+    ]
+    # 初回セットアップ等、使用頻度の低い操作: 下部に小さめでまとめ、実行前に確認する
+    SETUP_ACTIONS = [
+        ("環境初期化", "init"),
+        ("mapping.csv 更新", "mapping"),
     ]
 
     def __init__(self):
         super().__init__()
         self.title("34_Fixed2Excel")
-        self.geometry("720x480")
+        self.geometry("720x520")
 
         self.log_queue = queue.Queue()
         self.logger = self._build_logger()
@@ -64,12 +86,32 @@ class Fixed2ExcelApp(tk.Tk):
         return logger
 
     def _build_widgets(self):
-        button_frame = ttk.Frame(self, padding=10)
-        button_frame.pack(fill="x")
+        style = ttk.Style(self)
+        style.configure("Primary.TButton", font=("Yu Gothic UI", 11, "bold"), padding=(20, 14))
+        style.configure("Setup.TButton", font=("Yu Gothic UI", 9), padding=(10, 6))
 
         self.buttons = {}
-        for label, action_key in self.ACTIONS:
-            btn = ttk.Button(button_frame, text=label, command=lambda k=action_key: self._run_action(k))
+
+        primary_frame = ttk.Frame(self, padding=(10, 10, 10, 4))
+        primary_frame.pack(fill="x")
+        for label, action_key in self.PRIMARY_ACTIONS:
+            btn = ttk.Button(
+                primary_frame, text=label, style="Primary.TButton",
+                command=lambda k=action_key: self._run_action(k),
+            )
+            btn.pack(side="left", expand=True, fill="x", padx=4)
+            self.buttons[action_key] = btn
+
+        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=10, pady=(6, 2))
+        ttk.Label(self, text="初期セットアップ（通常は最初の1回だけ）", padding=(10, 0)).pack(anchor="w")
+
+        setup_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
+        setup_frame.pack(fill="x")
+        for label, action_key in self.SETUP_ACTIONS:
+            btn = ttk.Button(
+                setup_frame, text=label, style="Setup.TButton",
+                command=lambda k=action_key: self._run_action(k),
+            )
             btn.pack(side="left", padx=4)
             self.buttons[action_key] = btn
 
@@ -104,6 +146,11 @@ class Fixed2ExcelApp(tk.Tk):
     def _run_action(self, action_key):
         if self.is_running:
             return
+
+        confirm = CONFIRM_MESSAGES.get(action_key)
+        if confirm and not messagebox.askyesno(*confirm, parent=self):
+            return
+
         self._set_running(True)
         thread = threading.Thread(target=self._execute, args=(action_key,), daemon=True)
         thread.start()
