@@ -584,3 +584,58 @@ def test_style_output_sheet_with_separators_creates_independent_outline_gaps(tmp
     # 「1-0-1」の並びになっていれば、Excel上で独立した折りたたみグループとして認識される
     levels = [ws.column_dimensions[l].outlineLevel for l in ("D", "E", "F", "G", "H")]
     assert levels == [1, 1, 0, 1, 1]
+
+
+# ---- 設定Excelが「データ」シートのみ（ヘッダー/トレーラーシートなし）の場合の往復変換 ----
+# ヘッダー/トレーラーの識別レコードを持たない単純な固定長ファイル（全行データ）を扱いたい
+# という要望に対し、既存コードで既に対応できていることを確認する回帰テスト。
+
+def test_roundtrip_works_with_data_sheet_only_config(tmp_path):
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    recreated_dir = tmp_path / "recreated"
+    for d in (configs_dir, input_dir, output_dir, recreated_dir):
+        d.mkdir()
+
+    data_sheet = pd.DataFrame([
+        ["開始位置", 1, 5],
+        ["文字数", 4, 13],
+    ], columns=["区分", "コード", "氏名"])
+    config_path = configs_dir / "config_データのみ.xlsx"
+    with pd.ExcelWriter(config_path, engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)  # ヘッダー/トレーラーシートなし
+
+    lines = [
+        "0001TANAKA TARO  ",
+        "0002SATO   HANAKO",
+        "0003SUZUKI ICHIRO",
+    ]
+    input_path = input_dir / "SIMPLE_DATA.txt"
+    with open(input_path, "wb") as f:
+        for line in lines:
+            f.write(line.encode(ENCODING) + b"\r\n")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "判定キーワード(input側)", "config_name": "設定ファイル名(configs内)"}
+    pd.DataFrame([{
+        "判定キーワード(input側)": "SIMPLE_DATA",
+        "設定ファイル名(configs内)": "config_データのみ.xlsx",
+    }]).to_csv(mapping_csv, index=False, encoding=ENCODING)
+
+    dirs = {
+        "configs": str(configs_dir), "input": str(input_dir),
+        "output": str(output_dir), "recreated": str(recreated_dir),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+
+    convert_all(ctx)
+    df = pd.read_excel(output_dir / "解析結果_SIMPLE_DATA.xlsx", dtype=str)
+    assert list(df["レコード種別"]) == ["データ", "データ", "データ"]  # H/Tシートが無くても全行データ扱い
+
+    restore_all(ctx)
+    restored_path = recreated_dir / "RESTORED_SIMPLE_DATA.txt"
+    with open(restored_path, "rb") as f:
+        restored_lines = [l.rstrip(b"\r\n").decode(ENCODING) for l in f if l.strip()]
+
+    assert restored_lines == lines
