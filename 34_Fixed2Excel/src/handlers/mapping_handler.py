@@ -16,6 +16,50 @@ def _backup_existing_file(path, logger):
     logger.info(f"バックアップ作成: {backup_path}")
 
 
+def _mapping_column_names(ctx):
+    columns = ctx.mapping_columns
+    return columns["keyword"], columns["config_name"], columns.get("note", "備考")
+
+
+def load_mapping(ctx):
+    """mapping.csvを読み込んでDataFrameを返す（無ければ列だけの空DataFrame）"""
+    keyword_col, config_col, note_col = _mapping_column_names(ctx)
+    if os.path.exists(ctx.mapping_csv):
+        return pd.read_csv(ctx.mapping_csv, encoding=ctx.encoding)
+    return pd.DataFrame(columns=[keyword_col, config_col, note_col])
+
+
+def add_mapping_entry(ctx, keyword, config_name, note=""):
+    """mapping.csvにキーワード⇔設定ファイルの対応を1件登録する（同じキーワードがあれば置き換え）"""
+    keyword_col, config_col, note_col = _mapping_column_names(ctx)
+
+    df_map = load_mapping(ctx)
+    _backup_existing_file(ctx.mapping_csv, ctx.logger)
+
+    df_map = df_map[df_map[keyword_col].astype(str) != str(keyword)]
+    new_row = pd.DataFrame([{keyword_col: keyword, config_col: config_name, note_col: note}])
+    df_map = pd.concat([df_map, new_row], ignore_index=True)
+
+    os.makedirs(os.path.dirname(ctx.mapping_csv), exist_ok=True)
+    df_map.to_csv(ctx.mapping_csv, index=False, encoding=ctx.encoding)
+    ctx.logger.info(f"mapping.csv登録: {keyword} → {config_name}")
+
+
+def remove_mapping_entry(ctx, keyword):
+    """mapping.csvから指定キーワードの行を削除する。該当行が無ければ何もせずFalseを返す"""
+    keyword_col, _, _ = _mapping_column_names(ctx)
+
+    df_map = load_mapping(ctx)
+    if str(keyword) not in set(df_map[keyword_col].dropna().astype(str)):
+        return False
+
+    _backup_existing_file(ctx.mapping_csv, ctx.logger)
+    df_map = df_map[df_map[keyword_col].astype(str) != str(keyword)]
+    df_map.to_csv(ctx.mapping_csv, index=False, encoding=ctx.encoding)
+    ctx.logger.info(f"mapping.csv削除: {keyword}")
+    return True
+
+
 def build_or_update_mapping(ctx):
     """input内のファイル名からキーワード候補を拾い、mapping.csvに未登録分を追記する"""
     dirs = ctx.dirs

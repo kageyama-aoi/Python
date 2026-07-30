@@ -9,6 +9,7 @@ from tkinter import messagebox, scrolledtext, ttk
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.app_context import create_context
+from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
 from src.handlers import excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
 
@@ -73,6 +74,7 @@ class Fixed2ExcelApp(tk.Tk):
         self.logger = self._build_logger()
         self.ctx = create_context(self.logger)
         self.is_running = False
+        self._mapping_editors = []
 
         self._build_widgets()
         self.after(100, self._drain_log_queue)
@@ -115,6 +117,13 @@ class Fixed2ExcelApp(tk.Tk):
             btn.pack(side="left", padx=4)
             self.buttons[action_key] = btn
 
+        edit_mapping_btn = ttk.Button(
+            setup_frame, text="mapping.csv 編集", style="Setup.TButton",
+            command=self._open_mapping_editor,
+        )
+        edit_mapping_btn.pack(side="left", padx=4)
+        self.buttons["edit_mapping"] = edit_mapping_btn
+
         self.status_var = tk.StringVar(value="待機中")
         ttk.Label(self, textvariable=self.status_var, padding=(10, 0)).pack(anchor="w")
 
@@ -142,6 +151,23 @@ class Fixed2ExcelApp(tk.Tk):
         for btn in self.buttons.values():
             btn.configure(state=state)
         self.status_var.set("実行中..." if running else "待機中")
+
+        # すでに開いているmapping.csv編集ウィンドウも連動してロックする
+        # （開いたまま別のバックグラウンド処理を実行すると、mapping.csvへの同時書き込みで
+        # 片方の変更が消える事故になり得るため）
+        self._mapping_editors = [w for w in self._mapping_editors if w.winfo_exists()]
+        for editor in self._mapping_editors:
+            editor.set_locked(running)
+            if not running:
+                # ロック中に「mapping.csv更新」等が行を追加している可能性があるため
+                # 解除時に一覧を読み直す
+                editor.refresh()
+
+    def _open_mapping_editor(self):
+        if self.is_running:
+            return
+        editor = MappingEditorWindow(self, self.ctx)
+        self._mapping_editors.append(editor)
 
     def _run_action(self, action_key):
         if self.is_running:

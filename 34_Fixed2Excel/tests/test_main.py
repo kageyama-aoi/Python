@@ -13,7 +13,12 @@ from src.handlers import excel_to_fixed as excel_to_fixed_module
 from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
-from src.handlers.mapping_handler import build_or_update_mapping
+from src.handlers.mapping_handler import (
+    add_mapping_entry,
+    build_or_update_mapping,
+    load_mapping,
+    remove_mapping_entry,
+)
 from src.handlers.setup_handler import _with_padding_filler, init_environment
 from src.utils.excel_style import (
     _comment_text,
@@ -745,3 +750,76 @@ def test_with_padding_filler_ok_when_total_length_exactly_fits():
     assert filler["name"] == "予備"
     assert filler["start"] == 12
     assert filler["length"] == 0
+
+
+# ---- mapping.csv の個別登録・削除（ランチャーGUIのエディタ用） ----
+
+def _mapping_columns():
+    return {"keyword": "kw", "config_name": "cfg", "note": "note"}
+
+
+def test_load_mapping_returns_empty_df_when_file_missing(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+    df_map = load_mapping(ctx)
+    assert list(df_map.columns) == ["kw", "cfg", "note"]
+    assert len(df_map) == 0
+
+
+def test_add_mapping_entry_creates_file_and_row(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+
+    add_mapping_entry(ctx, "KAIIN_SAMPLE", "config_サンプル.xlsx")
+
+    df_map = load_mapping(ctx)
+    assert list(df_map["kw"]) == ["KAIIN_SAMPLE"]
+    assert list(df_map["cfg"]) == ["config_サンプル.xlsx"]
+
+
+def test_add_mapping_entry_replaces_existing_keyword(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+
+    add_mapping_entry(ctx, "KAIIN_SAMPLE", "config_old.xlsx")
+    add_mapping_entry(ctx, "KAIIN_SAMPLE", "config_new.xlsx")
+
+    df_map = load_mapping(ctx)
+    assert len(df_map) == 1  # 重複登録されず置き換わる
+    assert df_map.iloc[0]["cfg"] == "config_new.xlsx"
+
+
+def test_add_mapping_entry_backs_up_existing_file(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+
+    add_mapping_entry(ctx, "A", "a.xlsx")
+    add_mapping_entry(ctx, "B", "b.xlsx")  # 2回目の登録でバックアップが作られる
+
+    assert len(list(tmp_path.glob("mapping.csv.bak_*"))) >= 1
+
+
+def test_remove_mapping_entry_deletes_matching_row(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+
+    add_mapping_entry(ctx, "A", "a.xlsx")
+    add_mapping_entry(ctx, "B", "b.xlsx")
+
+    removed = remove_mapping_entry(ctx, "A")
+
+    assert removed is True
+    df_map = load_mapping(ctx)
+    assert list(df_map["kw"]) == ["B"]
+
+
+def test_remove_mapping_entry_returns_false_when_not_found(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    ctx = _make_ctx({}, mapping_csv, _mapping_columns())
+
+    add_mapping_entry(ctx, "A", "a.xlsx")
+    removed = remove_mapping_entry(ctx, "NOT_EXIST")
+
+    assert removed is False
+    df_map = load_mapping(ctx)
+    assert list(df_map["kw"]) == ["A"]  # 何も変わらない
