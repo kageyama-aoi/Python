@@ -8,33 +8,45 @@ from src.utils.log_tags import log_end, log_start
 
 # サンプルConfig（Excel）とサンプル固定長テキストを同じ定義から生成する。
 # 区分(1バイト目)は各シートに含めず、レコード種別コードとして別途付与する。
-# レコード種別ごとに総バイト数が異なる（60/80/40/20）実物に近い構成にしている。
-# 末尾の「予備」は残りバイトを埋める空白フィラーで、エンドレコードはこの予備だけで構成される。
-HEADER_FIELDS = [
+# 実際の固定長ファイルは1ファイル内で全レコード種別の総バイト数が揃っているのが一般的
+# （テキストエディタで開いたときに各行の桁が揃って見える）。ここでは COMMON_RECORD_LENGTH に
+# 統一し、各レコード種別の末尾に「予備」フィラーを自動計算で追加して桁数を合わせている。
+COMMON_RECORD_LENGTH = 80
+
+
+def _with_padding_filler(fields, total_length):
+    """定義済みフィールドの直後から total_length まで埋める「予備」フィラーを追加する"""
+    last_end = max((f["start"] + f["length"] - 1 for f in fields), default=1)
+    filler_start = last_end + 1
+    filler_length = total_length - filler_start + 1
+    if filler_length < 0:
+        raise ValueError(
+            f"COMMON_RECORD_LENGTH({total_length})がフィールド定義の合計({last_end})より短い"
+        )
+    return fields + [{"name": "予備", "start": filler_start, "length": filler_length}]
+
+
+HEADER_FIELDS = _with_padding_filler([
     {"name": "作成年月日", "start": 2, "length": 8},
     {"name": "送信元コード", "start": 10, "length": 10},
     {"name": "送信元名称", "start": 20, "length": 30},
-    {"name": "予備", "start": 50, "length": 11},  # 総バイト数60
-]
+], COMMON_RECORD_LENGTH)
 
-DATA_FIELDS = [
+DATA_FIELDS = _with_padding_filler([
     {"name": "会員番号", "start": 2, "length": 16},
     {"name": "有効期限", "start": 18, "length": 4},
     {"name": "店舗名", "start": 22, "length": 20},
     {"name": "店舗仕様", "start": 42, "length": 15},
     {"name": "金額", "start": 57, "length": 10},
-    {"name": "予備", "start": 67, "length": 14},  # 総バイト数80
-]
+], COMMON_RECORD_LENGTH)
 
-TRAILER_FIELDS = [
+TRAILER_FIELDS = _with_padding_filler([
     {"name": "合計件数", "start": 2, "length": 10},
     {"name": "合計金額", "start": 12, "length": 12},
-    {"name": "予備", "start": 24, "length": 17},  # 総バイト数40
-]
+], COMMON_RECORD_LENGTH)
 
-END_FIELDS = [
-    {"name": "予備", "start": 2, "length": 19},  # 総バイト数20。区分コード以外はほぼ空白のみ
-]
+# エンドレコードは区分コード以外ほぼ空白のみ（ファイル終端マーカー）
+END_FIELDS = _with_padding_filler([], COMMON_RECORD_LENGTH)
 
 SAMPLE_DATA_ROWS = [
     {"会員番号": "1000000000000001", "有効期限": "2801", "店舗名": "TEST_SHOP_A", "店舗仕様": "SPEC_A", "金額": "1000"},

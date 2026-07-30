@@ -4,6 +4,7 @@ import sys
 
 import openpyxl
 import pandas as pd
+import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -13,7 +14,7 @@ from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import build_or_update_mapping
-from src.handlers.setup_handler import init_environment
+from src.handlers.setup_handler import _with_padding_filler, init_environment
 from src.utils.excel_style import (
     _comment_text,
     _group_column_ranges,
@@ -677,7 +678,9 @@ def test_process_file_end_code_falls_back_to_data_when_no_end_sheet():
     assert list(df["レコード種別"]) == ["データ"]  # Eシートが無ければ従来通りデータ扱い
 
 
-def test_setup_handler_generates_four_record_types_with_distinct_lengths(tmp_path):
+def test_setup_handler_generates_four_record_types_with_same_total_length(tmp_path):
+    # 実際の固定長ファイルは1ファイル内で全レコード種別の総バイト数が揃っているのが一般的
+    # （テキストエディタで開いたときに桁がずれて見えないように）。
     dirs = {
         "configs": str(tmp_path / "configs"), "input": str(tmp_path / "input"),
         "output": str(tmp_path / "output"), "recreated": str(tmp_path / "recreated"),
@@ -692,7 +695,8 @@ def test_setup_handler_generates_four_record_types_with_distinct_lengths(tmp_pat
     with open(input_path, "rb") as f:
         lines = [l.rstrip(b"\r\n") for l in f if l.strip()]
 
-    assert [len(l) for l in lines] == [60, 80, 80, 80, 40, 20]
+    lengths = {len(l) for l in lines}
+    assert len(lengths) == 1, f"レコード種別ごとに桁数が揃っていない: {[len(l) for l in lines]}"
     assert [l[0:1].decode(ENCODING) for l in lines] == ["1", "2", "2", "2", "8", "9"]
 
 
@@ -724,3 +728,20 @@ def test_full_roundtrip_with_generated_sample_includes_end_record(tmp_path):
         restored_lines = [l.rstrip(b"\r\n") for l in f if l.strip()]
 
     assert restored_lines == original_lines  # エンドレコード込みで完全一致
+
+
+# ---- _with_padding_filler のガード（COMMON_RECORD_LENGTHがフィールド定義より短い場合） ----
+
+def test_with_padding_filler_raises_when_total_length_too_short():
+    fields = [{"name": "値", "start": 2, "length": 10}]  # 終端position=11
+    with pytest.raises(ValueError):
+        _with_padding_filler(fields, total_length=10)  # 11 > 10 なので不足
+
+
+def test_with_padding_filler_ok_when_total_length_exactly_fits():
+    fields = [{"name": "値", "start": 2, "length": 10}]  # 終端position=11
+    result = _with_padding_filler(fields, total_length=11)
+    filler = result[-1]
+    assert filler["name"] == "予備"
+    assert filler["start"] == 12
+    assert filler["length"] == 0
