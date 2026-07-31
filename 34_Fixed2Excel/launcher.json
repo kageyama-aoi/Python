@@ -6,13 +6,13 @@
       "label": "起動（GUI）",
       "kind": "gui",
       "entry": "run.bat",
-      "note": "ウィンドウのボタンで「環境初期化」「mapping.csv更新」「固定長→Excel変換」「Excel→固定長復元」を実行し、ログを画面に表示する"
+      "note": "ウィンドウのボタンで「固定長→Excel変換」「Excel→固定長復元」「差分チェック（入力vs復元後）」「環境初期化」「mapping.csv更新/編集」「設定/入力/出力/復元後フォルダを開く」を実行し、ログを画面に表示する"
     },
     {
       "label": "起動（CUI）",
       "kind": "cli",
       "entry": "run_cli.bat",
-      "note": "コンソールでメニュー番号を選ぶ対話式"
+      "note": "コンソールでメニュー番号を選ぶ対話式（環境初期化/mapping.csv更新/固定長→Excel変換/Excel→固定長復元/差分チェック）"
     }
   ]
 }
