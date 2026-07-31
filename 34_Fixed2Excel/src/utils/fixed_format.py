@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 
 # レコード種別ラベル（D/H/T ⇔ 日本語表示名）の唯一の定義元。
@@ -45,11 +47,115 @@ def load_config_rules(config_path):
     }
 
 
+def count_field_name_usage(config_rules):
+    """項目名がいくつのレコード種別で使われているかを数える
+    （複数のレコード種別で共有される項目名を判定するために使う）"""
+    counts = {}
+    for rules in config_rules.values():
+        for rule in rules or []:
+            counts[rule["name"]] = counts.get(rule["name"], 0) + 1
+    return counts
+
+
+def column_name_for(field_name, rec_type_label, name_counts):
+    """出力Excel上のカラム名を決める。
+
+    同じ項目名が複数のレコード種別で使われる場合（例:「予備」がヘッダーとデータの両方にある）、
+    開始位置・文字数がレコード種別ごとに異なることがあるため1カラムに混在させられない。
+    「項目名（種別）」の形で種別ごとに別カラムとして分ける。1つの種別だけで使われる項目名は
+    そのままの名前にする。
+    """
+    if name_counts.get(field_name, 0) > 1:
+        return f"{field_name}（{rec_type_label}）"
+    return field_name
+
+
+def build_field_columns(config_rules):
+    """レコード種別ごとの各項目に、出力Excel上で一意な出力カラム名を割り当てる。
+
+    - 同じ項目名が複数のレコード種別で使われる場合:「項目名（種別）」で区別する(column_name_for)。
+    - さらに、同じレコード種別の中で同じ項目名が複数回使われる場合（実務の転記漏れでありがちな、
+      本来別々の項目に同じラベルを使い回しているケース。例: あるトレーラーの「区分コード」が
+      13個ある）は、それだけでは列名が衝突して値が上書きされてしまうため、出現順の連番も付けて
+      完全に一意にする。
+
+    戻り値: {レコード種別コード: [{"column": 出力カラム名, "rule": rule}, ...]}
+    """
+    name_counts = count_field_name_usage(config_rules)
+
+    result = {}
+    for rec_key, rules in config_rules.items():
+        rules = rules or []
+        label = REC_TYPE_LABELS.get(rec_key, rec_key)
+        type_name_counts = {}
+        for rule in rules:
+            type_name_counts[rule["name"]] = type_name_counts.get(rule["name"], 0) + 1
+
+        seen = {}
+        columns = []
+        for rule in rules:
+            name = rule["name"]
+            column = column_name_for(name, label, name_counts)
+            if type_name_counts[name] > 1:
+                seen[name] = seen.get(name, 0) + 1
+                column = f"{column}{seen[name]}"
+            columns.append({"column": column, "rule": rule})
+        result[rec_key] = columns
+    return result
+
+
+class AmbiguousKeywordMatchError(Exception):
+    """1つのファイル名に複数のキーワードが部分一致した場合に送出する"""
+
+    def __init__(self, filename, matches):
+        self.filename = filename
+        self.matches = matches  # [(keyword, config_name), ...]
+        keywords = "、".join(f"'{k}'→{c}" for k, c in matches)
+        super().__init__(
+            f"{filename}: 複数のキーワードが部分一致しました（{keywords}）。"
+            "どちらを採用すべきか自動判定できないため処理をスキップします。mapping.csvのキーワードを見直してください。"
+        )
+
+
 def match_config(filename, df_map, columns):
-    """mapping.csvの判定キーワードとファイル名を照合し、設定ファイル名を返す"""
+    """mapping.csvの判定キーワードとファイル名を照合し、設定ファイル名を返す（不一致ならNone）。
+
+    キーワードは部分一致(in)で判定するため、複数行が同時に一致することがある
+    （例: 'SAMPLE'と'KAIIN_SAMPLE'が両方登録されていると'KAIIN_SAMPLE_20260731.txt'は両方に一致する）。
+    どちらを採用すべきか機械的に決められないため、その場合はAmbiguousKeywordMatchErrorを送出する。
+    """
+    matches = []
     for _, row in df_map.iterrows():
         key = str(row[columns["keyword"]]).strip()
         cfg_name = str(row[columns["config_name"]]).strip()
         if key and key in filename:
-            return cfg_name
-    return None
+            matches.append((key, cfg_name))
+
+    if not matches:
+        return None
+    if len(matches) > 1:
+        raise AmbiguousKeywordMatchError(filename, matches)
+    return matches[0][1]
+
+
+def resolve_config_path(filename, df_map, columns, configs_dir, logger):
+    """filenameに対応する設定Excelのフルパスを解決する（convert_all/restore_all/check_all共通処理）。
+
+    キーワード不一致・複数一致・設定ファイル欠落のいずれの場合も、理由をloggerに出したうえで
+    Noneを返す（呼び出し側は`if not config_path: continue`とするだけでよい）。
+    """
+    try:
+        matched_config_name = match_config(filename, df_map, columns)
+    except AmbiguousKeywordMatchError as e:
+        logger.error(str(e))
+        return None
+
+    if not matched_config_name:
+        logger.info(f"スキップ: {filename}（キーワード不一致）")
+        return None
+
+    config_path = os.path.join(configs_dir, matched_config_name)
+    if not os.path.exists(config_path):
+        logger.error(f"設定ファイル不明: {matched_config_name}")
+        return None
+    return config_path

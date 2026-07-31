@@ -5,7 +5,7 @@ from openpyxl.comments import Comment
 from openpyxl.styles import Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from src.utils.fixed_format import REC_TYPE_END, REC_TYPE_HEADER, REC_TYPE_TRAILER
+from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_END, REC_TYPE_HEADER, REC_TYPE_TRAILER
 
 # 区切り列の見出し文字列（表示上は空白。列ごとに空白の個数を変えて一意な列名にする）
 SEPARATOR_FILL = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
@@ -13,6 +13,14 @@ SEPARATOR_WIDTH = 3
 
 HEADER_FILL = PatternFill(start_color="44546A", end_color="44546A", fill_type="solid")
 HEADER_FONT = Font(color="FFFFFF", bold=True)
+
+# 開始位置・文字数の参考表示行（2,3行目）の書式
+POSITION_ROW_FILL = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+POSITION_ROW_FONT = Font(italic=True, color="595959")
+
+# シート上の行レイアウト: 1=項目名, 2=開始位置, 3=文字数, 4以降=実データ
+POSITION_ROWS = (2, 3)
+DATA_START_ROW = 4
 
 # レコード種別ごとの行の背景色（データはExcelの既定色のまま）
 ROW_FILLS = {
@@ -38,14 +46,11 @@ def _display_width(text):
     return width
 
 
-def _comment_text(entries):
-    """項目コメントを組み立てる。同じ列名がレコード種別をまたいで別定義を持つ場合は種別ごとに併記する"""
-    if len(entries) == 1:
-        _, rule = entries[0]
-        return f"開始位置:{rule['start'] + 1} 文字数:{rule['length']}"
-    return "\n".join(
-        f"{label}: 開始位置:{rule['start'] + 1} 文字数:{rule['length']}" for label, rule in entries
-    )
+def _comment_text(entry):
+    """項目コメントを組み立てる。column_name_forで種別ごとに別カラムに分けているため、
+    entryは常に(レコード種別ラベル, rule)の1件のみ"""
+    _, rule = entry
+    return f"開始位置:{rule['start'] + 1} 文字数:{rule['length']}"
 
 
 def _group_contiguous_ranges(types, start_index):
@@ -71,15 +76,16 @@ def _group_contiguous_ranges(types, start_index):
 
 
 def _group_row_ranges(rec_types):
-    """レコード種別が連続している行範囲を求める（1-indexed, データ部分は start=2 から）"""
-    return _group_contiguous_ranges(rec_types, start_index=2)
+    """レコード種別が連続している行範囲を求める（1-indexed, データ部分はDATA_START_ROWから）"""
+    return _group_contiguous_ranges(rec_types, start_index=DATA_START_ROW)
 
 
 def _column_type(name, field_rules):
-    """列名からレコード種別ラベルを引く（field_rulesに無い列はNone）。同じ項目名が複数の
-    レコード種別にまたがる場合は、先頭の種別で代表させる。"""
-    entries = field_rules.get(name)
-    return entries[0][0] if entries else None
+    """列名からレコード種別ラベルを引く（field_rulesに無い列はNone）。
+    field_rulesはcolumn_name_forで既にレコード種別ごとに分かれた列名をキーにしているため、
+    列名1つに対して定義は常に1件（(ラベル, rule)）。"""
+    entry = field_rules.get(name)
+    return entry[0] if entry else None
 
 
 def is_separator_column(name):
@@ -124,37 +130,74 @@ def _group_column_ranges(columns, field_rules):
     return _group_contiguous_ranges(types, start_index=1)
 
 
-def style_output_sheet(ws, df, field_rules, rec_type_col="レコード種別"):
-    """ヘッダー行の書式・項目コメント、レコード種別ごとの行色・行/列グループ化、罫線、列幅自動調整をまとめて適用する
-
-    field_rules: {項目名: [(レコード種別ラベル, {"start", "length"}), ...]}
-    （同じ項目名がヘッダー/データ/トレーラーで異なる位置定義を持つことがあるため、リストで持つ）
+def _insert_position_rows(ws, columns, field_rules):
+    """開始位置・文字数を2,3行目に実際の値として書き出す（今までコメントでしか見えなかった情報を
+    セルの値として確認できるようにする）。項目に紐づかない列（行番号・区分・レコード種別・区切り列）は空欄にする。
+    ヘッダー行(1行目)より下を2行分挿入するため、以降の実データはDATA_START_ROW(4行目)から始まる。
     """
+    ws.insert_rows(POSITION_ROWS[0], amount=len(POSITION_ROWS))
+    for col_idx, name in enumerate(columns, start=1):
+        entry = field_rules.get(name)
+        if not entry:
+            continue
+        _, rule = entry
+        ws.cell(row=POSITION_ROWS[0], column=col_idx, value=rule["start"] + 1)
+        ws.cell(row=POSITION_ROWS[1], column=col_idx, value=rule["length"])
+
+    for row_idx in POSITION_ROWS:
+        for cell in ws[row_idx]:
+            cell.fill = POSITION_ROW_FILL
+            cell.font = POSITION_ROW_FONT
+            cell.border = CELL_BORDER
+
+
+def style_output_sheet(ws, df, field_rules, rec_type_col="レコード種別"):
+    """ヘッダー行の書式・項目コメント・開始位置/文字数の参考表示行、レコード種別ごとの行色・
+    行/列グループ化、罫線、列幅自動調整をまとめて適用する
+
+    field_rules: {出力Excel上のカラム名: (レコード種別ラベル, {"start", "length"})}
+    （column_name_forで既にレコード種別ごとに別カラム名へ分けているため、カラム名は必ず1件の定義に対応する）
+    """
+    _insert_position_rows(ws, df.columns, field_rules)
+
+    # 項目名・開始位置・文字数の帯(1〜3行目)を常に表示したまま実データをスクロールできるようにする
+    ws.freeze_panes = f"A{DATA_START_ROW}"
+
     for cell in ws[1]:
         cell.fill = HEADER_FILL
         cell.font = HEADER_FONT
         cell.border = CELL_BORDER
-        entries = field_rules.get(cell.value)
-        if entries:
-            cell.comment = Comment(_comment_text(entries), "Fixed2Excel")
+        entry = field_rules.get(cell.value)
+        if entry:
+            cell.comment = Comment(_comment_text(entry), "Fixed2Excel")
 
-    for row in ws.iter_rows(min_row=2):
+    for row in ws.iter_rows(min_row=DATA_START_ROW):
         for cell in row:
             cell.border = CELL_BORDER
+            # 数字だけの項目値（会員番号・区分コード等）をExcel上で編集すると、既定の「標準」書式では
+            # 入力時に数値と解釈されて先頭のゼロが消えてしまう（"000"→"001"と打っても"1"になる）。
+            # 文字列書式に固定してこの事故を防ぐ。
+            cell.number_format = "@"
 
     if rec_type_col in df.columns:
         rec_types = list(df[rec_type_col])
 
-        for row_idx, rec_type in enumerate(rec_types, start=2):
+        for row_idx, rec_type in enumerate(rec_types, start=DATA_START_ROW):
             fill = ROW_FILLS.get(rec_type)
             if fill:
                 for cell in ws[row_idx]:
                     cell.fill = fill
 
-        # 同じレコード種別が連続するデータ部を折りたたみ可能なグループにする（Excelのアウトライン機能）
+        # 同じレコード種別が連続する行を折りたたみ可能なグループにする（Excelのアウトライン機能）。
+        # データ部は開いた状態のまま、それ以外（ヘッダー/トレーラー/エンドレコード等が複数行に
+        # なる場合）は初期状態で折りたたんでおく（データ部だけをすぐ見たいという要望に対応）。
         for start_row, end_row in _group_row_ranges(rec_types):
+            group_type = rec_types[start_row - DATA_START_ROW]
+            collapse = group_type != REC_TYPE_DATA
             for row_idx in range(start_row, end_row + 1):
                 ws.row_dimensions[row_idx].outlineLevel = 1
+                if collapse:
+                    ws.row_dimensions[row_idx].hidden = True
 
     for col_idx, col_name in enumerate(df.columns, start=1):
         letter = get_column_letter(col_idx)
@@ -168,7 +211,15 @@ def style_output_sheet(ws, df, field_rules, rec_type_col="レコード種別"):
         max_width = max(_display_width(v) for v in values)
         ws.column_dimensions[letter].width = min(max_width + 2, MAX_COLUMN_WIDTH)
 
-    # レコード種別ごとに連続する項目列を折りたたみ可能なグループにする（Excelのアウトライン機能）
-    for start_col, end_col in _group_column_ranges(df.columns, field_rules):
+    # レコード種別ごとに連続する項目列を折りたたみ可能なグループにする（Excelのアウトライン機能）。
+    # データ部の列は開いた状態のまま、それ以外（ヘッダー/トレーラー/エンドレコード部）は
+    # 初期状態で折りたたんでおく（データ部だけをすぐ見たいという要望に対応）。
+    columns = list(df.columns)
+    for start_col, end_col in _group_column_ranges(columns, field_rules):
+        group_type = _column_type(columns[start_col - 1], field_rules)
+        collapse = group_type != REC_TYPE_DATA
         for col_idx in range(start_col, end_col + 1):
-            ws.column_dimensions[get_column_letter(col_idx)].outlineLevel = 1
+            letter = get_column_letter(col_idx)
+            ws.column_dimensions[letter].outlineLevel = 1
+            if collapse:
+                ws.column_dimensions[letter].hidden = True

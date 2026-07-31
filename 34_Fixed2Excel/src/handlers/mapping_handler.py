@@ -29,6 +29,16 @@ def load_mapping(ctx):
     return pd.DataFrame(columns=[keyword_col, config_col, note_col])
 
 
+def find_existing_config(ctx, keyword):
+    """指定キーワードが既に登録されていれば現在の適用Config名を返す（未登録ならNone）"""
+    keyword_col, config_col, _ = _mapping_column_names(ctx)
+    df_map = load_mapping(ctx)
+    matched = df_map[df_map[keyword_col].astype(str) == str(keyword)]
+    if matched.empty:
+        return None
+    return str(matched.iloc[0][config_col])
+
+
 def add_mapping_entry(ctx, keyword, config_name, note=""):
     """mapping.csvにキーワード⇔設定ファイルの対応を1件登録する（同じキーワードがあれば置き換え）"""
     keyword_col, config_col, note_col = _mapping_column_names(ctx)

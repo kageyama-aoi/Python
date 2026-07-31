@@ -2,7 +2,13 @@ import os
 
 import pandas as pd
 
-from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_LABELS, load_config_rules, match_config
+from src.utils.fixed_format import (
+    REC_TYPE_DATA,
+    REC_TYPE_LABELS,
+    build_field_columns,
+    load_config_rules,
+    resolve_config_path,
+)
 from src.utils.log_tags import log_end, log_start
 
 
@@ -74,25 +80,21 @@ def restore_all(ctx):
     for excel_name in output_files:
         excel_path = os.path.join(output_dir, excel_name)
 
-        matched_config_name = match_config(excel_name, df_map, ctx.mapping_columns)
-        if not matched_config_name:
-            logger.info(f"スキップ: {excel_name}（キーワード不一致）")
+        config_path = resolve_config_path(excel_name, df_map, ctx.mapping_columns, configs_dir, logger)
+        if not config_path:
             continue
 
-        config_path = os.path.join(configs_dir, matched_config_name)
-        if not os.path.exists(config_path):
-            logger.error(f"設定ファイル不明: {matched_config_name}")
-            continue
-
-        logger.info(f"逆変換: {excel_name} → {matched_config_name}")
+        logger.info(f"逆変換: {excel_name} → {os.path.basename(config_path)}")
 
         rules_by_type = load_config_rules(config_path)
-        rules_dict = {REC_TYPE_LABELS[k]: v for k, v in rules_by_type.items()}
+        field_columns_by_label = {REC_TYPE_LABELS[k]: v for k, v in build_field_columns(rules_by_type).items()}
 
         try:
             # dtype=str必須: 既定の型推論だと桁数の多い数字文字列(会員番号等)が
             # float64に変換され、有効桁を超えた分が丸められて値が壊れる。
-            df_target = pd.read_excel(excel_path, dtype=str)
+            # skiprows=[1, 2]: 2/3行目は開始位置・文字数の参考表示(_insert_position_rows)であり
+            # 実データではないため、復元対象から除外する。
+            df_target = pd.read_excel(excel_path, dtype=str, skiprows=[1, 2])
         except PermissionError:
             logger.error(f"読み込み不可（Excelで開いている可能性）: {excel_path}")
             continue
@@ -100,8 +102,17 @@ def restore_all(ctx):
         output_lines = []
         for _, row in df_target.iterrows():
             rec_type = str(row.get("レコード種別", REC_TYPE_DATA)).strip()
-            rules = rules_dict.get(rec_type) or rules_dict[REC_TYPE_DATA]
-            line_bytes = build_fixed_line(row, rules, encoding)
+            entries = field_columns_by_label.get(rec_type) or field_columns_by_label[REC_TYPE_DATA]
+
+            # 出力Excel上では同名項目がbuild_field_columnsで一意なカラム名に分けられているため
+            # （種別ごと・同種別内の連番）、そのカラム名自体をruleの"name"として使う合成ルールを
+            # 組み立て、build_fixed_lineの既存ロジック（name経由の突き合わせ）はそのまま使う。
+            synthetic_rules = [
+                {"name": e["column"], "start": e["rule"]["start"], "length": e["rule"]["length"]}
+                for e in entries
+            ]
+            translated_row = {e["column"]: row.get(e["column"], "") for e in entries}
+            line_bytes = build_fixed_line(translated_row, synthetic_rules, encoding)
             if not line_bytes:
                 continue
 

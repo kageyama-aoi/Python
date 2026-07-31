@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.app_context import create_context
 from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
-from src.handlers import excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
+from src.handlers import diff_checker, excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
 
 
 class QueueLogHandler(logging.Handler):
@@ -32,6 +32,7 @@ LOG_TAG_COLORS = {
     "ERROR": "#c0392b",
     "START": "#0969da",
     "END": "#1a7f37",
+    "DIFF": "#8250df",
 }
 
 # 実行頻度が低い操作は、押す前に「どんなときに使うか」を確認する
@@ -58,11 +59,19 @@ class Fixed2ExcelApp(tk.Tk):
     PRIMARY_ACTIONS = [
         ("固定長テキスト → Excel 変換", "to_excel"),
         ("Excel → 固定長テキスト 復元", "to_fixed"),
+        ("差分チェック（入力 vs 復元後）", "diff_check"),
     ]
     # 初回セットアップ等、使用頻度の低い操作: 下部に小さめでまとめ、実行前に確認する
     SETUP_ACTIONS = [
         ("環境初期化", "init"),
         ("mapping.csv 更新", "mapping"),
+    ]
+    # 各データフォルダをエクスプローラーで開くだけの操作: 処理中でも押せてよい
+    FOLDER_ACTIONS = [
+        ("設定(configs)", "configs"),
+        ("入力(input)", "input"),
+        ("出力(output)", "output"),
+        ("復元後(recreated_input)", "recreated"),
     ]
 
     def __init__(self):
@@ -124,6 +133,18 @@ class Fixed2ExcelApp(tk.Tk):
         edit_mapping_btn.pack(side="left", padx=4)
         self.buttons["edit_mapping"] = edit_mapping_btn
 
+        ttk.Label(self, text="フォルダを開く", padding=(10, 0)).pack(anchor="w")
+        folder_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
+        folder_frame.pack(fill="x")
+        for label, dir_key in self.FOLDER_ACTIONS:
+            btn = ttk.Button(
+                folder_frame, text=label, style="Setup.TButton",
+                command=lambda k=dir_key: self._open_folder(k),
+            )
+            btn.pack(side="left", padx=4)
+            # 処理中でも他のファイル操作と競合しない読み取り専用操作のため、self.buttonsには入れず
+            # _set_runningでの無効化対象から外す（実行中でも押せてよい）。
+
         self.status_var = tk.StringVar(value="待機中")
         ttk.Label(self, textvariable=self.status_var, padding=(10, 0)).pack(anchor="w")
 
@@ -169,6 +190,16 @@ class Fixed2ExcelApp(tk.Tk):
         editor = MappingEditorWindow(self, self.ctx)
         self._mapping_editors.append(editor)
 
+    def _open_folder(self, dir_key):
+        path = os.path.abspath(self.ctx.dirs[dir_key])
+        try:
+            os.startfile(path)
+        except OSError as exc:
+            messagebox.showerror(
+                "フォルダを開けません", f"{path}\n\n{exc}\n\n未作成の場合は先に環境初期化を実行してください。",
+                parent=self,
+            )
+
     def _run_action(self, action_key):
         if self.is_running:
             return
@@ -191,6 +222,8 @@ class Fixed2ExcelApp(tk.Tk):
                 fixed_to_excel.convert_all(self.ctx)
             elif action_key == "to_fixed":
                 excel_to_fixed.restore_all(self.ctx)
+            elif action_key == "diff_check":
+                diff_checker.check_all(self.ctx)
         except Exception:
             self.logger.exception("処理中にエラーが発生しました。")
         finally:

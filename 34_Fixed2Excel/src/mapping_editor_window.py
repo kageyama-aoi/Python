@@ -100,6 +100,20 @@ class MappingEditorWindow(tk.Toplevel):
                 "入力不足", "キーワードと適用Configの両方を指定してください。", parent=self
             )
             return
+
+        # 既存キーワードへの登録はadd_mapping_entry内で無言のまま置き換わる（バックアップは作られるが
+        # 画面上は何も変わって見えない）ため、割り当てが変わる場合はここで一度確認を挟む。
+        existing_config = mapping_handler.find_existing_config(self.ctx, keyword)
+        if existing_config is not None and existing_config != config_name:
+            if not messagebox.askyesno(
+                "上書き確認",
+                f"キーワード '{keyword}' は既に登録されています。\n"
+                f"適用Config: {existing_config} → {config_name}\n\n"
+                "登録済みの設定を上書きしますか？",
+                parent=self,
+            ):
+                return
+
         mapping_handler.add_mapping_entry(self.ctx, keyword, config_name)
         self.refresh()
 

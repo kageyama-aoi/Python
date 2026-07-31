@@ -9,28 +9,31 @@ from src.utils.fixed_format import (
     REC_TYPE_HEADER,
     REC_TYPE_LABELS,
     REC_TYPE_TRAILER,
+    build_field_columns,
     load_config_rules,
-    match_config,
+    resolve_config_path,
 )
 from src.utils.log_tags import log_end, log_start
 
 
 def _flatten_field_rules(config_rules):
-    """D/H/T のルールを項目名 -> [(レコード種別ラベル, rule), ...] の辞書にまとめる（列コメント用）
+    """出力Excelのカラム名 -> (レコード種別ラベル, rule) の辞書にまとめる（列コメント・グルーピング用）
 
-    同じ項目名がヘッダー/データ/トレーラーで別々の開始位置・文字数を持つことがあるため、
-    1つの辞書に単純上書きすると片方の定義が消えて誤ったコメントになる。リストで両方保持する。
+    build_field_columnsで種別ごと・出現順に一意化したカラム名をそのままキーにするため、
+    カラム名は必ず1つの定義に対応する。
     """
-    grouped = {}
-    for rec_key, rules in config_rules.items():
+    field_columns = build_field_columns(config_rules)
+    flattened = {}
+    for rec_key, entries in field_columns.items():
         label = REC_TYPE_LABELS.get(rec_key, rec_key)
-        for rule in rules or []:
-            grouped.setdefault(rule["name"], []).append((label, rule))
-    return grouped
+        for entry in entries:
+            flattened[entry["column"]] = (label, entry["rule"])
+    return flattened
 
 
 def process_file(txt_file_path, config_rules, encoding, record_type_codes):
     """1つの固定長テキストファイルを解析してDataFrameに変換する"""
+    field_columns = build_field_columns(config_rules)
     parsed_rows = []
     with open(txt_file_path, "rb") as f:
         for line_num, line in enumerate(f, 1):
@@ -41,27 +44,25 @@ def process_file(txt_file_path, config_rules, encoding, record_type_codes):
             rec_code = line[0:1].decode(encoding, errors="ignore")
 
             if rec_code in record_type_codes["header"] and config_rules["H"]:
-                rules = config_rules["H"]
-                rec_type = REC_TYPE_HEADER
+                rec_key, rec_type = "H", REC_TYPE_HEADER
             elif rec_code in record_type_codes["trailer"] and config_rules["T"]:
-                rules = config_rules["T"]
-                rec_type = REC_TYPE_TRAILER
+                rec_key, rec_type = "T", REC_TYPE_TRAILER
             elif rec_code in record_type_codes.get("end", []) and config_rules.get("E"):
-                rules = config_rules["E"]
-                rec_type = REC_TYPE_END
+                rec_key, rec_type = "E", REC_TYPE_END
             else:
-                rules = config_rules["D"]
-                rec_type = REC_TYPE_DATA
+                rec_key, rec_type = "D", REC_TYPE_DATA
 
-            if not rules:
+            entries = field_columns.get(rec_key)
+            if not entries:
                 continue
 
             row_data = {"行番号": line_num, "区分": rec_code, "レコード種別": rec_type}
-            for rule in rules:
+            for entry in entries:
+                rule = entry["rule"]
                 start = rule["start"]
                 end = start + rule["length"]
                 raw_bytes = line[start:end]
-                row_data[rule["name"]] = raw_bytes.decode(encoding, errors="replace").strip()
+                row_data[entry["column"]] = raw_bytes.decode(encoding, errors="replace").strip()
 
             parsed_rows.append(row_data)
 
@@ -91,17 +92,11 @@ def convert_all(ctx):
     for txt_name in input_files:
         txt_path = os.path.join(input_dir, txt_name)
 
-        matched_config_name = match_config(txt_name, df_map, ctx.mapping_columns)
-        if not matched_config_name:
-            logger.info(f"スキップ: {txt_name}（キーワード不一致）")
+        config_path = resolve_config_path(txt_name, df_map, ctx.mapping_columns, configs_dir, logger)
+        if not config_path:
             continue
 
-        config_path = os.path.join(configs_dir, matched_config_name)
-        if not os.path.exists(config_path):
-            logger.error(f"設定ファイル不明: {matched_config_name}")
-            continue
-
-        logger.info(f"解析: {txt_name} → {matched_config_name}")
+        logger.info(f"解析: {txt_name} → {os.path.basename(config_path)}")
 
         config_rules = load_config_rules(config_path)
         df_result = process_file(txt_path, config_rules, ctx.encoding, ctx.record_type_codes)
