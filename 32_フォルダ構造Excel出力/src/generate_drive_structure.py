@@ -9,10 +9,11 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 
 # === 🔧 設定ファイルのパス ===
-# スクリプトと同じディレクトリにある config.json を参照
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE_PATH = os.path.join(BASE_DIR, "config.json")
-LOG_DIR = os.path.join(BASE_DIR, "logs")
+# src/ の1つ上（プロジェクトルート）を基準にする。cwdに依存しないため、
+# run.batから起動しても直接 `python src/generate_drive_structure.py` を実行しても同じ場所を指す。
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE_PATH = os.path.join(BASE_DIR, "config", "config.json")
+LOG_DIR = os.path.join(BASE_DIR, "data", "logs")
 
 def setup_logging():
     """ロギングを設定する"""
