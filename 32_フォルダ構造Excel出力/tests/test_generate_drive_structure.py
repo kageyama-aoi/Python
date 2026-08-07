@@ -396,3 +396,35 @@ def test_save_dataframe_to_excel_outline_levels_and_symbols_below(tmp_path):
     assert ws.row_dimensions[2].outlineLevel == 0
     assert ws.row_dimensions[3].outlineLevel == 1
     assert ws.row_dimensions[4].outlineLevel == 0
+
+
+def test_save_dataframe_to_excel_bolds_file_name_at_deepest_level(tmp_path):
+    # ファイル("x...txt")がこの木の中で最も深い階層にあるケース。
+    # 名前は「アイテム名」列に入り、そこが太字になる。
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    name_cell = ws["D3"]  # Level1(C) の次がアイテム名(D)
+    assert name_cell.value == "x_very_long_file_name_for_width_check.txt"
+    assert name_cell.font.bold is True
+
+
+def test_save_dataframe_to_excel_bolds_file_name_on_staircase_column(tmp_path):
+    # 浅い階層のファイルと、別の枝にあるより深いファイルが混在するケース。
+    # 「階段状」配置により、浅いファイルの名前は「アイテム名」列ではなくLevel1列に入る。
+    # ここが太字になっていないと、#137で直したはずの強調が実際には効いていなかった
+    # （2026-08-07に実データで発覚した回帰）。
+    items = [
+        ScannedItem(r"C:\root\有効性データ_20230720170200.txt", r"C:\root", [], "有効性データ_20230720170200.txt", "file", 100),
+        ScannedItem(r"C:\root\sub", r"C:\root", [], "sub", "folder", None),
+        ScannedItem(r"C:\root\sub\deep.txt", r"C:\root\sub", ["sub"], "deep.txt", "file", 5),
+    ]
+    df = create_dataframe_with_fullpath(items)
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(df, str(out_path))
+
+    ws = load_workbook(out_path).active
+    shallow_name_cell = ws["C2"]  # Level1列に「階段状」で入る
+    assert shallow_name_cell.value == "有効性データ_20230720170200.txt"
+    assert shallow_name_cell.font.bold is True

@@ -281,8 +281,11 @@ def save_dataframe_to_excel(df, excel_path):
                 type_col_idx_display = df_display.columns.get_loc('タイプ')
                 # 表示用DataFrameでのフルパス列の位置
                 fullpath_col_idx_display = df_display.columns.get_loc('フルパス')
-                # 表示用DataFrameでのアイテム名列の位置
-                item_name_col_idx_display = df_display.columns.get_loc('アイテム名')
+                # Level1列（存在しなければアイテム名列）の位置。アイテム名は深さ('_depth')に応じて
+                # 「階段状」にLevel列側へずれて入ることがあるため、ここを起点に実際の位置を計算する。
+                name_group_start_idx_display = df_display.columns.get_loc(
+                    'Level1' if 'Level1' in df_display.columns else 'アイテム名'
+                )
             except KeyError:
                 logging.warning("DataFrameに 'タイプ'列・'フルパス'列・'アイテム名'列のいずれかが見つかりません。書式設定に影響する可能性があります。")
                 return
@@ -301,11 +304,16 @@ def save_dataframe_to_excel(df, excel_path):
                     # フルパス列 (df_displayでのインデックス fullpath_col_idx_display) にハイパーリンクを設定
                     worksheet.write_url(excel_data_row, fullpath_col_idx_display, url, string=display_text_for_link, cell_format=hyperlink_format)
 
-                # ファイル行のアイテム名（ファイル名）を太字にする。条件付き書式ではなく直接上書きすることで、
+                # ファイル行のファイル名を太字にする。条件付き書式ではなく直接上書きすることで、
                 # 同じセルに複数の条件付き書式が重なったときの優先順位に左右されずに確実に太字にする。
+                # ファイル名は必ず「アイテム名」列に入るとは限らず、そのアイテムの深さ('_depth')に
+                # 応じてLevel列側に「階段状」で入ることがあるため、Level1列を起点に深さ分ずらした
+                # 列を実際の名前の位置として特定する。
                 if df.loc[row_idx, 'タイプ'] == 'file':
-                    item_name = df.loc[row_idx, 'アイテム名']
-                    worksheet.write(excel_data_row, item_name_col_idx_display, item_name, file_name_format)
+                    depth = int(df.loc[row_idx, '_depth'])
+                    name_col_idx = name_group_start_idx_display + depth
+                    item_name = df_display.iat[row_idx, name_col_idx]
+                    worksheet.write(excel_data_row, name_col_idx, item_name, file_name_format)
 
             num_rows = len(df_display.index)
             num_cols = len(df_display.columns)
