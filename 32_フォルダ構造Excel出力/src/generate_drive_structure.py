@@ -100,6 +100,10 @@ class ConfigManager:
     def get_excluded_folder_names(self):
         return [name.lower() for name in self._config.get("excluded_folder_names", [])]
 
+# fileの行でLevel列を「直前の行と同じ」として省略表示するときの記号（同上の意味）
+LEVEL_SAME_AS_ABOVE = "↑"
+
+
 def format_size(size_bytes):
     """バイト数を人が読みやすい単位（B/KB/MB/GB/TB）の文字列に変換する"""
     if size_bytes is None:
@@ -219,7 +223,14 @@ def create_dataframe_with_fullpath(scanned_items):
         # アイテムが 'file' の場合、表示する親のフルパスを空にする
         parent_dir_fullpath_display = '' if item.item_type == 'file' else item.parent_dir
 
-        levels_and_name_parts = item.levels + [item.name]
+        # fileの行は、祖先フォルダのパンくず部分（自分の名前より手前のLevel列）を
+        # 直前のフォルダ行と同じ内容として"↑"で省略する。folderの行は対象外
+        # （常に文字列のまま表示し、フォルダそのものの位置は常に読み取れるようにする）。
+        # ルート直下のfile（item.levelsが空）は祖先が無いため対象外。
+        if item.item_type == 'file' and item.levels:
+            levels_and_name_parts = [LEVEL_SAME_AS_ABOVE] * len(item.levels) + [item.name]
+        else:
+            levels_and_name_parts = item.levels + [item.name]
         padded_parts = levels_and_name_parts + [''] * (max_levels_plus_name_len - len(levels_and_name_parts))
 
         size_bytes_display = item.size_bytes if item.size_bytes is not None else ''

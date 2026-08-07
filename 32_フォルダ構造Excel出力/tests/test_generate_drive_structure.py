@@ -262,9 +262,10 @@ def test_create_dataframe_empty_input():
 
 
 def test_create_dataframe_columns_and_values():
-    # 'sub' はルート直下(深さ1)のフォルダ、'c.txt' はその配下(深さ2)のファイル。
-    # 深さの異なる階層は「階段状」に列へ配置される仕様のため、'sub' の名前は
+    # 'sub' はルート直下(深さ0)のフォルダ、'c.txt' はその配下(深さ1)のファイル。
+    # 深さの異なる階層は「階段状」に列へ配置される仕様のため、folder行の'sub'は
     # Level1列に入り、アイテム名列は空になる（アイテム名列は最大深度の行のみ埋まる）。
+    # file行のLevel1（祖先フォルダのパンくず）は直前のフォルダ行と同じ内容なので「↑」で省略される。
     items = [
         ScannedItem(r"C:\root\sub", r"C:\root", [], "sub", "folder", None),
         ScannedItem(r"C:\root\sub\c.txt", r"C:\root\sub", ["sub"], "c.txt", "file", 6),
@@ -291,7 +292,8 @@ def test_create_dataframe_columns_and_values():
     assert file_row['フルパス'] == ''  # ファイル行は親フルパスを表示しない
     assert file_row['サイズ(バイト)'] == 6
     assert file_row['サイズ'] == format_size(6)
-    assert file_row['Level1'] == 'sub'
+    # ファイル行の祖先パンくず（Level1）は直前のフォルダ行と同じ内容なので「↑」で省略される
+    assert file_row['Level1'] == generate_drive_structure.LEVEL_SAME_AS_ABOVE
     assert file_row['アイテム名'] == 'c.txt'
 
 
@@ -302,6 +304,47 @@ def test_create_dataframe_no_level_columns_when_flat():
     assert list(df.columns) == [
         '_item_self_path', '_depth', 'タイプ', 'フルパス', 'アイテム名', 'サイズ(バイト)', 'サイズ'
     ]
+    # ルート直下のファイルは祖先フォルダが無いため「↑」省略の対象外（自分の名前がそのまま入る）
+    assert df.iloc[0]['アイテム名'] == 'a.txt'
+
+
+def test_create_dataframe_file_rows_abbreviate_ancestor_breadcrumb_with_arrow():
+    # 同じフォルダに複数ファイルがある場合、それぞれの祖先パンくず（Level1）は
+    # 「↑」で省略され、フォルダ行自身は常に文字列のまま表示される。
+    items = [
+        ScannedItem(r"C:\root\sub", r"C:\root", [], "sub", "folder", None),
+        ScannedItem(r"C:\root\sub\a.txt", r"C:\root\sub", ["sub"], "a.txt", "file", 1),
+        ScannedItem(r"C:\root\sub\b.txt", r"C:\root\sub", ["sub"], "b.txt", "file", 2),
+        ScannedItem(r"C:\root\sub2", r"C:\root", [], "sub2", "folder", None),
+    ]
+    df = create_dataframe_with_fullpath(items)
+    df = df.set_index('_item_self_path')
+
+    arrow = generate_drive_structure.LEVEL_SAME_AS_ABOVE
+    assert df.loc[r"C:\root\sub"]['Level1'] == 'sub'    # フォルダ行は常に文字列のまま
+    assert df.loc[r"C:\root\sub\a.txt"]['Level1'] == arrow
+    assert df.loc[r"C:\root\sub\a.txt"]['アイテム名'] == 'a.txt'
+    assert df.loc[r"C:\root\sub\b.txt"]['Level1'] == arrow
+    assert df.loc[r"C:\root\sub\b.txt"]['アイテム名'] == 'b.txt'
+    assert df.loc[r"C:\root\sub2"]['Level1'] == 'sub2'  # 別のフォルダ行も常に文字列のまま
+
+
+def test_create_dataframe_deep_file_arrows_only_ancestor_columns():
+    # 深い階層のファイルは、自分の名前が入る列(階段状の位置)より手前だけが「↑」になり、
+    # 名前自体の列は影響を受けない（#139のファイル名太字化とも両立する）。
+    items = [
+        ScannedItem(r"C:\root\A", r"C:\root", [], "A", "folder", None),
+        ScannedItem(r"C:\root\A\B", r"C:\root\A", ["A"], "B", "folder", None),
+        ScannedItem(r"C:\root\A\B\deep.txt", r"C:\root\A\B", ["A", "B"], "deep.txt", "file", 3),
+    ]
+    df = create_dataframe_with_fullpath(items)
+    df = df.set_index('_item_self_path')
+
+    arrow = generate_drive_structure.LEVEL_SAME_AS_ABOVE
+    deep_row = df.loc[r"C:\root\A\B\deep.txt"]
+    assert deep_row['Level1'] == arrow
+    assert deep_row['Level2'] == arrow
+    assert deep_row['アイテム名'] == 'deep.txt'
 
 
 # ---- manage_old_output_files ----
