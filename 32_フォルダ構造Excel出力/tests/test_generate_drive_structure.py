@@ -272,7 +272,7 @@ def test_create_dataframe_columns_and_values():
     df = create_dataframe_with_fullpath(items)
 
     assert list(df.columns) == [
-        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'Level1', 'アイテム名'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'Level1', 'アイテム名', 'サイズ(バイト)', 'サイズ'
     ]
     df = df.set_index('_item_self_path')
 
@@ -300,7 +300,7 @@ def test_create_dataframe_no_level_columns_when_flat():
     df = create_dataframe_with_fullpath(items)
     assert 'Level1' not in df.columns
     assert list(df.columns) == [
-        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'アイテム名'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'アイテム名', 'サイズ(バイト)', 'サイズ'
     ]
 
 

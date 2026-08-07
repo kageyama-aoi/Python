@@ -224,8 +224,14 @@ def create_dataframe_with_fullpath(scanned_items):
         size_bytes_display = item.size_bytes if item.size_bytes is not None else ''
         size_display = format_size(item.size_bytes)
 
+        # 列順は タイプ・フルパス → Level列・アイテム名（どこにあるか） → サイズ（詳細）。
+        # ファイル行はフルパス列が空（リンクなし）で、クリックして開けるリンクは常に
+        # フォルダ行のフルパス列（B列）にしかならないため、その隣にディレクトリ階層と
+        # アイテム名を並べたほうが「どこにある何か」がサイズより先に目に入り読みやすい。
         processed_data.append(
-            [item.full_path, len(item.levels), item.item_type, parent_dir_fullpath_display, size_bytes_display, size_display] + padded_parts
+            [item.full_path, len(item.levels), item.item_type, parent_dir_fullpath_display]
+            + padded_parts
+            + [size_bytes_display, size_display]
         )
 
     level_columns = [] # type: ignore
@@ -234,10 +240,11 @@ def create_dataframe_with_fullpath(scanned_items):
 
     # '_depth' はルートからの深さ（0=ルート直下）。Excel出力時の行アウトライン（折りたたみ）
     # レベルの計算にのみ使う内部列で、表示はしない。
-    final_columns = ['_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ']
+    final_columns = ['_item_self_path', '_depth', 'タイプ', 'フルパス']
     if max_levels_plus_name_len > 0: # アイテム名またはLevel列が存在する場合
         final_columns.extend(level_columns)
         final_columns.append('アイテム名') # 以前は 'ファイル名'
+    final_columns.extend(['サイズ(バイト)', 'サイズ'])
 
     return pd.DataFrame(processed_data, columns=final_columns)
 
