@@ -273,7 +273,7 @@ def test_create_dataframe_columns_and_values():
     df = create_dataframe_with_fullpath(items)
 
     assert list(df.columns) == [
-        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'Level1', 'アイテム名', 'サイズ(バイト)', 'サイズ'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'Level1', 'アイテム名'
     ]
     df = df.set_index('_item_self_path')
 
@@ -302,7 +302,7 @@ def test_create_dataframe_no_level_columns_when_flat():
     df = create_dataframe_with_fullpath(items)
     assert 'Level1' not in df.columns
     assert list(df.columns) == [
-        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'アイテム名', 'サイズ(バイト)', 'サイズ'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'アイテム名'
     ]
     # ルート直下のファイルは祖先フォルダが無いため「↑」省略の対象外（自分の名前がそのまま入る）
     assert df.iloc[0]['アイテム名'] == 'a.txt'
@@ -410,12 +410,13 @@ def test_save_dataframe_to_excel_sets_column_widths(tmp_path):
         assert dim.width <= generate_drive_structure.MAX_COLUMN_WIDTH + 2  # マージン込みの上限チェック
 
 
-def test_save_dataframe_to_excel_freezes_header_row(tmp_path):
+def test_save_dataframe_to_excel_freezes_header_row_and_size_columns(tmp_path):
     out_path = tmp_path / "out.xlsx"
     save_dataframe_to_excel(_sample_nested_df(), str(out_path))
 
     ws = load_workbook(out_path).active
-    assert ws.freeze_panes == "A2"
+    # ヘッダー行(1行目)とA〜D列(タイプ・フルパス・サイズ(バイト)・サイズ)を固定
+    assert ws.freeze_panes == "E2"
 
 
 def test_save_dataframe_to_excel_sets_autofilter(tmp_path):
@@ -448,7 +449,8 @@ def test_save_dataframe_to_excel_bolds_file_name_at_deepest_level(tmp_path):
     save_dataframe_to_excel(_sample_nested_df(), str(out_path))
 
     ws = load_workbook(out_path).active
-    name_cell = ws["D3"]  # Level1(C) の次がアイテム名(D)
+    # 列順: タイプ(A) フルパス(B) サイズ(バイト)(C) サイズ(D) Level1(E) アイテム名(F)
+    name_cell = ws["F3"]
     assert name_cell.value == "x_very_long_file_name_for_width_check.txt"
     assert name_cell.font.bold is True
 
@@ -468,6 +470,27 @@ def test_save_dataframe_to_excel_bolds_file_name_on_staircase_column(tmp_path):
     save_dataframe_to_excel(df, str(out_path))
 
     ws = load_workbook(out_path).active
-    shallow_name_cell = ws["C2"]  # Level1列に「階段状」で入る
+    # 列順: タイプ(A) フルパス(B) サイズ(バイト)(C) サイズ(D) Level1(E) アイテム名(F)
+    shallow_name_cell = ws["E2"]  # Level1列に「階段状」で入る
     assert shallow_name_cell.value == "有効性データ_20230720170200.txt"
     assert shallow_name_cell.font.bold is True
+
+
+def test_save_dataframe_to_excel_file_rows_link_to_parent_folder(tmp_path):
+    # fileの行に絞り込んだりサイズで並べ替えたりしても、そのファイルが入っている
+    # フォルダを開けるように、フルパス列に短いラベルのリンクを付ける。
+    # フォルダ行と違いフルパスの文字列そのものは表示しない（見やすさ優先）。
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    file_link_cell = ws["B3"]  # 行3 = "x_very_long_file_name_for_width_check.txt"
+    assert file_link_cell.value == generate_drive_structure.FILE_LINK_LABEL
+    assert file_link_cell.hyperlink is not None
+    assert file_link_cell.hyperlink.target == "file:///C:/root/A"  # ファイルの親フォルダ
+
+    # フォルダ行は従来通りフルパスの文字列がそのままリンク文字列になる
+    folder_link_cell = ws["B2"]  # 行2 = "A"（親はC:\root）
+    assert folder_link_cell.value == r"C:\root"
+    assert folder_link_cell.hyperlink is not None
+    assert folder_link_cell.hyperlink.target == "file:///C:/root/A"  # フォルダ自身を開く

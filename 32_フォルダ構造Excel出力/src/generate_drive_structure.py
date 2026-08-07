@@ -103,6 +103,15 @@ class ConfigManager:
 # fileの行でLevel列を「直前の行と同じ」として省略表示するときの記号（同上の意味）
 LEVEL_SAME_AS_ABOVE = "↑"
 
+# fileの行のフルパス列に置くリンクの表示テキスト（親フォルダを開く）。
+# フォルダ行と違いフルパスの文字列そのものは表示しない（見やすさ優先で短くする）。
+FILE_LINK_LABEL = "開く"
+
+# 固定表示する列数（タイプ・フルパス・サイズ(バイト)・サイズ の4列=A〜D）。
+# サイズ(バイト)列をこの範囲に含めることで、列を固定したままオートフィルタ／
+# 並べ替えで大きいファイルを探せるようにする。
+FROZEN_COLUMN_COUNT = 4
+
 
 def format_size(size_bytes):
     """バイト数を人が読みやすい単位（B/KB/MB/GB/TB）の文字列に変換する"""
@@ -236,14 +245,13 @@ def create_dataframe_with_fullpath(scanned_items):
         size_bytes_display = item.size_bytes if item.size_bytes is not None else ''
         size_display = format_size(item.size_bytes)
 
-        # 列順は タイプ・フルパス → Level列・アイテム名（どこにあるか） → サイズ（詳細）。
-        # ファイル行はフルパス列が空（リンクなし）で、クリックして開けるリンクは常に
-        # フォルダ行のフルパス列（B列）にしかならないため、その隣にディレクトリ階層と
-        # アイテム名を並べたほうが「どこにある何か」がサイズより先に目に入り読みやすい。
+        # 列順は タイプ・フルパス・サイズ（A〜D列、常に固定表示する）→ Level列・アイテム名。
+        # サイズ(バイト)をA〜D列側に置くことで、列を固定したままオートフィルタ／並べ替えで
+        # 大きいファイルを探せるようにする。
         processed_data.append(
-            [item.full_path, len(item.levels), item.item_type, parent_dir_fullpath_display]
+            [item.full_path, len(item.levels), item.item_type, parent_dir_fullpath_display,
+             size_bytes_display, size_display]
             + padded_parts
-            + [size_bytes_display, size_display]
         )
 
     level_columns = [] # type: ignore
@@ -252,11 +260,10 @@ def create_dataframe_with_fullpath(scanned_items):
 
     # '_depth' はルートからの深さ（0=ルート直下）。Excel出力時の行アウトライン（折りたたみ）
     # レベルの計算にのみ使う内部列で、表示はしない。
-    final_columns = ['_item_self_path', '_depth', 'タイプ', 'フルパス']
+    final_columns = ['_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ']
     if max_levels_plus_name_len > 0: # アイテム名またはLevel列が存在する場合
         final_columns.extend(level_columns)
         final_columns.append('アイテム名') # 以前は 'ファイル名'
-    final_columns.extend(['サイズ(バイト)', 'サイズ'])
 
     return pd.DataFrame(processed_data, columns=final_columns)
 
@@ -306,14 +313,25 @@ def save_dataframe_to_excel(df, excel_path):
             for row_idx in df.index:
                 excel_data_row = row_idx + 1 # Excelの行は1から始まる (0行目はヘッダー)
                 item_actual_path = df.loc[row_idx, '_item_self_path']
-                # 表示されるフルパス文字列 (ファイルの場合は空になっているはず)
-                display_text_for_link = str(df.loc[row_idx, 'フルパス'])
+                item_type = df.loc[row_idx, 'タイプ']
 
-                # 表示テキストが空でなければハイパーリンクを設定
-                if display_text_for_link:
-                    url = f"file:///{item_actual_path.replace(os.sep, '/')}"
-                    # フルパス列 (df_displayでのインデックス fullpath_col_idx_display) にハイパーリンクを設定
-                    worksheet.write_url(excel_data_row, fullpath_col_idx_display, url, string=display_text_for_link, cell_format=hyperlink_format)
+                if item_type == 'folder':
+                    # 表示されるフルパス文字列（フォルダの親パス）をそのままリンク文字列にし、
+                    # リンク先はフォルダ自身を開く
+                    display_text_for_link = str(df.loc[row_idx, 'フルパス'])
+                    if display_text_for_link:
+                        url = f"file:///{item_actual_path.replace(os.sep, '/')}"
+                        worksheet.write_url(excel_data_row, fullpath_col_idx_display, url,
+                                            string=display_text_for_link, cell_format=hyperlink_format)
+                elif item_type == 'file':
+                    # ファイル行はフルパス列を空にしている（#136）ため、そのままだとオートフィルタで
+                    # タイプ=file に絞り込んだ・サイズで並べ替えた際にフォルダへのリンクが一切見えなく
+                    # なる。フルパスの文字列そのものは長く邪魔なので出さず、短いラベルで
+                    # 「このファイルが入っているフォルダを開く」リンクだけを付ける。
+                    parent_dir = os.path.dirname(item_actual_path)
+                    url = f"file:///{parent_dir.replace(os.sep, '/')}"
+                    worksheet.write_url(excel_data_row, fullpath_col_idx_display, url,
+                                        string=FILE_LINK_LABEL, cell_format=hyperlink_format)
 
                 # ファイル行のファイル名を太字にする。条件付き書式ではなく直接上書きすることで、
                 # 同じセルに複数の条件付き書式が重なったときの優先順位に左右されずに確実に太字にする。
@@ -355,8 +373,9 @@ def save_dataframe_to_excel(df, excel_path):
                 width = min(max(max_width + 2, MIN_COLUMN_WIDTH), MAX_COLUMN_WIDTH)
                 worksheet.set_column(col_idx, col_idx, width)
 
-            # --- ヘッダー行を固定し、スクロールしても見出しが隠れないようにする ---
-            worksheet.freeze_panes(1, 0)
+            # --- ヘッダー行とA〜D列（タイプ・フルパス・サイズ2列）を固定し、
+            # 右にスクロールしても見出しとサイズが常に見えるようにする ---
+            worksheet.freeze_panes(1, FROZEN_COLUMN_COUNT)
 
             # --- ヘッダー行にオートフィルタを設定（タイプ・階層名等での絞り込み用） ---
             if num_rows > 0:
