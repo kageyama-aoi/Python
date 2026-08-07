@@ -7,6 +7,7 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import generate_drive_structure
 from generate_drive_structure import (
     BASE_DIR,
     ConfigError,
@@ -258,7 +259,7 @@ def test_manage_old_output_files_deletes_on_confirm(tmp_path, monkeypatch):
     old_file.write_text("dummy", encoding="utf-8")
     current_file = "drive_structure_20260101_000000.xlsx"
 
-    monkeypatch.setattr('builtins.input', lambda _: 'y')
+    monkeypatch.setattr(generate_drive_structure, 'confirm_delete_old_files', lambda _files: True)
     manage_old_output_files(str(out_dir), "drive_structure.xlsx", current_file)
 
     assert not old_file.exists()
@@ -271,7 +272,7 @@ def test_manage_old_output_files_keeps_on_decline(tmp_path, monkeypatch):
     old_file.write_text("dummy", encoding="utf-8")
     current_file = "drive_structure_20260101_000000.xlsx"
 
-    monkeypatch.setattr('builtins.input', lambda _: 'n')
+    monkeypatch.setattr(generate_drive_structure, 'confirm_delete_old_files', lambda _files: False)
     manage_old_output_files(str(out_dir), "drive_structure.xlsx", current_file)
 
     assert old_file.exists()
@@ -283,7 +284,10 @@ def test_manage_old_output_files_ignores_non_matching_names(tmp_path, monkeypatc
     unrelated = out_dir / "notes.txt"
     unrelated.write_text("keep me", encoding="utf-8")
 
-    monkeypatch.setattr('builtins.input', lambda _: (_ for _ in ()).throw(AssertionError("input should not be called")))
+    def _fail(_files):
+        raise AssertionError("confirm_delete_old_files should not be called")
+
+    monkeypatch.setattr(generate_drive_structure, 'confirm_delete_old_files', _fail)
     manage_old_output_files(str(out_dir), "drive_structure.xlsx", "drive_structure_20260101_000000.xlsx")
 
     assert unrelated.exists()

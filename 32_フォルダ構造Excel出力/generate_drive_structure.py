@@ -5,7 +5,7 @@ import datetime
 import re
 import logging
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 # === 🔧 設定ファイルのパス ===
 # スクリプトと同じディレクトリにある config.json を参照
@@ -288,6 +288,26 @@ def save_dataframe_to_excel(df, excel_path):
         raise ScriptError(f"Excelファイル '{excel_path}' への保存中に予期せぬエラーが発生しました。") from e
 
 
+def confirm_delete_old_files(old_files_to_delete):
+    """古い出力ファイルを削除してよいかGUIダイアログで確認する。
+
+    コンソールのinput()だと、00_ランチャー経由（kind:"generator"は新規コンソールを開かない）で
+    実行した場合に確認プロンプトが00_ランチャー自身の（隠れがちな）コンソールに出てしまい、
+    GUI側からは実行が固まったように見える。tkinterダイアログなら常に前面に表示される。
+    """
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)  # ランチャー経由でも背面に隠れないように
+    try:
+        file_list = "\n".join(f"- {f}" for f in old_files_to_delete)
+        return messagebox.askyesno(
+            "古い出力ファイルの削除確認",
+            f"以下の古い出力ファイルを削除しますか？\n\n{file_list}",
+        )
+    finally:
+        root.destroy()
+
+
 def manage_old_output_files(output_dir: str, base_filename_config: str, current_timestamped_filename: str):
     """
     指定されたディレクトリ内の古い出力ファイル（タイムスタンプ付き）を検索し、
@@ -311,9 +331,8 @@ def manage_old_output_files(output_dir: str, base_filename_config: str, current_
         logging.info("\n古い出力ファイルが見つかりました:")
         for old_file in old_files_to_delete:
             print(f"  - {old_file}")
-        
-        confirm = input("これらの古いファイルを削除しますか？ (y/n): ").strip().lower()
-        if confirm == 'y':
+
+        if confirm_delete_old_files(old_files_to_delete):
             for old_file in old_files_to_delete:
                 try:
                     os.remove(old_file)
