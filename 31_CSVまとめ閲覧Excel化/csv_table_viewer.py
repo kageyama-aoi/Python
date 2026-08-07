@@ -2,19 +2,22 @@
 CSV Table Viewer
 ================
 
-csv/ フォルダ内の全CSVを読み込み、見やすく整形されたExcelファイル（view.xlsx）を生成する。
+csv/ フォルダ内の全CSV/TXTを読み込み、見やすく整形されたExcelファイル（view.xlsx）を生成する。
 
 準備するもの
 ------------
-csv/ フォルダに UTF-8 のCSVファイルを置くこと（1CSV = 1シートになる）。
+csv/ フォルダに UTF-8 または Shift-JIS の .csv / .txt ファイルを置くこと（1ファイル = 1シートになる）。
+区切り文字（カンマ／タブ）はファイルごとに自動判定する。
 
 出力
 ----
-view.xlsx （INDEXシート + CSVごとのシート）
+view.xlsx （INDEXシート + ファイルごとのシート）
 
 詳しい画面構成・トラブル時の見方は launcher_gui.py（GUIランチャー）を参照。
 """
 
+import csv
+import io
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -25,31 +28,55 @@ from openpyxl.styles import PatternFill, Font, Alignment
 CSV_DIR = Path("csv")
 OUTPUT_PATH = Path("view.xlsx")
 
+# 対象とするファイル拡張子（大文字小文字は区別しない）
+_TARGET_EXTENSIONS = (".csv", ".txt")
+
 # 上位から順に試すエンコード。utf-8-sig は BOM付きUTF-8も無印UTF-8も両方読める。
 _ENCODING_CANDIDATES = [
     ("utf-8-sig", "UTF-8"),
     ("cp932", "Shift-JIS"),
 ]
 
+# 区切り文字の判定候補（この順で優先度を持たせるわけではなく、Snifferに両方を候補として渡す）
+_DELIMITER_CANDIDATES = ",\t"
+
 
 class CsvReadError(RuntimeError):
-    """CSV読み込み時の、原因を人間向けに説明するエラー。"""
+    """CSV/TXT読み込み時の、原因を人間向けに説明するエラー。"""
 
 
-def _read_csv_with_fallback(path: Path) -> pd.DataFrame:
-    """UTF-8 → Shift-JIS の順で読み込みを試みる。全滅したら原因を含めて例外を投げる。"""
+def _decode_with_fallback(path: Path) -> str:
+    """UTF-8 → Shift-JIS の順でファイル全体のデコードを試みる。全滅したら原因を含めて例外を投げる。"""
+    raw = path.read_bytes()
     errors = []
     for encoding, label in _ENCODING_CANDIDATES:
         try:
-            return pd.read_csv(path, dtype=str, encoding=encoding)
+            return raw.decode(encoding)
         except UnicodeDecodeError as exc:
             errors.append(f"{label}: {exc}")
     detail = "\n".join(f"  - {e}" for e in errors)
     raise CsvReadError(
         f"'{path.name}' の文字コードを判別できませんでした（UTF-8 / Shift-JIS を試行）。\n"
         f"{detail}\n"
-        f"→ CSVをUTF-8で保存し直してから再実行してください。"
+        f"→ ファイルをUTF-8で保存し直してから再実行してください。"
     )
+
+
+def detect_delimiter(text: str) -> str:
+    """先頭部分からカンマ／タブ区切りを判定する。判定できなければタブの出現数で決める。"""
+    sample = text[:8192]
+    try:
+        return csv.Sniffer().sniff(sample, delimiters=_DELIMITER_CANDIDATES).delimiter
+    except csv.Error:
+        first_line = sample.splitlines()[0] if sample else ""
+        return "\t" if first_line.count("\t") > first_line.count(",") else ","
+
+
+def _read_table_with_fallback(path: Path) -> pd.DataFrame:
+    """エンコードと区切り文字（カンマ/タブ）を自動判定して読み込む。"""
+    text = _decode_with_fallback(path)
+    delimiter = detect_delimiter(text)
+    return pd.read_csv(io.StringIO(text), dtype=str, sep=delimiter)
 
 
 def _unique_sheet_name(name: str, used: set) -> str:
@@ -65,18 +92,26 @@ def _unique_sheet_name(name: str, used: set) -> str:
     return candidate
 
 
+def list_target_files(csv_dir: Path = CSV_DIR) -> list[Path]:
+    """csv_dir 直下の対象ファイル（.csv / .txt、大文字小文字不問）を名前順で返す。"""
+    if not csv_dir.is_dir():
+        return []
+    return sorted(p for p in csv_dir.iterdir()
+                  if p.is_file() and p.suffix.lower() in _TARGET_EXTENSIONS)
+
+
 def build_view_excel(csv_dir: Path = CSV_DIR, output_path: Path = OUTPUT_PATH) -> list[tuple[str, int]]:
-    """csv_dir 内の全CSVをExcelに変換する。作成した (シート名, 行数) のリストを返す。"""
-    files = sorted(csv_dir.glob("*.csv"))
+    """csv_dir 内の全CSV/TXTをExcelに変換する。作成した (シート名, 行数) のリストを返す。"""
+    files = list_target_files(csv_dir)
     if not files:
         raise CsvReadError(
-            f"'{csv_dir}/' にCSVファイルが見つかりませんでした。\n"
-            f"→ 変換したいCSVを '{csv_dir}/' フォルダに置いてから再実行してください。"
+            f"'{csv_dir}/' に対象ファイル（.csv / .txt）が見つかりませんでした。\n"
+            f"→ 変換したいファイルを '{csv_dir}/' フォルダに置いてから再実行してください。"
         )
 
-    print(f"CSVファイル数: {len(files)}")
+    print(f"対象ファイル数: {len(files)}")
 
-    # フェーズ1: 全CSVを読み込む（出力ファイルには一切触れない）。
+    # フェーズ1: 全ファイルを読み込む（出力ファイルには一切触れない）。
     # ここで検証を済ませておくことで、書き出し開始後に読み込みエラーが起きて
     # view.xlsxのファイルハンドルが中途半端な状態で残る事態を避ける。
     used_names: set = set()
@@ -84,7 +119,7 @@ def build_view_excel(csv_dir: Path = CSV_DIR, output_path: Path = OUTPUT_PATH) -
     for i, file in enumerate(files, start=1):
         name = _unique_sheet_name(file.stem, used_names)
         print(f"[{i}/{len(files)}] 読み込み中: {file.name}")
-        df = _read_csv_with_fallback(file)
+        df = _read_table_with_fallback(file)
         print(f"  行数: {len(df)}")
         loaded.append((name, df))
 

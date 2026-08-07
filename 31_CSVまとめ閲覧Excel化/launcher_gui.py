@@ -21,6 +21,8 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+import csv_table_viewer as ctv
+
 try:
     import sv_ttk as _sv_ttk
     _SV_TTK = True
@@ -40,8 +42,9 @@ LOGS_DIR = BASE_DIR / "logs"
 LOG_CLEANUP_DAYS = 30
 
 ABOUT_TEXT = (
-    "準備するもの： csv/ フォルダに UTF-8 のCSVファイルを置く（1CSV = 1シートになる）\n"
-    "出力されるもの： view.xlsx （INDEXシート＋CSVごとのシート。ヘッダ固定・オートフィルタ付き）"
+    "準備するもの： csv/ フォルダに UTF-8 / Shift-JIS の .csv または .txt ファイルを置く\n"
+    "　　　　　　（1ファイル＝1シート。区切り文字はカンマ／タブをファイルごとに自動判定）\n"
+    "出力されるもの： view.xlsx （INDEXシート＋ファイルごとのシート。ヘッダ固定・オートフィルタ付き）"
 )
 
 UI_FONT_FAMILY = "Yu Gothic UI"
@@ -197,12 +200,15 @@ class InputPreviewWindow(tk.Toplevel):
             self.destroy()
             return
 
+        delimiter = ctv.detect_delimiter("\n".join(lines)) if lines else ","
+        delim_label = {",": "カンマ", "\t": "タブ"}.get(delimiter, repr(delimiter))
+
         frame = ttk.Frame(self, padding=8)
         frame.pack(fill="both", expand=True)
         frame.rowconfigure(1, weight=1)
         frame.columnconfigure(0, weight=1)
 
-        ttk.Label(frame, text=f"エンコード: {enc_label}　（先頭 {len(lines)} 行）").grid(
+        ttk.Label(frame, text=f"エンコード: {enc_label}　／　区切り文字: {delim_label}　（先頭 {len(lines)} 行）").grid(
             row=0, column=0, sticky="w", pady=(0, 4))
 
         text = tk.Text(frame, font=LOG_FONT, wrap="none", height=12)
@@ -335,7 +341,7 @@ class LauncherApp(tk.Tk):
         left = ttk.Frame(paned, padding=(0, 0, 8, 0))
         paned.add(left, weight=0)
 
-        ttk.Label(left, text="csv/ フォルダの内容", font=HEADER_FONT).pack(anchor="w")
+        ttk.Label(left, text="csv/ フォルダの内容（.csv / .txt）", font=HEADER_FONT).pack(anchor="w")
         list_frame = ttk.Frame(left)
         list_frame.pack(fill="both", expand=True, pady=(4, 4))
         columns = ("size",)
@@ -410,7 +416,7 @@ class LauncherApp(tk.Tk):
         self._browsed_csv.clear()
         if not CSV_DIR.is_dir():
             return
-        files = sorted(CSV_DIR.glob("*.csv"))
+        files = ctv.list_target_files(CSV_DIR)
         for path in files:
             try:
                 size = _format_filesize(path.stat().st_size)
@@ -419,7 +425,7 @@ class LauncherApp(tk.Tk):
             item = self.csv_tree.insert("", "end", text=path.name, values=(size,))
             self._browsed_csv[item] = path
         if not files:
-            self.csv_tree.insert("", "end", text="(CSVファイルがありません)", values=("",))
+            self.csv_tree.insert("", "end", text="(対象ファイル[.csv/.txt]がありません)", values=("",))
 
     def _selected_csv_path(self):
         selection = self.csv_tree.selection()
