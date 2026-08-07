@@ -1,5 +1,5 @@
 # 31_CSVまとめ閲覧Excel化 ランチャー GUI
-# csv/ フォルダのCSVをまとめて view.xlsx に変換する csv_table_viewer.py を、
+# data/input/ フォルダのCSV/TXTをまとめて data/output/view.xlsx に変換する csv_table_viewer.py を、
 # 「何を準備し、何が出力されるか」を画面上で示しながら実行できるようにする単一ツール向けランチャー。
 # Python 標準ライブラリ（Tkinter）のみで動作する。
 # 33_テキスト・CSV前処理サポート/launcher_gui.py の設計（入力プレビュー・リアルタイムログ・
@@ -35,16 +35,19 @@ try:
 except ImportError:
     _PYWINSTYLES = False
 
-BASE_DIR = Path(__file__).resolve().parent
-CSV_DIR = BASE_DIR / "csv"
-OUTPUT_PATH = BASE_DIR / "view.xlsx"
-LOGS_DIR = BASE_DIR / "logs"
+# src/ の1つ上（プロジェクトルート）を基準にする。cwdに依存しないため、
+# run.batから起動しても直接 `python src/launcher_gui.py` を実行しても同じ場所を指す。
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+CSV_DIR = DATA_DIR / "input"
+OUTPUT_PATH = DATA_DIR / "output" / "view.xlsx"
+LOGS_DIR = DATA_DIR / "logs"
 LOG_CLEANUP_DAYS = 30
 
 ABOUT_TEXT = (
-    "準備するもの： csv/ フォルダに UTF-8 / Shift-JIS の .csv または .txt ファイルを置く\n"
+    "準備するもの： data/input/ フォルダに UTF-8 / Shift-JIS の .csv または .txt ファイルを置く\n"
     "　　　　　　（1ファイル＝1シート。区切り文字はカンマ／タブをファイルごとに自動判定）\n"
-    "出力されるもの： view.xlsx （INDEXシート＋ファイルごとのシート。ヘッダ固定・オートフィルタ付き）"
+    "出力されるもの： data/output/view.xlsx （INDEXシート＋ファイルごとのシート。ヘッダ固定・オートフィルタ付き）"
 )
 
 UI_FONT_FAMILY = "Yu Gothic UI"
@@ -341,7 +344,7 @@ class LauncherApp(tk.Tk):
         left = ttk.Frame(paned, padding=(0, 0, 8, 0))
         paned.add(left, weight=0)
 
-        ttk.Label(left, text="csv/ フォルダの内容（.csv / .txt）", font=HEADER_FONT).pack(anchor="w")
+        ttk.Label(left, text="data/input/ フォルダの内容（.csv / .txt）", font=HEADER_FONT).pack(anchor="w")
         list_frame = ttk.Frame(left)
         list_frame.pack(fill="both", expand=True, pady=(4, 4))
         columns = ("size",)
@@ -360,8 +363,8 @@ class LauncherApp(tk.Tk):
         list_btns.pack(fill="x", pady=(0, 8))
         ttk.Button(list_btns, text="冒頭を確認", style=BTN_SECONDARY,
                    command=self._open_selected_preview).pack(side="left", fill="x", expand=True, padx=(0, 4))
-        ttk.Button(list_btns, text="csvフォルダを開く", style=BTN_SECONDARY,
-                   command=lambda: (CSV_DIR.mkdir(exist_ok=True), _open_in_explorer(CSV_DIR))
+        ttk.Button(list_btns, text="入力フォルダを開く", style=BTN_SECONDARY,
+                   command=lambda: (CSV_DIR.mkdir(parents=True, exist_ok=True), _open_in_explorer(CSV_DIR))
                    ).pack(side="left", fill="x", expand=True, padx=(4, 4))
         ttk.Button(list_btns, text="↻", width=3, style=BTN_TERTIARY,
                    command=self.refresh_csv_list).pack(side="left", padx=(4, 0))
@@ -445,8 +448,8 @@ class LauncherApp(tk.Tk):
     def _on_run(self):
         if self.is_running:
             return
-        CSV_DIR.mkdir(exist_ok=True)
-        cmd = [sys.executable, "-u", str(BASE_DIR / "csv_table_viewer.py")]
+        CSV_DIR.mkdir(parents=True, exist_ok=True)
+        cmd = [sys.executable, "-u", str(BASE_DIR / "src" / "csv_table_viewer.py")]
         prev_mtime = OUTPUT_PATH.stat().st_mtime if OUTPUT_PATH.exists() else None
 
         self._reset_run_summary()
@@ -570,7 +573,7 @@ class LauncherApp(tk.Tk):
         if not content.strip():
             return
         try:
-            LOGS_DIR.mkdir(exist_ok=True)
+            LOGS_DIR.mkdir(parents=True, exist_ok=True)
             log_path = LOGS_DIR / f"run_{datetime.now():%Y%m%d_%H%M%S}.log"
             log_path.write_text(content, encoding="utf-8")
             self._append_log(f"[launcher] ログを保存しました: {log_path}\n", tag="debug")

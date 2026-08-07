@@ -2,16 +2,16 @@
 CSV Table Viewer
 ================
 
-csv/ フォルダ内の全CSV/TXTを読み込み、見やすく整形されたExcelファイル（view.xlsx）を生成する。
+data/input/ フォルダ内の全CSV/TXTを読み込み、見やすく整形されたExcelファイル（data/output/view.xlsx）を生成する。
 
 準備するもの
 ------------
-csv/ フォルダに UTF-8 または Shift-JIS の .csv / .txt ファイルを置くこと（1ファイル = 1シートになる）。
+data/input/ フォルダに UTF-8 または Shift-JIS の .csv / .txt ファイルを置くこと（1ファイル = 1シートになる）。
 区切り文字（カンマ／タブ）はファイルごとに自動判定する。
 
 出力
 ----
-view.xlsx （INDEXシート + ファイルごとのシート）
+data/output/view.xlsx （INDEXシート + ファイルごとのシート）
 
 詳しい画面構成・トラブル時の見方は launcher_gui.py（GUIランチャー）を参照。
 """
@@ -25,8 +25,12 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.styles import PatternFill, Font, Alignment
 
-CSV_DIR = Path("csv")
-OUTPUT_PATH = Path("view.xlsx")
+# src/ の1つ上（プロジェクトルート）を基準にする。cwdに依存しないため、
+# run.batから起動しても直接 `python src/csv_table_viewer.py` を実行しても同じ場所を指す。
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+CSV_DIR = DATA_DIR / "input"
+OUTPUT_PATH = DATA_DIR / "output" / "view.xlsx"
 
 # 対象とするファイル拡張子（大文字小文字は区別しない）
 _TARGET_EXTENSIONS = (".csv", ".txt")
@@ -124,6 +128,7 @@ def build_view_excel(csv_dir: Path = CSV_DIR, output_path: Path = OUTPUT_PATH) -
         loaded.append((name, df))
 
     # フェーズ2: Excelへ書き出す
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         writer = pd.ExcelWriter(output_path, engine="openpyxl")
     except PermissionError:
