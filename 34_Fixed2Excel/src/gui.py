@@ -4,9 +4,13 @@ import queue
 import sys
 import threading
 import tkinter as tk
+from pathlib import Path
 from tkinter import messagebox, scrolledtext, ttk
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# src/ の1つ上（プロジェクトルート）。sys.pathへの追加とREADME.mdの場所探しの両方に使う。
+# cwdに依存しないため、run.batから起動しても直接 `python src/gui.py` を実行しても同じ場所を指す。
+TOOL_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(TOOL_ROOT))
 
 from src.app_context import create_context
 from src.mapping_editor_window import MappingEditorWindow
@@ -100,6 +104,93 @@ CONFIRM_MESSAGES = {
     ),
 }
 
+# 「このツールについて」ボタンで表示する、専門用語を避けた平易な説明。
+# 詳しい仕様（設定Excelの作り方・注意点等）はREADME.mdに譲る。
+ABOUT_TEXT = """このツールは、桁位置で項目が決まっている「固定長テキスト」ファイル
+（1行の中で「会員番号は1〜10文字目、氏名は11〜30文字目…」のように
+項目の位置があらかじめ決まっている形式）を、見やすいExcelに変換するツールです。
+
+
+【できること】
+
+・固定長テキスト → Excel 変換
+  中身を、項目名の付いた見やすい表形式に変換します。
+  Excel上で内容を確認したり、値を修正したりできます。
+
+・Excel → 固定長テキスト 復元
+  Excelで確認・修正した内容を、元の固定長テキストの形式に書き戻します。
+
+・差分チェック（入力 vs 復元後）
+  変換前後で値が変わっていないか、項目ごとに突き合わせて確認します。
+  「特定の項目だけ直したつもりが、他が変わっていないか」のダブルチェック用です。
+
+
+【はじめての場合】
+
+1. 「環境初期化」を押す
+   → サンプルファイルと、必要なフォルダ（configs/input/output等）が用意されます。
+
+2. 「固定長テキスト → Excel 変換」を押す
+   → data/input 内のファイルがExcelになって data/output に出てきます。
+
+3. Excelで中身を確認・編集し、「Excel → 固定長テキスト 復元」で
+   元の形式に戻せます。
+
+
+【mapping.csv とは】
+
+「このファイルには、この設定（項目の位置定義）を使う」という組み合わせの
+一覧です。新しい種類のファイルを扱うときは「mapping.csv 更新」または
+「mapping.csv 編集」で登録してください。
+
+
+詳しい仕様（設定Excelの作り方、注意点など）は README.md を参照してください。
+下のボタンから開けます。"""
+
+
+class AboutWindow(tk.Toplevel):
+    """「このツールについて」ボタンで開く、平易な説明ダイアログ。README.mdへの導線も持つ。"""
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("このツールについて")
+        self.geometry("620x520")
+        self.minsize(480, 360)
+        self.transient(master)
+        self.grab_set()
+        _style_titlebar(self)
+
+        frame = ttk.Frame(self, padding=16)
+        frame.pack(fill="both", expand=True)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        text = tk.Text(frame, wrap="word", font=(UI_FONT_FAMILY, 10),
+                       background="#1e1e1e", foreground="#e0e0e0", padx=8, pady=8,
+                       relief="flat")
+        text.grid(row=0, column=0, sticky="nsew")
+        sb = ttk.Scrollbar(frame, command=text.yview)
+        sb.grid(row=0, column=1, sticky="ns")
+        text.configure(yscrollcommand=sb.set)
+        text.insert("1.0", ABOUT_TEXT)
+        text.configure(state="disabled")
+
+        btns = ttk.Frame(frame)
+        btns.grid(row=1, column=0, columnspan=2, sticky="e", pady=(12, 0))
+        ttk.Button(btns, text="README.mdを開く", style=BTN_SECONDARY,
+                  command=self._open_readme).pack(side="left", padx=(0, 8))
+        ttk.Button(btns, text="閉じる", style=BTN_TERTIARY,
+                  command=self.destroy).pack(side="left")
+
+    def _open_readme(self):
+        readme_path = TOOL_ROOT / "README.md"
+        try:
+            os.startfile(str(readme_path))
+        except OSError as exc:
+            messagebox.showerror(
+                "開けません", f"{readme_path}\n\n{exc}", parent=self,
+            )
+
 
 class Fixed2ExcelApp(tk.Tk):
     # よく使う変換操作: 押しやすい上部に大きめのボタンで配置
@@ -166,6 +257,12 @@ class Fixed2ExcelApp(tk.Tk):
 
     def _build_widgets(self):
         self.buttons = {}
+
+        top_bar = ttk.Frame(self, padding=(10, 8, 10, 0))
+        top_bar.pack(fill="x")
+        ttk.Label(top_bar, text="34_Fixed2Excel", font=(UI_FONT_FAMILY, 11, "bold")).pack(side="left")
+        ttk.Button(top_bar, text="このツールについて", style=BTN_TERTIARY,
+                  command=self._show_about).pack(side="right")
 
         primary_frame = ttk.Frame(self, padding=(10, 10, 10, 4))
         primary_frame.pack(fill="x")
@@ -250,6 +347,9 @@ class Fixed2ExcelApp(tk.Tk):
                 # ロック中に「mapping.csv更新」等が行を追加している可能性があるため
                 # 解除時に一覧を読み直す
                 editor.refresh()
+
+    def _show_about(self):
+        AboutWindow(self)
 
     def _open_mapping_editor(self):
         if self.is_running:
