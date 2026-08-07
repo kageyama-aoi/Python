@@ -13,6 +13,37 @@ from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
 from src.handlers import diff_checker, excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
 
+# Optional: pip install sv-ttk      → Windows 11 スタイルのダークテーマが有効になる
+# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
+try:
+    import sv_ttk as _sv_ttk
+    _SV_TTK = True
+except ImportError:
+    _SV_TTK = False
+
+try:
+    import pywinstyles as _pywinstyles
+    _PYWINSTYLES = True
+except ImportError:
+    _PYWINSTYLES = False
+
+
+def _style_titlebar(window):
+    """タイトルバーをダークテーマに揃える（sv_ttk＋pywinstylesがあるときだけ。失敗しても無害）。
+    31/32番のlauncher_gui.pyと同じパターン。"""
+    if not (_SV_TTK and _PYWINSTYLES):
+        return
+    try:
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.build >= 22000:   # Windows 11
+            _pywinstyles.change_header_color(window, "#1c1c1c")
+        elif version.major == 10:                            # Windows 10
+            _pywinstyles.apply_style(window, "dark")
+            window.wm_attributes("-alpha", 0.99)             # 色が即時反映されないための再描画ハック
+            window.wm_attributes("-alpha", 1)
+    except Exception:
+        pass
+
 
 class QueueLogHandler(logging.Handler):
     """バックグラウンドスレッドのログをqueue経由でメインスレッドへ渡す"""
@@ -26,13 +57,29 @@ class QueueLogHandler(logging.Handler):
         self.log_queue.put((tag, self.format(record)))
 
 
+# ログ表示欄の背景（#1e1e1e、31/32番と同じ）に対してWCAGコントラスト比4.5以上を
+# 実測確認した配色（元は白背景向けの配色だったため、ダークテーマ化に伴い明るい色に調整）。
 LOG_TAG_COLORS = {
-    "INFO": "#1a1a1a",
-    "WARNING": "#b36b00",
-    "ERROR": "#c0392b",
-    "START": "#0969da",
-    "END": "#1a7f37",
-    "DIFF": "#8250df",
+    "INFO": "#e0e0e0",
+    "WARNING": "#ffb347",
+    "ERROR": "#ff7777",
+    "START": "#4a9eff",
+    "END": "#4ec94e",
+    "DIFF": "#c299ff",
+}
+
+UI_FONT_FAMILY = "Yu Gothic UI"
+
+# ボタン3段階の共通スタイル（31/32番のlauncher_gui.pyと同じ定義。この画面ではTertiaryは未使用）。
+#   Primary   : 主要な変換操作（3つ）。14pt bold・高さ40px・アクセントカラー背景（sv_ttk時）
+#   Secondary : 標準操作（初期セットアップ・mapping編集・フォルダを開く）。11pt・高さ32px
+BTN_PRIMARY = "Primary.Accent.TButton"
+BTN_SECONDARY = "Secondary.TButton"
+BTN_TERTIARY = "Tertiary.Toolbutton"
+_BUTTON_SPECS = {
+    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 13, "bold"), "height": 40, "hpad": 16},
+    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 10),         "height": 30, "hpad": 10},
+    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 9),          "height": 24, "hpad": 6},
 }
 
 # 実行頻度が低い操作は、押す前に「どんなときに使うか」を確認する
@@ -86,7 +133,13 @@ class Fixed2ExcelApp(tk.Tk):
         self._mapping_editors = []
 
         self._build_widgets()
+
+        if _SV_TTK:
+            _sv_ttk.set_theme("dark")
+        self._setup_style()  # フォント・ボタン高さの統一はテーマ適用後に行う（sv_ttkの上書きを防ぐ）
+
         self.after(100, self._drain_log_queue)
+        _style_titlebar(self)
 
     def _build_logger(self):
         # CUI(src/main.py)と同じ data/logs/ にも残す（ウィンドウ表示だけだと閉じた後に追えない）
@@ -96,18 +149,29 @@ class Fixed2ExcelApp(tk.Tk):
         logger.addHandler(handler)
         return logger
 
-    def _build_widgets(self):
+    def _setup_style(self):
+        """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。
+        31/32番のlauncher_gui.pyと同じpxプローブ較正パターン。"""
         style = ttk.Style(self)
-        style.configure("Primary.TButton", font=("Yu Gothic UI", 11, "bold"), padding=(20, 14))
-        style.configure("Setup.TButton", font=("Yu Gothic UI", 9), padding=(10, 6))
+        for style_name, spec in _BUTTON_SPECS.items():
+            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
+            probe = ttk.Button(self, text="あ", style=style_name)
+            self.update_idletasks()
+            base_h = probe.winfo_reqheight()
+            probe.destroy()
+            extra = max(0, spec["height"] - base_h)
+            top, bottom = extra // 2, extra - extra // 2
+            style.configure(style_name, padding=(spec["hpad"], top, spec["hpad"], bottom))
+        style.configure(BTN_TERTIARY, foreground="#888888")
 
+    def _build_widgets(self):
         self.buttons = {}
 
         primary_frame = ttk.Frame(self, padding=(10, 10, 10, 4))
         primary_frame.pack(fill="x")
         for label, action_key in self.PRIMARY_ACTIONS:
             btn = ttk.Button(
-                primary_frame, text=label, style="Primary.TButton",
+                primary_frame, text=label, style=BTN_PRIMARY,
                 command=lambda k=action_key: self._run_action(k),
             )
             btn.pack(side="left", expand=True, fill="x", padx=4)
@@ -120,14 +184,14 @@ class Fixed2ExcelApp(tk.Tk):
         setup_frame.pack(fill="x")
         for label, action_key in self.SETUP_ACTIONS:
             btn = ttk.Button(
-                setup_frame, text=label, style="Setup.TButton",
+                setup_frame, text=label, style=BTN_SECONDARY,
                 command=lambda k=action_key: self._run_action(k),
             )
             btn.pack(side="left", padx=4)
             self.buttons[action_key] = btn
 
         edit_mapping_btn = ttk.Button(
-            setup_frame, text="mapping.csv 編集", style="Setup.TButton",
+            setup_frame, text="mapping.csv 編集", style=BTN_SECONDARY,
             command=self._open_mapping_editor,
         )
         edit_mapping_btn.pack(side="left", padx=4)
@@ -138,7 +202,7 @@ class Fixed2ExcelApp(tk.Tk):
         folder_frame.pack(fill="x")
         for label, dir_key in self.FOLDER_ACTIONS:
             btn = ttk.Button(
-                folder_frame, text=label, style="Setup.TButton",
+                folder_frame, text=label, style=BTN_SECONDARY,
                 command=lambda k=dir_key: self._open_folder(k),
             )
             btn.pack(side="left", padx=4)
@@ -148,7 +212,10 @@ class Fixed2ExcelApp(tk.Tk):
         self.status_var = tk.StringVar(value="待機中")
         ttk.Label(self, textvariable=self.status_var, padding=(10, 0)).pack(anchor="w")
 
-        self.log_text = scrolledtext.ScrolledText(self, state="disabled", wrap="word")
+        self.log_text = scrolledtext.ScrolledText(
+            self, state="disabled", wrap="word",
+            background="#1e1e1e", foreground="#e0e0e0", insertbackground="#e0e0e0",
+        )
         self.log_text.pack(fill="both", expand=True, padx=10, pady=10)
         for level, color in LOG_TAG_COLORS.items():
             self.log_text.tag_configure(level, foreground=color)
