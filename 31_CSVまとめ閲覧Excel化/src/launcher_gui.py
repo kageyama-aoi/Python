@@ -56,6 +56,11 @@ UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
 HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")
 LOG_FONT = ("ＭＳ ゴシック", 10)
 
+# Treeview選択行の強調色。sv_ttkダークテーマの既定（#1c1c1c→#292929）はコントラスト比1.17と
+# ほぼ同じ暗さで選択が見分けづらいため明示指定する（このコントラスト比3.75、白文字4.55でWCAG AA相当）。
+TREE_SELECT_BG = "#2f6fed"
+TREE_SELECT_FG = "#ffffff"
+
 BTN_PRIMARY = "Primary.Accent.TButton"
 BTN_SECONDARY = "Secondary.TButton"
 BTN_TERTIARY = "Tertiary.Toolbutton"
@@ -320,6 +325,9 @@ class LauncherApp(tk.Tk):
         style.configure("TLabelframe.Label", font=UI_FONT_BOLD)
         style.configure("Treeview.Heading", font=UI_FONT_BOLD)
         style.configure("Treeview", rowheight=24)
+        style.map("Treeview",
+                  background=[("selected", TREE_SELECT_BG)],
+                  foreground=[("selected", TREE_SELECT_FG)])
 
         for style_name, spec in _BUTTON_SPECS.items():
             style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
