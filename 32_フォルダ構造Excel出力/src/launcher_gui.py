@@ -85,6 +85,14 @@ _SUMMARY_COLORS = {
 
 _SENTINEL_RUN_DONE = object()
 
+# 巨大なフォルダ（Google Drive同期フォルダ等）を除外設定込みでスキャンすると、
+# 除外ログだけで数万行に達することがある。1回のflushで無制限に処理すると
+# Text部品への大量insert/see呼び出しでメインスレッドが長時間ブロックされ、
+# Windowsに「応答なし」と判定される（実測: 3万行を1回で処理すると60秒以上）。
+# 1回のflushで処理する行数の上限と、表示欄自体の保持行数の上限で対策する。
+MAX_LOG_LINES_PER_FLUSH = 500
+MAX_LOG_DISPLAY_LINES = 5000
+
 
 # ------------------------------------------------------------------
 # 汎用ヘルパー
@@ -546,26 +554,60 @@ class LauncherApp(tk.Tk):
         return None
 
     def _append_log(self, text, tag=None):
-        if tag is None:
-            tag = self._get_log_tag(text)
+        """1行だけを即座に反映する（コード内から直接呼ぶ少数呼び出し用）。"""
+        self._append_log_lines([(text, tag)])
+
+    def _append_log_lines(self, entries):
+        """複数行をまとめて1回のstate切替・see("end")で反映する。
+
+        1行ごとにconfigure(state=...)やsee("end")を呼ぶと、行数が多いとText部品の
+        処理コストが積み上がり、メインスレッドが長時間ブロックされる
+        （実測: 3万行を1行ずつ処理すると60秒以上かかりWindowsに「応答なし」と判定された）。
+        entries は (text, tag_or_None) のリスト。tagがNoneなら内容から自動判定する。
+        """
+        if not entries:
+            return
         self.log_text.configure(state="normal")
-        if tag:
-            self.log_text.insert("end", text, tag)
-        else:
-            self.log_text.insert("end", text)
+        for text, tag in entries:
+            if tag is None:
+                tag = self._get_log_tag(text)
+            if tag:
+                self.log_text.insert("end", text, tag)
+            else:
+                self.log_text.insert("end", text)
+        self._trim_log_if_needed()
         self.log_text.see("end")
         self.log_text.configure(state="disabled")
 
+    def _trim_log_if_needed(self):
+        """表示行数が上限を超えたら先頭から間引く。全文は data/logs/ のログファイルに残るため実害はない。
+        呼び出し側で既に state="normal" にしていることが前提。"""
+        line_count = int(self.log_text.index("end-1c").split(".")[0])
+        if line_count > MAX_LOG_DISPLAY_LINES:
+            excess = line_count - MAX_LOG_DISPLAY_LINES
+            self.log_text.delete("1.0", f"{excess + 1}.0")
+
     def _flush_log_queue(self):
-        while True:
+        """1回の呼び出しで処理する行数に上限を設ける。上限に達したら残りは次のタイマー
+        （100ms後）に持ち越す。バーストが続く間はログ表示が実行に追いつくまで遅延するが、
+        メインスレッドが長時間ブロックされて「応答なし」になる事態を防げる。"""
+        pending = []
+        processed = 0
+        while processed < MAX_LOG_LINES_PER_FLUSH:
             try:
                 item = self.log_queue.get_nowait()
             except queue.Empty:
                 break
+            processed += 1
             if isinstance(item, tuple) and item and item[0] is _SENTINEL_RUN_DONE:
+                if pending:
+                    self._append_log_lines(pending)
+                    pending = []
                 self._on_run_finished(*item[1])
             else:
-                self._append_log(item)
+                pending.append((item, None))
+        if pending:
+            self._append_log_lines(pending)
 
     def _drain_log_queue(self):
         self._flush_log_queue()
