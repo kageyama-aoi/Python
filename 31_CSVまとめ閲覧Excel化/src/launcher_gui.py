@@ -89,6 +89,13 @@ _SUMMARY_COLORS = {
 _SENTINEL_RUN_DONE = object()
 _LOG_NAME_RE_SUFFIX = "_"  # ログファイル名は "run_YYYYMMDD_HHMMSS.log"
 
+# 1回のflushで無制限に処理すると、大量ログ発生時にText部品への大量insert/see呼び出しで
+# メインスレッドが長時間ブロックされ、Windowsに「応答なし」と判定される
+# （32_フォルダ構造Excel出力で実測: 3万行を1回で処理すると60秒以上。launcher-gui-designスキル参照）。
+# 表示行数の間引きは行わない（_autosave_logがウィジェットの表示内容をそのままログファイルへ
+# 保存する設計のため、間引くと保存されるログの前半が欠けてしまう）。
+MAX_LOG_LINES_PER_FLUSH = 500
+
 
 # ------------------------------------------------------------------
 # 汎用ヘルパー
@@ -551,26 +558,56 @@ class LauncherApp(tk.Tk):
         return None
 
     def _append_log(self, text, tag=None):
-        if tag is None:
-            tag = self._get_log_tag(text)
+        """1行だけを即座に反映する（コード内から直接呼ぶ少数呼び出し用）。"""
+        self._append_log_lines([(text, tag)])
+
+    def _append_log_lines(self, entries):
+        """複数行をまとめて1回のstate切替・see("end")で反映する。
+
+        1行ごとにconfigure(state=...)やsee("end")を呼ぶと、行数が多いとText部品の
+        処理コストが積み上がり、メインスレッドが長時間ブロックされる
+        （32_フォルダ構造Excel出力での実測: 3万行を1行ずつ処理すると60秒以上かかり
+        Windowsに「応答なし」と判定された）。entries は (text, tag_or_None) のリスト。
+        tagがNoneなら内容から自動判定する。
+
+        注意: このツールは _autosave_log() がウィジェットの表示内容をそのままログ
+        ファイルへ保存する設計のため、32番と違って表示行数の間引きは行わない
+        （間引くと保存されるログの前半が欠けてしまう）。
+        """
+        if not entries:
+            return
         self.log_text.configure(state="normal")
-        if tag:
-            self.log_text.insert("end", text, tag)
-        else:
-            self.log_text.insert("end", text)
+        for text, tag in entries:
+            if tag is None:
+                tag = self._get_log_tag(text)
+            if tag:
+                self.log_text.insert("end", text, tag)
+            else:
+                self.log_text.insert("end", text)
         self.log_text.see("end")
         self.log_text.configure(state="disabled")
 
     def _flush_log_queue(self):
-        while True:
+        """1回の呼び出しで処理する行数に上限を設ける。上限に達したら残りは次のタイマー
+        （100ms後）に持ち越す。バーストが続く間はログ表示が実行に追いつくまで遅延するが、
+        メインスレッドが長時間ブロックされて「応答なし」になる事態を防げる。"""
+        pending = []
+        processed = 0
+        while processed < MAX_LOG_LINES_PER_FLUSH:
             try:
                 item = self.log_queue.get_nowait()
             except queue.Empty:
                 break
+            processed += 1
             if isinstance(item, tuple) and item and item[0] is _SENTINEL_RUN_DONE:
+                if pending:
+                    self._append_log_lines(pending)
+                    pending = []
                 self._on_run_finished(*item[1])
             else:
-                self._append_log(item)
+                pending.append((item, None))
+        if pending:
+            self._append_log_lines(pending)
 
     def _drain_log_queue(self):
         self._flush_log_queue()
