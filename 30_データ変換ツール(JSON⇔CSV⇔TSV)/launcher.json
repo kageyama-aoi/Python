@@ -1,32 +1,12 @@
 {
   "name": "データ変換ツール（JSON⇔CSV⇔TSV）",
-  "description": "JSON・CSV・TSV間の変換を行う小さなスクリプト集",
+  "description": "JSON・CSV・TSV間の変換を行うツール集（GUIランチャーから4ツールを選んで実行）",
   "actions": [
     {
-      "label": "JSON→TSV（横方向Level列）",
-      "kind": "generator",
-      "entry": "run_columns.bat",
-      "open_after": "output_*.tsv",
-      "note": "カレントフォルダ内の最新JSONを自動検出して変換する"
-    },
-    {
-      "label": "JSON→TSV（縦方向Level/Key/Value）",
-      "kind": "generator",
-      "entry": "run_rows.bat",
-      "open_after": "output_levels.tsv",
-      "note": "カレントフォルダ内の最新JSONを自動検出して変換する"
-    },
-    {
-      "label": "CSV→TSV 一括変換",
-      "kind": "cli",
-      "entry": "run_csv_to_tsv.bat",
-      "note": "カレントフォルダ内の全CSVを一括でTSVに変換する"
-    },
-    {
-      "label": "クエリ文字列→JSON",
-      "kind": "cli",
-      "entry": "run_request_to_json.bat",
-      "note": "対話入力でクエリ文字列をJSONに変換する"
+      "label": "ランチャーGUIを起動",
+      "kind": "gui",
+      "entry": "run.bat",
+      "note": "左のツール一覧から「JSON→TSV（横方向Level列/縦方向Level・Key・Value）」「CSV→TSV一括変換」「クエリ文字列→JSON」を選んで実行し、ログと出力サマリーを画面で確認できる。入力はdata/input/、出力はdata/output/に置く"
     }
   ]
 }

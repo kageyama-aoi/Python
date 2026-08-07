@@ -1,0 +1,8 @@
+# 実データ・生成物・ログ（90_ひな形の標準構成に準拠。丸ごとGit管理外）
+data/
+
+__pycache__/
+.pytest_cache/
+
+# Windows設定ファイル
+desktop.ini
