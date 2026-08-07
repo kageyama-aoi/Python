@@ -273,14 +273,17 @@ def save_dataframe_to_excel(df, excel_path):
             # 書式を定義
             folder_format = workbook.add_format({'bg_color': '#FFFFCC', 'bold': True}) # 薄い黄色、太字
             file_format = workbook.add_format({'bg_color': '#CCEEFF'})   # 薄い水色
+            file_name_format = workbook.add_format({'bg_color': '#CCEEFF', 'bold': True})  # ファイル行のアイテム名は太字で強調
 
             try:
                 # 表示用DataFrameでのタイプ列の位置を再計算 (df_display基準)
                 type_col_idx_display = df_display.columns.get_loc('タイプ')
                 # 表示用DataFrameでのフルパス列の位置
                 fullpath_col_idx_display = df_display.columns.get_loc('フルパス')
+                # 表示用DataFrameでのアイテム名列の位置
+                item_name_col_idx_display = df_display.columns.get_loc('アイテム名')
             except KeyError:
-                logging.warning("DataFrameに 'タイプ'列または'フルパス'列が見つかりません。書式設定に影響する可能性があります。")
+                logging.warning("DataFrameに 'タイプ'列・'フルパス'列・'アイテム名'列のいずれかが見つかりません。書式設定に影響する可能性があります。")
                 return
 
             # ハイパーリンクの設定 (to_excelで書き込んだセルに対してURLを設定)
@@ -296,6 +299,12 @@ def save_dataframe_to_excel(df, excel_path):
                     url = f"file:///{item_actual_path.replace(os.sep, '/')}"
                     # フルパス列 (df_displayでのインデックス fullpath_col_idx_display) にハイパーリンクを設定
                     worksheet.write_url(excel_data_row, fullpath_col_idx_display, url, string=display_text_for_link, cell_format=hyperlink_format)
+
+                # ファイル行のアイテム名（ファイル名）を太字にする。条件付き書式ではなく直接上書きすることで、
+                # 同じセルに複数の条件付き書式が重なったときの優先順位に左右されずに確実に太字にする。
+                if df.loc[row_idx, 'タイプ'] == 'file':
+                    item_name = df.loc[row_idx, 'アイテム名']
+                    worksheet.write(excel_data_row, item_name_col_idx_display, item_name, file_name_format)
 
             num_rows = len(df_display.index)
             num_cols = len(df_display.columns)
