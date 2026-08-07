@@ -1,4 +1,10 @@
-output/
-logs/
+# 実データ・生成物・ログ（90_ひな形の標準構成に準拠。丸ごとGit管理外）
+data/
+
+# 実行時に案件の実パスが保存されるため、configはexampleのみ追跡
+config/config.json
+
 __pycache__/
-*.pyc
+
+# Windows設定ファイル
+desktop.ini

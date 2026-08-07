@@ -6,7 +6,7 @@
       "label": "実行",
       "kind": "generator",
       "entry": "run.bat",
-      "open_after": "output/*.xlsx"
+      "open_after": "data/output/*.xlsx"
     }
   ]
 }

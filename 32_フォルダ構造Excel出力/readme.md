@@ -15,13 +15,13 @@
   - ヘッダー行を固定表示（スクロールしても見出しが隠れない）
   - ヘッダー行にオートフィルタ（タイプや階層名での絞り込みが可能）
   - フォルダ単位で行を折りたたみ可能（Excelのアウトライン機能。折りたたみボタンはフォルダ自身の行に表示される）
-- 実行時にフォルダ選択ダイアログでスキャン対象のルートディレクトリ (`root_dir`) を指定（選択内容は `config.json` に自動保存され、次回の初期表示になる）
-- `config.json` によるカスタマイズ
+- 実行時にフォルダ選択ダイアログでスキャン対象のルートディレクトリ (`root_dir`) を指定（選択内容は `config/config.json` に自動保存され、次回の初期表示になる）
+- `config/config.json` によるカスタマイズ
   - 出力先ディレクトリ (`output_base_dir`) とファイル名 (`output_filename`)
   - 除外する拡張子 (`excluded_extensions`)
   - 除外するフォルダ名 (`excluded_folder_names`、大文字小文字区別なし）
-- 出力ファイル名にタイムスタンプを自動付加し、同名の古い出力は確認の上で削除
-- 実行ログを `logs/` にコンソール出力と合わせて記録
+- 出力ファイル名にタイムスタンプを自動付加し、同名の古い出力は確認の上で削除（コンソールではなくダイアログで確認する）
+- 実行ログを `data/logs/` にコンソール出力と合わせて記録
 
 ## 必要なもの
 
@@ -34,21 +34,21 @@ pip install pandas xlsxwriter
 
 ## 使い方
 
-1. `config.example.json` を `config.json` としてコピーする（初回のみ）。
-   - `config.json` は案件パスなどの実データが入るため `.gitignore` 対象。git管理されるのは `config.example.json` のみ。
+1. `config/config.example.json` を `config/config.json` としてコピーする（初回のみ）。
+   - `config/config.json` は案件パスなどの実データが入るため `.gitignore` 対象。git管理されるのは `config/config.example.json` のみ。
 2. `run.bat` をダブルクリックして実行する。
    - フォルダ選択ダイアログが開くので、スキャンしたいフォルダを選ぶ（初期表示は前回選んだフォルダ）。
    - ダイアログでキャンセルすると処理は中断される。
-   - 選んだフォルダは `config.json` の `root_dir` に自動で保存され、次回のダイアログの初期表示に使われる（`root_dir` を手動編集する必要はない）。
-   - `output_base_dir` が相対パスの場合、このツールのフォルダ基準（`config.json`と同じ場所）で解決される。デフォルトは `output/`。
-3. `output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。
+   - 選んだフォルダは `config/config.json` の `root_dir` に自動で保存され、次回のダイアログの初期表示に使われる（`root_dir` を手動編集する必要はない）。
+   - `output_base_dir` が相対パスの場合、このツールのフォルダ基準（プロジェクトルート）で解決される。デフォルトは `data/output/`。
+3. `data/output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。
 
-## config.json の設定例
+## config/config.json の設定例
 
 ```json
 {
   "root_dir": "G:/マイドライブ/作業フォルダ/WORK/1234_案件名",
-  "output_base_dir": "output",
+  "output_base_dir": "data/output",
   "output_filename": "drive_structure.xlsx",
   "excluded_extensions": [".log", ".tmp", ".bak", ".DS_Store", "desktop.ini"],
   "excluded_folder_names": ["OLD", "old", "backup", "アーカイブ", "不要", "output", "logs", "__pycache__"]
@@ -61,17 +61,18 @@ Google共有ドライブ（デスクトップ版でローカル同期してい�
 
 | ファイル/フォルダ | 説明 |
 | --- | --- |
-| `run.bat` | 実行用バッチファイル（内部で `generate_drive_structure.py` を呼び出す） |
-| `generate_drive_structure.py` | スキャンとExcel出力を行うスクリプト本体 |
-| `config.json` | スキャン対象・出力先・除外条件を指定する設定ファイル |
-| `output/` | 出力Excelファイルの格納先（初回実行時に自動生成） |
-| `logs/` | 実行ログの格納先（初回実行時に自動生成） |
+| `run.bat` | 実行用バッチファイル（内部で `src/generate_drive_structure.py` を呼び出す） |
+| `src/generate_drive_structure.py` | スキャンとExcel出力を行うスクリプト本体 |
+| `config/config.json` | スキャン対象・出力先・除外条件を指定する設定ファイル（gitignore対象） |
+| `config/config.example.json` | `config.json` のテンプレート（git管理対象） |
+| `data/output/` | 出力Excelファイルの格納先（初回実行時に自動生成） |
+| `data/logs/` | 実行ログの格納先（初回実行時に自動生成） |
 | `tests/` | pytestによる静的テスト（`pytest` コマンドで実行） |
 
 ## 案件ごとに使う場合
 
-複数案件で使い回す際は、実行時のフォルダ選択ダイアログで案件ごとのフォルダを選べばよい（`config.json` を手動編集する必要はない）。
-過去の出力（案件名入りのファイル名にリネームして保管する運用を推奨）と混ざらないよう、`output/` の中身は都度整理する。
+複数案件で使い回す際は、実行時のフォルダ選択ダイアログで案件ごとのフォルダを選べばよい（`config/config.json` を手動編集する必要はない）。
+過去の出力（案件名入りのファイル名にリネームして保管する運用を推奨）と混ざらないよう、`data/output/` の中身は都度整理する。
 
 ## 同梱ツール: show_tree
 

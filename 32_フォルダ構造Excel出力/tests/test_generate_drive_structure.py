@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from openpyxl import load_workbook
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 import generate_drive_structure
 from generate_drive_structure import (
