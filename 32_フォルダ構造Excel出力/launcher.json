@@ -3,10 +3,10 @@
   "description": "指定ディレクトリ以下のフォルダ・ファイル構造をスキャンし、階層構造付きのExcelファイルに出力する",
   "actions": [
     {
-      "label": "実行",
-      "kind": "generator",
+      "label": "ランチャーGUIを起動",
+      "kind": "gui",
       "entry": "run.bat",
-      "open_after": "data/output/*.xlsx"
+      "note": "実行ボタンでフォルダ選択ダイアログが開き、スキャン結果をリアルタイムログで確認しながらExcelを生成できる。設定編集で除外拡張子・除外フォルダ名等も変更可能"
     }
   ]
 }

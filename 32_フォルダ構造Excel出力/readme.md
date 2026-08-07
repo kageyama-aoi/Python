@@ -26,22 +26,50 @@
 ## 必要なもの
 
 - Python 3.x
-- `pandas`, `xlsxwriter`
+- `pandas`, `xlsxwriter`, `openpyxl`
 
 ```bash
-pip install pandas xlsxwriter
+pip install pandas xlsxwriter openpyxl
 ```
+
+GUIランチャー自体はTkinter標準ライブラリのみで動作し、`sv-ttk` / `pywinstyles` は任意（入れるとWindows 11スタイルのダークテーマになる）。
 
 ## 使い方
 
-1. `config/config.example.json` を `config/config.json` としてコピーする（初回のみ）。
+1. `config/config.example.json` を `config/config.json` としてコピーする（初回のみ。GUIランチャーの「設定を編集...」からでも新規作成できる）。
    - `config/config.json` は案件パスなどの実データが入るため `.gitignore` 対象。git管理されるのは `config/config.example.json` のみ。
-2. `run.bat` をダブルクリックして実行する。
-   - フォルダ選択ダイアログが開くので、スキャンしたいフォルダを選ぶ（初期表示は前回選んだフォルダ）。
+2. `run.bat` をダブルクリックして実行する。GUIランチャー（`src/launcher_gui.py`）が起動する。
+3. 「▶ 実行」を押すとフォルダ選択ダイアログが開くので、スキャンしたいフォルダを選ぶ（初期表示は前回選んだフォルダ）。
    - ダイアログでキャンセルすると処理は中断される。
    - 選んだフォルダは `config/config.json` の `root_dir` に自動で保存され、次回のダイアログの初期表示に使われる（`root_dir` を手動編集する必要はない）。
    - `output_base_dir` が相対パスの場合、このツールのフォルダ基準（プロジェクトルート）で解決される。デフォルトは `data/output/`。
-3. `data/output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。
+4. `data/output/` フォルダに `drive_structure_<タイムスタンプ>.xlsx` が生成される。ランチャーの出力サマリーから「開く」で直接開ける。
+
+### GUIランチャーの画面構成
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ このツールについて（準備するもの／出力されるもの）             │
+├────────────────────────┬───────────────────────────────────┤
+│ [左ペイン]               │ [右ペイン]                        │
+│  現在の設定（root_dir・   │  Log（実行ログ・色付きリアルタイム表示）│
+│  出力先・除外条件）        │                                  │
+│  ［設定を編集...］［↻］   │                                  │
+│  ［▶ 実行］［■ Stop］    │  出力サマリー（ファイル名・件数・サイズ）│
+│  ［出力/ログフォルダを開く］│  ［開く］                        │
+└────────────────────────┴───────────────────────────────────┘
+```
+
+- 「設定を編集...」で `root_dir`・出力先・除外拡張子・除外フォルダ名をGUI上で編集できる（保存すると左ペインのサマリーに即反映）
+- 「▶ 実行」でサブプロセスとして `src/generate_drive_structure.py` を実行し、ログをリアルタイムに色分け表示する。フォルダ選択ダイアログ・古い出力削除の確認ダイアログは本体スクリプト側のものがそのまま前面に表示される
+- 完了後、出力サマリーに生成されたファイル名・件数・サイズを表示し、「開く」で直接開ける
+- 実行ログ自体は本体スクリプト側で `data/logs/script_<日付>.log` に自動保存される（起動時に30日以上前のログを自動でzipアーカイブする）
+
+### GUIを使わずCLIで直接実行する場合
+
+```bash
+python src/generate_drive_structure.py
+```
 
 ## config/config.json の設定例
 
@@ -61,8 +89,9 @@ Google共有ドライブ（デスクトップ版でローカル同期してい�
 
 | ファイル/フォルダ | 説明 |
 | --- | --- |
-| `run.bat` | 実行用バッチファイル（内部で `src/generate_drive_structure.py` を呼び出す） |
-| `src/generate_drive_structure.py` | スキャンとExcel出力を行うスクリプト本体 |
+| `run.bat` | 実行用バッチファイル（内部で `src/launcher_gui.py` を呼び出す） |
+| `src/launcher_gui.py` | GUIランチャー本体（設定編集・実行ログ表示・出力サマリー） |
+| `src/generate_drive_structure.py` | スキャンとExcel出力を行うスクリプト本体（単体でも実行可能） |
 | `config/config.json` | スキャン対象・出力先・除外条件を指定する設定ファイル（gitignore対象） |
 | `config/config.example.json` | `config.json` のテンプレート（git管理対象） |
 | `data/output/` | 出力Excelファイルの格納先（初回実行時に自動生成） |

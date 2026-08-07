@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-python "src\generate_drive_structure.py"
+python "src\launcher_gui.py"
 if errorlevel 1 pause
