@@ -4,6 +4,7 @@ import json
 import datetime
 import re
 import logging
+import unicodedata
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -109,6 +110,20 @@ def format_size(size_bytes):
         size /= 1024
     return f"{size:.1f} TB"
 
+
+# Excel列幅の自動調整に使う表示幅の見積もり（全角2/半角1で概算）と、その上限・下限
+MIN_COLUMN_WIDTH = 6
+MAX_COLUMN_WIDTH = 60
+
+
+def _display_width(value):
+    """全角文字を2、半角文字を1として概算した表示幅を返す。"""
+    text = '' if value is None else str(value)
+    width = 0
+    for ch in text:
+        width += 2 if unicodedata.east_asian_width(ch) in ('W', 'F') else 1
+    return width
+
 class ScannedItem:
     """スキャンで見つかった1件のファイル/フォルダを表す"""
     __slots__ = ('full_path', 'parent_dir', 'levels', 'name', 'item_type', 'size_bytes')
@@ -132,6 +147,12 @@ class DirectoryScanner:
         """
         指定されたディレクトリをスキャンし、ファイル構造データを ScannedItem のリストとして収集する。
         収集されたデータは self.scanned_data にも格納される。
+
+        os.walk() は「現在の階層の兄弟フォルダを全部列挙してから、それぞれの子孫に降りる」順で
+        yield するため、単純に消費すると兄弟フォルダの行が親子の間に挟まってしまう。
+        Excel側でフォルダ単位の行折りたたみ（アウトライン）を成立させるには「親フォルダの行の直後に
+        その子孫が全て連続している」ことが前提になるため、ここでは手動で深さ優先探索を行い、
+        フォルダを見つけた時点ですぐにその配下を再帰的に辿り切ってから次の兄弟に進む。
         """
         if not os.path.isdir(self.root_path):
             # logging.warning は残しつつ、呼び出し元で処理できるように例外も発生させるか検討
@@ -141,41 +162,47 @@ class DirectoryScanner:
 
         excluded_folder_names_lower = [name.lower() for name in self.excluded_folder_names]
         file_structure = []
-
-        for dirpath, dirnames, filenames in os.walk(self.root_path):
-            dirnames.sort()
-            filenames.sort()
-
-            rel_path_to_item_parent = os.path.relpath(dirpath, self.root_path)
-            parent_levels = rel_path_to_item_parent.split(os.sep) if rel_path_to_item_parent != '.' else []
-
-            original_dirnames = list(dirnames)
-            dirnames[:] = [d for d in dirnames if d.lower() not in excluded_folder_names_lower]
-            for excluded_dir in set(original_dirnames) - set(dirnames):
-                logging.info(f"除外しました (フォルダ名): {os.path.join(dirpath, excluded_dir)} およびその配下")
-
-            for dirname in dirnames:
-                item_full_path = os.path.join(dirpath, dirname)
-                # フォルダの配下合計サイズは計算しない（処理速度とシンプルさを優先）
-                file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, dirname, 'folder'))
-
-            for filename in filenames:
-                _name, ext = os.path.splitext(filename)
-                # 拡張子リストと比較する際は、設定ファイルから読み込んだものをそのまま使う (小文字変換はConfigManagerで行っている)
-                if ext.lower() in self.excluded_extensions or filename in self.excluded_extensions:
-                    logging.info(f"除外しました (拡張子/ファイル名): {os.path.join(dirpath, filename)}")
-                    continue
-
-                item_full_path = os.path.join(dirpath, filename)
-                try:
-                    size_bytes = os.path.getsize(item_full_path)
-                except OSError as e:
-                    logging.warning(f"サイズを取得できませんでした: {item_full_path} ({e})")
-                    size_bytes = None
-                file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, filename, 'file', size_bytes))
+        self._scan_dir(self.root_path, [], excluded_folder_names_lower, file_structure)
 
         self.scanned_data = file_structure
         return self.scanned_data
+
+    def _scan_dir(self, dirpath, parent_levels, excluded_folder_names_lower, file_structure):
+        """dirpath直下を列挙する。フォルダは見つけ次第、この場で配下を再帰的に辿り切ってから
+        次の兄弟に進むことで、親フォルダの行の直後に子孫が連続する順序を保証する。"""
+        try:
+            entries = list(os.scandir(dirpath))
+        except OSError as e:
+            logging.warning(f"読み取れませんでした: {dirpath} ({e})")
+            return
+
+        dirnames = sorted(e.name for e in entries if e.is_dir())
+        filenames = sorted(e.name for e in entries if e.is_file())
+
+        kept_dirnames = [d for d in dirnames if d.lower() not in excluded_folder_names_lower]
+        for excluded_dir in set(dirnames) - set(kept_dirnames):
+            logging.info(f"除外しました (フォルダ名): {os.path.join(dirpath, excluded_dir)} およびその配下")
+
+        for dirname in kept_dirnames:
+            item_full_path = os.path.join(dirpath, dirname)
+            # フォルダの配下合計サイズは計算しない（処理速度とシンプルさを優先）
+            file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, dirname, 'folder'))
+            self._scan_dir(item_full_path, parent_levels + [dirname], excluded_folder_names_lower, file_structure)
+
+        for filename in filenames:
+            _name, ext = os.path.splitext(filename)
+            # 拡張子リストと比較する際は、設定ファイルから読み込んだものをそのまま使う (小文字変換はConfigManagerで行っている)
+            if ext.lower() in self.excluded_extensions or filename in self.excluded_extensions:
+                logging.info(f"除外しました (拡張子/ファイル名): {os.path.join(dirpath, filename)}")
+                continue
+
+            item_full_path = os.path.join(dirpath, filename)
+            try:
+                size_bytes = os.path.getsize(item_full_path)
+            except OSError as e:
+                logging.warning(f"サイズを取得できませんでした: {item_full_path} ({e})")
+                size_bytes = None
+            file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, filename, 'file', size_bytes))
 
 def create_dataframe_with_fullpath(scanned_items):
     """収集した ScannedItem のリストから Pandas DataFrame を作成する。フルパス列・タイプ列・サイズ列を含む。"""
@@ -198,14 +225,16 @@ def create_dataframe_with_fullpath(scanned_items):
         size_display = format_size(item.size_bytes)
 
         processed_data.append(
-            [item.full_path, item.item_type, parent_dir_fullpath_display, size_bytes_display, size_display] + padded_parts
+            [item.full_path, len(item.levels), item.item_type, parent_dir_fullpath_display, size_bytes_display, size_display] + padded_parts
         )
 
     level_columns = [] # type: ignore
     if max_levels_plus_name_len > 1: # Level列が存在する場合 (アイテム名列以外にレベル列がある)
         level_columns = [f"Level{i+1}" for i in range(max_levels_plus_name_len - 1)]
 
-    final_columns = ['_item_self_path', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ']
+    # '_depth' はルートからの深さ（0=ルート直下）。Excel出力時の行アウトライン（折りたたみ）
+    # レベルの計算にのみ使う内部列で、表示はしない。
+    final_columns = ['_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ']
     if max_levels_plus_name_len > 0: # アイテム名またはLevel列が存在する場合
         final_columns.extend(level_columns)
         final_columns.append('アイテム名') # 以前は 'ファイル名'
@@ -213,10 +242,11 @@ def create_dataframe_with_fullpath(scanned_items):
     return pd.DataFrame(processed_data, columns=final_columns)
 
 def save_dataframe_to_excel(df, excel_path):
-    """DataFrameをExcelファイルとして保存し、条件付き書式とハイパーリンクを適用する"""
+    """DataFrameをExcelファイルとして保存し、条件付き書式・ハイパーリンク・
+    列幅自動調整・ヘッダー行固定・オートフィルタ・フォルダ単位の行折りたたみを適用する"""
     try:
-        # 表示用のDataFrameから内部処理用の列を除外
-        df_display = df.drop(columns=['_item_self_path'])
+        # 表示用のDataFrameから内部処理用の列（'_depth'は行アウトラインの計算にのみ使う）を除外
+        df_display = df.drop(columns=['_item_self_path', '_depth'])
 
         with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
             # Pandasのデフォルトヘッダー書き込みを抑制し、データのみ書き込む (ヘッダーは後で手動設定)
@@ -253,7 +283,7 @@ def save_dataframe_to_excel(df, excel_path):
                 item_actual_path = df.loc[row_idx, '_item_self_path']
                 # 表示されるフルパス文字列 (ファイルの場合は空になっているはず)
                 display_text_for_link = str(df.loc[row_idx, 'フルパス'])
-                
+
                 # 表示テキストが空でなければハイパーリンクを設定
                 if display_text_for_link:
                     url = f"file:///{item_actual_path.replace(os.sep, '/')}"
@@ -277,13 +307,41 @@ def save_dataframe_to_excel(df, excel_path):
                                          {'type': 'formula',
                                           'criteria': f'=${type_col_letter_display}2="file"',
                                           'format': file_format})
-            
+
             # タイプ列を非表示にする場合 (オプション)
             # worksheet.set_column(type_col_idx, type_col_idx, None, None, {'hidden': True})
+
+            # --- 列幅自動調整（見出し・データの表示幅の最大値。上限を設けて際限なく広がらないようにする） ---
+            for col_idx, col_name in enumerate(df_display.columns):
+                max_width = _display_width(col_name)
+                if num_rows > 0:
+                    max_width = max(max_width, df_display.iloc[:, col_idx].map(_display_width).max())
+                width = min(max(max_width + 2, MIN_COLUMN_WIDTH), MAX_COLUMN_WIDTH)
+                worksheet.set_column(col_idx, col_idx, width)
+
+            # --- ヘッダー行を固定し、スクロールしても見出しが隠れないようにする ---
+            worksheet.freeze_panes(1, 0)
+
+            # --- ヘッダー行にオートフィルタを設定（タイプ・階層名等での絞り込み用） ---
+            if num_rows > 0:
+                worksheet.autofilter(0, 0, num_rows, num_cols - 1)
+
+            # --- フォルダ単位で行を折りたためるよう、深さをアウトラインレベルとして設定する ---
+            # symbols_below=False にすることで、開閉コントロール（+/-）が折りたたみ対象の
+            # 直前（＝親フォルダ自身の行）に表示される。深さの列('_depth')は
+            # scanner側で親→子孫全部→次の兄弟の順に収集しているため、常に隣接ブロックになる。
+            MAX_OUTLINE_LEVEL = 7  # Excel/xlsxwriterの仕様上の上限
+            for row_idx in df.index:
+                depth = int(df.loc[row_idx, '_depth'])
+                if depth <= 0:
+                    continue
+                excel_data_row = row_idx + 1
+                worksheet.set_row(excel_data_row, None, None, {'level': min(depth, MAX_OUTLINE_LEVEL)})
+            worksheet.outline_settings(symbols_below=False)
     except ImportError:
         logging.warning("`xlsxwriter` がインストールされていません。`pip install xlsxwriter` を実行してください。")
         logging.info("条件付き書式やハイパーリンクなしでExcelファイルを出力します。")
-        df.drop(columns=['_item_self_path']).to_excel(excel_path, index=False) # 通常の出力
+        df.drop(columns=['_item_self_path', '_depth']).to_excel(excel_path, index=False) # 通常の出力
     except Exception as e:
         raise ScriptError(f"Excelファイル '{excel_path}' への保存中に予期せぬエラーが発生しました。") from e
 
@@ -376,9 +434,14 @@ def main():
         scanner = DirectoryScanner(root_dir_path, excluded_extensions=excluded_exts, excluded_folder_names=excluded_folders)
         file_data = scanner.scan()
 
-        if file_data:
-            file_data.sort(key=lambda item: item.full_path)
-        
+        # file_dataはscanner.scan()が返す時点で既に正しいツリー順
+        # （親フォルダ→その子孫全部→次の兄弟。dirnames.sort()済みのos.walk()の走査順そのもの）。
+        # ここでfull_pathの文字列としてソートし直すと、例えば "Apple" と "Apple2" のような
+        # 兄弟がある場合に文字コード順で区切り文字「\」より「2」が先に来るため、
+        # "Apple" の子要素が "Apple2" より後ろに離れてしまう。
+        # Excel側でフォルダ単位の行折りたたみ（アウトライン）を成立させるには、
+        # 「親の直下に子孫が連続している」ことが前提になるため、再ソートせず自然順のまま使う。
+
         if not file_data:
             # scanner.scan()内でroot_dirが存在しない場合は警告ログが出ている
             if os.path.isdir(root_dir_path): # root_dirは存在するがアイテムが0件

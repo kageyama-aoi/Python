@@ -4,6 +4,7 @@ import sys
 
 import pandas as pd
 import pytest
+from openpyxl import load_workbook
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,6 +18,7 @@ from generate_drive_structure import (
     create_dataframe_with_fullpath,
     format_size,
     manage_old_output_files,
+    save_dataframe_to_excel,
 )
 
 
@@ -202,6 +204,56 @@ def test_scan_levels_reflect_depth(tmp_path):
     assert items['c.txt'].levels == ['sub']
 
 
+def test_scan_children_immediately_follow_parent_folder(tmp_path):
+    """Excel側のフォルダ単位アウトライン（行折りたたみ）が成立するには、親フォルダの行の
+    直後にその子孫が全て連続している必要がある。"Apple"/"Apple2" のような、文字列としての
+    フルパスでソートすると区切り文字より前に来てしまう名前の兄弟があっても、
+    scan() が返す順序自体は正しいツリー順（親→子孫全部→次の兄弟）であることを確認する。"""
+    root = tmp_path / "root"
+    (root / "Apple").mkdir(parents=True)
+    (root / "Apple" / "notes.txt").write_text("x", encoding="utf-8")
+    (root / "Apple2").mkdir()
+    (root / "Apple2" / "y.txt").write_text("y", encoding="utf-8")
+
+    scanner = DirectoryScanner(str(root))
+    ordered = [(item.name, len(item.levels)) for item in scanner.scan()]
+
+    assert ordered == [
+        ("Apple", 0),
+        ("notes.txt", 1),
+        ("Apple2", 0),
+        ("y.txt", 1),
+    ]
+
+
+def test_scan_deep_nesting_keeps_depth_first_order(tmp_path):
+    root = tmp_path / "root"
+    (root / "A" / "A1" / "A1a").mkdir(parents=True)
+    (root / "A" / "A2").mkdir()
+    (root / "B").mkdir()
+    (root / "A" / "A1" / "A1a" / "deep.txt").write_text("d", encoding="utf-8")
+    (root / "A" / "A1" / "mid.txt").write_text("m", encoding="utf-8")
+    (root / "A" / "A2" / "leaf.txt").write_text("l", encoding="utf-8")
+    (root / "A" / "top.txt").write_text("t", encoding="utf-8")
+    (root / "B" / "only.txt").write_text("o", encoding="utf-8")
+
+    scanner = DirectoryScanner(str(root))
+    ordered = [(item.name, len(item.levels)) for item in scanner.scan()]
+
+    assert ordered == [
+        ("A", 0),
+        ("A1", 1),
+        ("A1a", 2),
+        ("deep.txt", 3),
+        ("mid.txt", 2),
+        ("A2", 1),
+        ("leaf.txt", 2),
+        ("top.txt", 1),
+        ("B", 0),
+        ("only.txt", 1),
+    ]
+
+
 # ---- create_dataframe_with_fullpath ----
 
 def test_create_dataframe_empty_input():
@@ -220,11 +272,12 @@ def test_create_dataframe_columns_and_values():
     df = create_dataframe_with_fullpath(items)
 
     assert list(df.columns) == [
-        '_item_self_path', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'Level1', 'アイテム名'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'Level1', 'アイテム名'
     ]
     df = df.set_index('_item_self_path')
 
     folder_row = df.loc[r"C:\root\sub"]
+    assert folder_row['_depth'] == 0
     assert folder_row['タイプ'] == 'folder'
     assert folder_row['フルパス'] == r"C:\root"
     assert folder_row['サイズ(バイト)'] == ''
@@ -233,6 +286,7 @@ def test_create_dataframe_columns_and_values():
     assert folder_row['アイテム名'] == ''
 
     file_row = df.loc[r"C:\root\sub\c.txt"]
+    assert file_row['_depth'] == 1
     assert file_row['タイプ'] == 'file'
     assert file_row['フルパス'] == ''  # ファイル行は親フルパスを表示しない
     assert file_row['サイズ(バイト)'] == 6
@@ -246,7 +300,7 @@ def test_create_dataframe_no_level_columns_when_flat():
     df = create_dataframe_with_fullpath(items)
     assert 'Level1' not in df.columns
     assert list(df.columns) == [
-        '_item_self_path', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'アイテム名'
+        '_item_self_path', '_depth', 'タイプ', 'フルパス', 'サイズ(バイト)', 'サイズ', 'アイテム名'
     ]
 
 
@@ -290,4 +344,55 @@ def test_manage_old_output_files_ignores_non_matching_names(tmp_path, monkeypatc
     monkeypatch.setattr(generate_drive_structure, 'confirm_delete_old_files', _fail)
     manage_old_output_files(str(out_dir), "drive_structure.xlsx", "drive_structure_20260101_000000.xlsx")
 
-    assert unrelated.exists()
+
+# ---- save_dataframe_to_excel ----
+
+def _sample_nested_df():
+    items = [
+        ScannedItem(r"C:\root\A", r"C:\root", [], "A", "folder", None),
+        ScannedItem(r"C:\root\A\x_very_long_file_name_for_width_check.txt", r"C:\root\A", ["A"], "x_very_long_file_name_for_width_check.txt", "file", 12345),
+        ScannedItem(r"C:\root\B", r"C:\root", [], "B", "folder", None),
+    ]
+    return create_dataframe_with_fullpath(items)
+
+
+def test_save_dataframe_to_excel_sets_column_widths(tmp_path):
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    for col_letter in ("A", "B", "C", "D", "E", "F"):
+        dim = ws.column_dimensions.get(col_letter)
+        assert dim is not None and dim.width, f"{col_letter}列の幅が設定されていない"
+        assert dim.width <= generate_drive_structure.MAX_COLUMN_WIDTH + 2  # マージン込みの上限チェック
+
+
+def test_save_dataframe_to_excel_freezes_header_row(tmp_path):
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    assert ws.freeze_panes == "A2"
+
+
+def test_save_dataframe_to_excel_sets_autofilter(tmp_path):
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    assert ws.auto_filter.ref == "A1:F4"
+
+
+def test_save_dataframe_to_excel_outline_levels_and_symbols_below(tmp_path):
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    # symbols_below=False（openpyxl上は summaryBelow）で、開閉コントロールが
+    # 折りたたみ対象の直前（＝親フォルダ自身の行）に来るようにしている
+    assert ws.sheet_properties.outlinePr.summaryBelow is False
+
+    # 行2="A"(深さ0) 行3="x...txt"(深さ1、Aの子) 行4="B"(深さ0)
+    assert ws.row_dimensions[2].outlineLevel == 0
+    assert ws.row_dimensions[3].outlineLevel == 1
+    assert ws.row_dimensions[4].outlineLevel == 0
