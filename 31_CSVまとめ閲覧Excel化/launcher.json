@@ -3,10 +3,10 @@
   "description": "csv/フォルダ内の全CSVを読み込み、見やすく整形されたExcel（view.xlsx）を生成する",
   "actions": [
     {
-      "label": "実行",
-      "kind": "generator",
+      "label": "ランチャーGUIを起動",
+      "kind": "gui",
       "entry": "run.bat",
-      "open_after": "view.xlsx"
+      "note": "csv/ フォルダに置いたCSVの一覧・冒頭プレビュー・実行ログ・出力サマリー（シート数/行数）をGUIで確認しながら変換できる"
     }
   ]
 }

@@ -2,217 +2,173 @@
 CSV Table Viewer
 ================
 
-概要
-----
-このスクリプトは、CSVファイルを読み込み、見やすく整形されたExcelファイル
-(view.xlsx)を自動生成するツールです。
+csv/ フォルダ内の全CSVを読み込み、見やすく整形されたExcelファイル（view.xlsx）を生成する。
 
-主に以下の用途を想定しています。
-
-・phpMyAdminなどからエクスポートしたCSVの閲覧
-・DBテーブルデータの確認
-・Excel上でのフィルタ・検索
-
-CSVをExcelで直接開くと発生する問題（先頭ゼロ消失、列幅崩れなど）を
-回避し、閲覧に最適なExcelファイルを生成します。
-
-
-主な機能
---------
-1. CSVフォルダ内の全CSVを読み込み
-2. 1CSV = 1Excelシートとして出力
-3. INDEXシート（表紙）を自動生成
-4. 各シートへのハイパーリンクをINDEXに作成
-5. 作成タイムスタンプをINDEXに表示
-6. CSV行数をINDEXに表示
-
-Excel整形
----------
-以下の設定を自動で適用します。
-
-・ヘッダ黒背景 + 白文字
-・オートフィルタ
-・ヘッダ行固定
-・列幅自動調整
-・長文列は折り返し表示
-
-
-フォルダ構成
+準備するもの
 ------------
-以下の構成で使用します。
+csv/ フォルダに UTF-8 のCSVファイルを置くこと（1CSV = 1シートになる）。
 
-project/
-    convert.py
-    csv/
-        table1.csv
-        table2.csv
-        table3.csv
-
-
-使用方法
---------
-1. CSVファイルを csv フォルダに配置
-2. 以下コマンドを実行
-
-    python convert.py
-
-3. view.xlsx が生成されます
-
-
-出力ファイル
-------------
-view.xlsx
-
-構成
-
-INDEX
-    ├ テーブル一覧
-    ├ 行数
-    └ 作成日時
-
-各CSV
-    ├ テーブルデータ
-    ├ フィルタ
-    └ 整形済表示
-
-
-INDEXシート
------------
-INDEXシートには以下の情報が表示されます。
-
-・Excel作成日時
-・シート一覧
-・各CSV行数
-・シートへのハイパーリンク
-
-
-必要ライブラリ
---------------
-以下を事前にインストールしてください。
-
-pip install pandas
-pip install openpyxl
-pip install tqdm
-
-
-注意事項
---------
-・CSVの文字コードはUTF-8を想定しています
-・Excelのシート名は31文字制限があるため自動で切り詰めます
-・Excelで使用できない文字は自動で除外されます
-
-
-想定用途
---------
-・DBテーブル確認
-・テストデータ検証
-・ログデータ閲覧
-・SQL結果の共有
-
-
-更新履歴
---------
-v1.0
-・CSV → Excel変換
-・INDEXシート生成
-・進捗表示
-
-
-作者
+出力
 ----
-Internal utility script
+view.xlsx （INDEXシート + CSVごとのシート）
+
+詳しい画面構成・トラブル時の見方は launcher_gui.py（GUIランチャー）を参照。
 """
 
-import pandas as pd
-import glob
-import os
+import sys
 from datetime import datetime
-from tqdm import tqdm
+from pathlib import Path
+
+import pandas as pd
 from openpyxl.styles import PatternFill, Font, Alignment
 
-CSV_DIR = "csv"
+CSV_DIR = Path("csv")
+OUTPUT_PATH = Path("view.xlsx")
 
-files = glob.glob(os.path.join(CSV_DIR, "*.csv"))
+# 上位から順に試すエンコード。utf-8-sig は BOM付きUTF-8も無印UTF-8も両方読める。
+_ENCODING_CANDIDATES = [
+    ("utf-8-sig", "UTF-8"),
+    ("cp932", "Shift-JIS"),
+]
 
-print(f"CSVファイル数: {len(files)}")
 
-writer = pd.ExcelWriter("view.xlsx", engine="openpyxl")
+class CsvReadError(RuntimeError):
+    """CSV読み込み時の、原因を人間向けに説明するエラー。"""
 
-sheet_info = []
 
-for file in tqdm(files, desc="CSV処理中"):
+def _read_csv_with_fallback(path: Path) -> pd.DataFrame:
+    """UTF-8 → Shift-JIS の順で読み込みを試みる。全滅したら原因を含めて例外を投げる。"""
+    errors = []
+    for encoding, label in _ENCODING_CANDIDATES:
+        try:
+            return pd.read_csv(path, dtype=str, encoding=encoding)
+        except UnicodeDecodeError as exc:
+            errors.append(f"{label}: {exc}")
+    detail = "\n".join(f"  - {e}" for e in errors)
+    raise CsvReadError(
+        f"'{path.name}' の文字コードを判別できませんでした（UTF-8 / Shift-JIS を試行）。\n"
+        f"{detail}\n"
+        f"→ CSVをUTF-8で保存し直してから再実行してください。"
+    )
 
-    name = os.path.basename(file).replace(".csv", "")
-    name = name[:31]
 
-    print(f"\n読み込み中: {file}")
+def _unique_sheet_name(name: str, used: set) -> str:
+    """Excelのシート名制約（31文字・重複不可）を満たす名前を作る。"""
+    base = name[:31]
+    candidate = base
+    suffix = 2
+    while candidate in used:
+        tail = f"_{suffix}"
+        candidate = base[: 31 - len(tail)] + tail
+        suffix += 1
+    used.add(candidate)
+    return candidate
 
-    df = pd.read_csv(file, dtype=str)
 
-    rows = len(df)
+def build_view_excel(csv_dir: Path = CSV_DIR, output_path: Path = OUTPUT_PATH) -> list[tuple[str, int]]:
+    """csv_dir 内の全CSVをExcelに変換する。作成した (シート名, 行数) のリストを返す。"""
+    files = sorted(csv_dir.glob("*.csv"))
+    if not files:
+        raise CsvReadError(
+            f"'{csv_dir}/' にCSVファイルが見つかりませんでした。\n"
+            f"→ 変換したいCSVを '{csv_dir}/' フォルダに置いてから再実行してください。"
+        )
 
-    print(f"行数: {rows}")
+    print(f"CSVファイル数: {len(files)}")
 
-    df.to_excel(writer, sheet_name=name, index=False)
+    # フェーズ1: 全CSVを読み込む（出力ファイルには一切触れない）。
+    # ここで検証を済ませておくことで、書き出し開始後に読み込みエラーが起きて
+    # view.xlsxのファイルハンドルが中途半端な状態で残る事態を避ける。
+    used_names: set = set()
+    loaded: list[tuple[str, "pd.DataFrame"]] = []
+    for i, file in enumerate(files, start=1):
+        name = _unique_sheet_name(file.stem, used_names)
+        print(f"[{i}/{len(files)}] 読み込み中: {file.name}")
+        df = _read_csv_with_fallback(file)
+        print(f"  行数: {len(df)}")
+        loaded.append((name, df))
 
-    ws = writer.book[name]
+    # フェーズ2: Excelへ書き出す
+    try:
+        writer = pd.ExcelWriter(output_path, engine="openpyxl")
+    except PermissionError:
+        raise CsvReadError(
+            f"'{output_path}' に書き込めませんでした。\n"
+            f"→ Excelで開いている場合は閉じてから再実行してください。"
+        )
 
-    sheet_info.append((name, rows))
+    sheet_info: list[tuple[str, int]] = []
+    try:
+        for name, df in loaded:
+            df.to_excel(writer, sheet_name=name, index=False)
+            ws = writer.book[name]
+            sheet_info.append((name, len(df)))
 
-    # ヘッダ装飾
-    fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
-    font = Font(color="FFFFFF", bold=True)
+            # ヘッダ装飾
+            fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+            font = Font(color="FFFFFF", bold=True)
+            for cell in ws[1]:
+                cell.fill = fill
+                cell.font = font
 
-    for cell in ws[1]:
-        cell.fill = fill
-        cell.font = font
+            ws.auto_filter.ref = ws.dimensions
+            ws.freeze_panes = "A2"
 
-    ws.auto_filter.ref = ws.dimensions
-    ws.freeze_panes = "A2"
+            # 列幅調整
+            for column in ws.columns:
+                column_letter = column[0].column_letter
+                max_length = 0
+                for cell in column:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                if max_length > 50:
+                    ws.column_dimensions[column_letter].width = 60
+                    for cell in column:
+                        cell.alignment = Alignment(wrap_text=True)
+                else:
+                    ws.column_dimensions[column_letter].width = min(max_length + 2, 40)
 
-    # 列幅調整
-    for column in ws.columns:
+        # INDEXシート作成
+        index_ws = writer.book.create_sheet("INDEX", 0)
+        index_ws["A1"] = "CSVビューア INDEX"
+        index_ws["A1"].font = Font(size=16, bold=True)
+        index_ws["A3"] = "作成日時"
+        index_ws["B3"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        index_ws["A5"] = "シート名"
+        index_ws["B5"] = "行数"
 
-        column_letter = column[0].column_letter
-        max_length = 0
+        row = 6
+        for name, rows in sheet_info:
+            cell = index_ws.cell(row=row, column=1)
+            cell.value = name
+            cell.hyperlink = f"#{name}!A1"
+            cell.style = "Hyperlink"
+            index_ws.cell(row=row, column=2).value = rows
+            row += 1
+    except BaseException:
+        # 例外時もファイルハンドルは必ず解放する（1件も書き込めていない状態でのclose()は
+        # openpyxl側で別の例外を出すことがあるため、close失敗は無視して元の例外を優先する）。
+        # 中途半端な出力を残さないよう、保存されていれば削除する。
+        try:
+            writer.close()
+        except Exception:
+            pass
+        output_path.unlink(missing_ok=True)
+        raise
 
-        for cell in column:
-            if cell.value:
-                max_length = max(max_length, len(str(cell.value)))
+    writer.close()
+    print(f"\nExcel生成完了: {output_path}")
+    return sheet_info
 
-        if max_length > 50:
-            ws.column_dimensions[column_letter].width = 60
-            for cell in column:
-                cell.alignment = Alignment(wrap_text=True)
-        else:
-            ws.column_dimensions[column_letter].width = min(max_length + 2, 40)
 
-# INDEXシート作成
-index_ws = writer.book.create_sheet("INDEX", 0)
+def main() -> int:
+    try:
+        build_view_excel()
+    except CsvReadError as exc:
+        print(f"\nエラー: {exc}", file=sys.stderr)
+        return 1
+    return 0
 
-index_ws["A1"] = "CSVビューア INDEX"
-index_ws["A1"].font = Font(size=16, bold=True)
 
-index_ws["A3"] = "作成日時"
-index_ws["B3"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-index_ws["A5"] = "シート名"
-index_ws["B5"] = "行数"
-
-row = 6
-
-for name, rows in sheet_info:
-
-    cell = index_ws.cell(row=row, column=1)
-    cell.value = name
-
-    cell.hyperlink = f"#{name}!A1"
-    cell.style = "Hyperlink"
-
-    index_ws.cell(row=row, column=2).value = rows
-
-    row += 1
-
-writer.close()
-
-print("\nExcel生成完了: view.xlsx")
+if __name__ == "__main__":
+    sys.exit(main())

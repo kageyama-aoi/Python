@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-python csv_table_viewer.py
-pause
+python launcher_gui.py
+if errorlevel 1 pause
