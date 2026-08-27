@@ -189,6 +189,8 @@ class PagesTabMixin:
             messagebox.showinfo("情報", "選択された項目は既に非表示です。")
             return
 
+        if not self.confirm_discard_form():
+            return
         entries[idx][C.ConfigKey.ACTIVE] = False
         self._populate_page_listbox(page_name)
         self.clear_button_form()
@@ -210,6 +212,8 @@ class PagesTabMixin:
             messagebox.showinfo("情報", "選択された項目は既に表示されています。")
             return
 
+        if not self.confirm_discard_form():
+            return
         entries[idx][C.ConfigKey.ACTIVE] = True
         self._populate_page_listbox(page_name)
         self.clear_button_form()
@@ -217,16 +221,34 @@ class PagesTabMixin:
 
     def add_button(self, page_name):
         """新規追加モードに切り替える。"""
+        if not self.confirm_discard_form():
+            return
         # 選択を解除して追加モードにする
         listbox = self.pages_widgets[page_name]["listbox"]
         listbox.selection_clear(0, tk.END)
         self.clear_button_form()
+        self._form_page = page_name
         self._update_page_buttons_state(page_name)
 
     def on_listbox_select(self, event, page_name):
         """リストボックス選択に応じてフォームへ値を反映する。"""
         listbox = event.widget
         selected_indices = listbox.curselection()
+        new_ref = (page_name, selected_indices[0]) if selected_indices else None
+
+        # 同じ項目への再通知は無視（無駄なフォーム再描画・確認を避ける）
+        if new_ref == getattr(self, "_loaded_ref", None):
+            self._update_page_buttons_state(page_name)
+            return
+
+        # 未保存の入力がある状態で別項目へ移ろうとしたら確認する
+        if not self.confirm_discard_form():
+            listbox.selection_clear(0, tk.END)
+            prev = getattr(self, "_loaded_ref", None)
+            if prev and prev[0] == page_name and prev[1] < listbox.size():
+                listbox.selection_set(prev[1])
+            return
+
         if not selected_indices:
             self.clear_button_form() # 選択解除時にフォームをクリア
             self._update_page_buttons_state(page_name)
@@ -269,6 +291,9 @@ class PagesTabMixin:
 
         # ラベルも更新
         self.on_action_change(None) # eventオブジェクトは使わないのでNone
+        self._form_page = page_name
+        self._loaded_ref = new_ref
+        self._reset_form_dirty()  # 読み込んだ直後は未保存ではない
         self._update_page_buttons_state(page_name)
 
     def move_item(self, page_name, direction):
@@ -291,6 +316,14 @@ class PagesTabMixin:
         # configのentriesを入れ替え
         entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
         entries[idx], entries[new_idx] = entries[new_idx], entries[idx]
+
+        # フォームに読み込み中の項目が動いたら参照インデックスを追従させる
+        loaded = getattr(self, "_loaded_ref", None)
+        if loaded and loaded[0] == page_name:
+            if loaded[1] == idx:
+                self._loaded_ref = (page_name, new_idx)
+            elif loaded[1] == new_idx:
+                self._loaded_ref = (page_name, idx)
 
         # リストボックスの表示を更新
         self._populate_page_listbox(page_name)

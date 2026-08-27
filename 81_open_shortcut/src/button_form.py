@@ -103,6 +103,12 @@ class ButtonFormMixin:
         self.form_entries = {}
         self._build_page_selector_maps()
 
+        # フォームの編集状態。_form_page は編集中の内容が属するページID
+        # （表示中タブに依存せず、この値へ保存する）。
+        self._form_dirty = False
+        self._form_page = None
+        self._loaded_ref = None  # (page_name, idx) 現在フォームに読み込んでいる項目 / Noneは追加モード
+
         # Name
         name_label = ttk.Label(parent, text="名前:")
         name_label.pack(pady=2)
@@ -117,7 +123,7 @@ class ButtonFormMixin:
         action_var = tk.StringVar()
         action_combo = ttk.Combobox(parent, textvariable=action_var, values=[a.value for a in C.Action])
         action_combo.pack(fill="x", padx=5)
-        action_combo.bind("<<ComboboxSelected>>", self.on_action_change)
+        action_combo.bind("<<ComboboxSelected>>", self._on_action_selected)
         self.form_entries[C.ConfigKey.ACTION] = action_var
 
         # --- Path/URL/Target (通常のボタン用) ---
@@ -182,6 +188,44 @@ class ButtonFormMixin:
         # 初期状態では通常のパス/URL/ターゲット入力が表示され、パラメータ設定は非表示
         self.on_action_change(None)
 
+        # 入力変更を検知して未保存フラグを立てる
+        for key in (C.ConfigKey.NAME, C.ConfigKey.ACTION, C.ConfigKey.PATH, C.ConfigKey.BASE_URL):
+            self.form_entries[key].trace_add("write", self._mark_form_dirty)
+        self._reset_form_dirty()
+
+    # --- フォームの未保存状態の管理 --------------------------------------
+
+    def _mark_form_dirty(self, *_args):
+        self._form_dirty = True
+
+    def _reset_form_dirty(self):
+        self._form_dirty = False
+
+    def form_has_unsaved_changes(self) -> bool:
+        """フォームに未保存の変更があるか。"""
+        return bool(getattr(self, "_form_dirty", False))
+
+    def confirm_discard_form(self) -> bool:
+        """未保存の変更があれば破棄してよいか確認する。続行してよければ True。"""
+        if not self.form_has_unsaved_changes():
+            return True
+        return messagebox.askyesno(
+            "未保存の変更",
+            "ボタン設定フォームに未保存の変更があります。破棄して続行しますか？",
+        )
+
+    def _on_action_selected(self, event=None):
+        """ユーザーがアクションを切り替えたときの処理。
+
+        path / url / target は単一の入力欄を使い回しているため、前アクション用の
+        入力値をそのまま次のアクションへ持ち越さないようクリアする。
+        """
+        self.form_entries[C.ConfigKey.PATH].set("")
+        self.form_entries[C.ConfigKey.BASE_URL].set("")
+        self.current_parameters = []
+        self.update_parameter_listbox()
+        self.on_action_change(event)
+
     def on_action_change(self, event):
         """選択アクションに応じて入力フォームを切り替える。"""
         action = self.form_entries[C.ConfigKey.ACTION].get()
@@ -228,6 +272,8 @@ class ButtonFormMixin:
         self.target_page_combo.pack_forget()
         self.path_entry_frame.pack(fill="x", padx=5, pady=2) # Default to showing path entry
         self.parameterized_url_frame.pack_forget() # Hide parameterized URL frame
+        self._loaded_ref = None
+        self._reset_form_dirty()
 
     def update_parameter_listbox(self):
         """パラメータ一覧の表示を更新する。"""
@@ -262,6 +308,7 @@ class ButtonFormMixin:
         if messagebox.askyesno("確認", "選択したパラメータを削除しますか？"):
             del self.current_parameters[idx]
             self.update_parameter_listbox()
+            self._mark_form_dirty()
 
     def open_parameter_editor_window(self, index=None, param_data=None):
         """パラメータ編集ウィンドウを開き、結果を取り込む。"""
@@ -273,24 +320,37 @@ class ButtonFormMixin:
             else: # Adding new parameter
                 self.current_parameters.append(editor_window.result_param_data)
             self.update_parameter_listbox()
+            self._mark_form_dirty()
 
     def save_form_data(self):
-        """フォーム入力を現在のページ設定に保存する。"""
-        # 現在アクティブなページ名を取得
-        pages_notebook = self.pages_widgets["pages_notebook"]
-        current_frame = pages_notebook.nametowidget(pages_notebook.select())
-        page_name = self.page_frame_to_name.get(current_frame)
+        """フォーム入力を、編集中のページ設定へ保存する。
+
+        表示中のタブではなく、フォームに読み込んだ時点のページ（_form_page）へ
+        保存する。タブを切り替えても内容が別ページへ紛れ込まない。
+        """
+        page_name = getattr(self, "_form_page", None)
         if not page_name:
-            messagebox.showerror("エラー", "現在のページ情報を取得できませんでした。")
+            # フォールバック: 表示中タブ
+            pages_notebook = self.pages_widgets["pages_notebook"]
+            try:
+                current_frame = pages_notebook.nametowidget(pages_notebook.select())
+                page_name = self.page_frame_to_name.get(current_frame)
+            except Exception:
+                page_name = None
+        if not page_name or page_name not in self.config.get(C.ConfigKey.PAGES, {}):
+            messagebox.showerror("エラー", "保存先のページを特定できませんでした。")
             return
-        listbox = self.pages_widgets[page_name]["listbox"]
+        self._form_page = page_name
+
+        loaded_ref = getattr(self, "_loaded_ref", None)
+        edit_idx = loaded_ref[1] if (loaded_ref and loaded_ref[0] == page_name) else None
 
         new_entry = {
             C.ConfigKey.NAME: self.form_entries[C.ConfigKey.NAME].get(),
             C.ConfigKey.ACTION: self.form_entries[C.ConfigKey.ACTION].get(),
         }
         # 新規追加時、activeをTrueに設定
-        if not listbox.curselection():
+        if edit_idx is None:
             new_entry[C.ConfigKey.ACTIVE] = True
 
         # アクションに応じてキー名を変える
@@ -310,15 +370,15 @@ class ButtonFormMixin:
             messagebox.showerror("エラー", "名前は必須です。")
             return
 
-        selected_indices = listbox.curselection()
-        if selected_indices: # 編集モード
-            idx = selected_indices[0]
+        entries = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES]
+        if edit_idx is not None and 0 <= edit_idx < len(entries): # 編集モード
             # activeの状態は変更しない
-            new_entry[C.ConfigKey.ACTIVE] = self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx].get(C.ConfigKey.ACTIVE, True)
-            self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES][idx] = new_entry
-
+            new_entry[C.ConfigKey.ACTIVE] = entries[edit_idx].get(C.ConfigKey.ACTIVE, True)
+            entries[edit_idx] = new_entry
         else: # 追加モード
-            self.config[C.ConfigKey.PAGES][page_name][C.ConfigKey.ENTRIES].append(new_entry)
+            entries.append(new_entry)
 
         self._populate_page_listbox(page_name) # リストボックスを更新
-        self.clear_button_form() # フォームをクリア
+        self._set_status(f"「{new_entry[C.ConfigKey.NAME]}」を保存しました。")
+        self.clear_button_form() # フォームをクリア（未保存フラグも解除）
+        self._form_page = page_name  # 続けて同じページへ追加できるよう保持
