@@ -18,8 +18,13 @@ Mermaid は、テキストから図を生成するためのツールです。こ
 
 **この図から分かること:**
 *   `run.bat` が起点となり `main.py` を実行します。
-*   アプリケーションの中心は `DirectoryOpenerApp` クラスです。
-*   `DirectoryOpenerApp` が `SettingsEditor` を生成し、`SettingsEditor` はさらに `ParameterEditor` を生成するという階層構造になっています。
+*   アプリケーションの中心は `DirectoryOpenerApp` クラスですが、実処理は
+    `ConfigManager`（設定 I/O）・`ActionHandler`（ボタン動作）・`UIBuilder`（UI 構築）へ
+    委譲されており、`DirectoryOpenerApp` は全体の流れを制御する役割に絞られています。
+*   `DirectoryOpenerApp` が `SettingsEditor` を生成し、`SettingsEditor` は
+    `SettingsTabMixin` / `PagesTabMixin` / `ButtonFormMixin` の3ミックスインで機能分割され、
+    `ButtonFormMixin` がさらに `ParameterEditor` を生成します。
+*   ダークテーマは `theme` モジュール（`sv_ttk` / `pywinstyles` は任意依存）が担当します。
 *   各クラスが `constants.py` を利用して、設定キーなどの文字列を安全に扱っていることが分かります。
 
 ---
@@ -34,8 +39,11 @@ Mermaid は、テキストから図を生成するためのツールです。こ
 > この図のソースコードは `docs/diagrams/startup_sequence.md` で管理しています。
 
 **この図から分かること:**
-*   `__init__` の中で、設定の読み込み (`_load_config`) からウィジェットの作成 (`_create_widgets`) までが一貫して行われていることが分かります。
-*   `_create_widgets` -> `_populate_page` -> `_create_button` というように、UIが階層的に構築されていく様子が明確になります。
+*   `__init__` の中で、`ConfigManager` による設定の読み込み・検証から、
+    `UIBuilder.create_widgets_content()` によるウィジェット作成までが一貫して行われます。
+*   `UIBuilder.create_widgets_content` -> `_populate_page` -> `_create_button` というように、
+    UI が階層的に構築されていく様子が明確になります（この構築処理は `DirectoryOpenerApp`
+    ではなく `UIBuilder` 側にあります）。
 
 ---
 
@@ -63,7 +71,7 @@ Mermaidの図は素晴らしい「静的な地図」ですが、実際にコー�
 
 1.  **ブレークポイントの設定**:
     *   `src/main.py` を開き、`__init__` メソッドの最初の行（`self.master = master`）の行番号の左側をクリックして、赤い丸（ブレークポイント）を付けます。
-    *   同様に、`_create_button` メソッドの最初の行にもブレークポイントを付けます。
+    *   同様に、`src/ui_builder.py` の `_create_button` メソッドの最初の行にもブレークポイントを付けます。
 2.  **デバッグの開始**:
     *   VSCodeの左側のアクティビティバーから「実行とデバッグ」アイコン（虫のマークの付いた再生ボタン）を選択します。
     *   上部の「実行とデバッグ」ボタン（緑の再生ボタン）を押します。Pythonのデバッグ構成が自動で選択され、デバッグが開始されます。

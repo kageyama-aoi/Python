@@ -1,5 +1,10 @@
 # html(kaisetu) 資料レビュー結果（2026-07-21）
 
+> **状態: 対応済み（アーカイブ）。** 本ドキュメントの推奨アクションは全て完了している
+> （末尾「推奨アクション — 対応状況」参照）。`docs/` 直下の資料（CODE_ROADMAP /
+> TECHNOLOGIES / diagrams）のクラス分割後への追随は #153 で実施済み。
+> 経緯の記録として残す。
+
 `html(kaisetu)/` 配下の4ファイルを、現在の実コード（`src/main.py`, `src/ui_builder.py`,
 `src/config_manager.py`, `src/action_handler.py`, `src/settings_editor.py` と3つのmixin
 `settings_tab.py`/`pages_tab.py`/`button_form.py`）および `docs/REFACTORING_PLAN.md` と

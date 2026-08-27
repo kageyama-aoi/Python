@@ -12,14 +12,16 @@
 - ページ（フレーム）の切り替え
 - ユーザーのアクション（ボタンクリックなど）のハンドリング
 
-### コード例: ウィジェットの動的生成 (`src/main.py`)
+### コード例: ウィジェットの動的生成 (`src/ui_builder.py`)
 
-`config.json` の設定に基づいて、ボタンやその他のウィジェットを動的に生成します。以下のコードは、設定エントリの種類に応じて異なるボタン作成メソッドを呼び出すディスパッチャです。
+`config.json` の設定に基づいて、ボタンやその他のウィジェットを動的に生成します。この構築処理は
+`DirectoryOpenerApp` から `UIBuilder` へ委譲されています。以下のコードは、設定エントリの
+種類に応じて異なるボタン作成メソッドを呼び出すディスパッチャです。
 
 ```python
-# src/main.py
+# src/ui_builder.py
 
-class DirectoryOpenerApp:
+class UIBuilder:
     # ... (抜粋) ...
     def _create_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """
@@ -133,9 +135,18 @@ class ConfigManager:
 
 このプロジェクトは、コードの保守性と拡張性を高めるために、「関心の分離」という設計原則に基づいています。主なクラスの責務は以下のように分割されています。
 
-- **`DirectoryOpenerApp` (`src/main.py`)**: GUIの表示とユーザーインタラクションのハンドリングに特化。設定データの具体的な読み込みや保存方法は知らない。
+- **`DirectoryOpenerApp` (`src/main.py`)**: アプリ全体の流れの制御に特化。ウィンドウ管理と
+  リロードの調整を行い、実処理は下記の各クラスへ委譲する。設定 I/O の具体的な方法は知らない。
 - **`ConfigManager` (`src/config_manager.py`)**: 設定ファイルの読み込み、検証、保存、再読み込みといったデータI/Oに関するすべてのロジックを担当。
-- **`SettingsEditor` (`src/settings_editor.py`)**: 設定を編集するためのGUIを提供。`ConfigManager` を介して設定を読み書きする。
+- **`ActionHandler` (`src/action_handler.py`)**: ボタン押下時の動作（ディレクトリ／URL／
+  パラメータ付きURL を開く、ページ遷移）を担当。
+- **`UIBuilder` (`src/ui_builder.py`)**: `config.json` からページ・ボタンなどのウィジェットを
+  構築する責務を担当。
+- **`theme` (`src/theme.py`)**: `sv_ttk` / `pywinstyles` による任意のダークテーマ適用。
+  未導入環境では何もしない。
+- **`SettingsEditor` (`src/settings_editor.py`)**: 設定を編集するためのGUIを提供。
+  `SettingsTabMixin` / `PagesTabMixin` / `ButtonFormMixin`（それぞれ `settings_tab.py` /
+  `pages_tab.py` / `button_form.py`）にタブ単位で分割され、`ConfigManager` を介して設定を読み書きする。
 
 この設計により、例えば将来的に設定の保存形式をJSONからYAMLに変更したくなった場合でも、変更が必要なのは `ConfigManager` クラスだけであり、GUIのコードに影響を与えることはありません。
 
