@@ -202,8 +202,14 @@ class UIBuilder:
         entry_frame = ttk.Frame(parent)
         entry_frame.pack(fill=tk.X, pady=3)
 
+        # ボタンを上、パラメータ入力を下にインデントして縦積みする。
+        # 横並びだと狭いウィンドウやパラメータ複数で右にはみ出すため（#154）。
         button_instance = ttk.Button(entry_frame, text=display_name, image=button_icon, compound=tk.LEFT, style=button_style)
-        button_instance.pack(side=tk.LEFT, fill=tk.X, expand=False)
+        button_instance.pack(side=tk.TOP, fill=tk.X)
+
+        params_frame = ttk.Frame(entry_frame)
+        if parameters_config:
+            params_frame.pack(side=tk.TOP, fill=tk.X, padx=(16, 0), pady=(2, 0))
 
         param_vars = {}
         for param_def in parameters_config:
@@ -215,22 +221,22 @@ class UIBuilder:
             if not param_name or not param_type:
                 continue
 
-            param_container_frame = ttk.Frame(entry_frame)
-            param_container_frame.pack(side=tk.LEFT, padx=(5, 0), fill=tk.X, expand=True)
+            param_container_frame = ttk.Frame(params_frame)
+            param_container_frame.pack(side=tk.TOP, fill=tk.X, pady=1)
 
             param_label = ttk.Label(param_container_frame, text=f"{param_label_text}:")
-            param_label.pack(side=tk.TOP, anchor=tk.W)
+            param_label.pack(side=tk.LEFT, anchor=tk.W, padx=(0, 4))
 
             if param_type == C.ParamType.TEXT:
                 param_var = tk.StringVar(value=default_value)
-                param_entry = ttk.Entry(param_container_frame, textvariable=param_var, width=20)
-                param_entry.pack(side=tk.TOP, fill=tk.X, expand=True)
+                param_entry = ttk.Entry(param_container_frame, textvariable=param_var)
+                param_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
                 param_vars[param_name] = param_var
             elif param_type == C.ParamType.PULLDOWN:
                 options = param_def.get(C.ConfigKey.OPTIONS, [])
                 param_var = tk.StringVar(value=default_value if default_value in options else (options[0] if options else ""))
-                param_combobox = ttk.Combobox(param_container_frame, textvariable=param_var, values=options, state="readonly", width=15)
-                param_combobox.pack(side=tk.TOP, fill=tk.X, expand=True)
+                param_combobox = ttk.Combobox(param_container_frame, textvariable=param_var, values=options, state="readonly")
+                param_combobox.pack(side=tk.LEFT, fill=tk.X, expand=True)
                 param_vars[param_name] = param_var
 
         command = lambda bu=base_url, pv=param_vars, n=name: self.action_handler.open_parameterized_url(bu, pv, n)
