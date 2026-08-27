@@ -102,8 +102,8 @@ open_shortcut/
 ```json
 {
   "styles": {
-    "TButton": { "font": ["Yu Gothic UI", 10], "padding": 5 },
-    "Header.TLabel": { "font": ["Yu Gothic UI", 12, "bold"] }
+    "TButton": { "font": ["Meiryo UI", 11], "padding": 5 },
+    "Header.TLabel": { "font": ["Meiryo UI", 13, "bold"] }
   }
 }
 ```
@@ -113,6 +113,9 @@ open_shortcut/
 > （`foreground`＝文字色は反映されます）。ボタンの色分けは `foreground` と、
 > ページ遷移ボタンに自動で乗る `Nav.TButton` スタイルで行ってください。
 > `sv_ttk` 未導入時は標準ttkテーマで `background` も反映されます。
+>
+> 既定のUIフォントは視認性の高い **Meiryo UI**（`src/theme.py` の `UI_FONT`）です。
+> `styles` でフォントを指定するとそちらが優先されます。
 
 ### `pages`
 

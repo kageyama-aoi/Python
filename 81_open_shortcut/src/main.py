@@ -46,7 +46,7 @@ class DirectoryOpenerApp:
         self.ui_builder = UIBuilder(self, self.page_container, self.status_label, self.settings_button)
 
         # --- UI Setup ---
-        theme.apply_dark_theme()  # リロードのたびに再適用する必要はないため、初回のみここで行う
+        theme.apply_dark_theme(self.master)  # リロードのたびに再適用する必要はないため、初回のみここで行う
         self._setup_window()
         self._setup_styles()
         self.ui_builder.create_widgets_content()

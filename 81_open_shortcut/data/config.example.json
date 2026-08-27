@@ -1,7 +1,7 @@
 {
     "settings": {
         "window_title": "ディレクトリを開く",
-        "geometry": "350x600",
+        "geometry": "380x640",
         "resizable": [
             true,
             true
@@ -15,8 +15,8 @@
     "styles": {
         "TButton": {
             "font": [
-                "Yu Gothic UI",
-                10
+                "Meiryo UI",
+                11
             ],
             "padding": [
                 10,
@@ -26,29 +26,29 @@
         },
         "TLabel": {
             "font": [
-                "Yu Gothic UI",
-                10
+                "Meiryo UI",
+                11
             ]
         },
         "Status.TLabel": {
             "font": [
-                "Yu Gothic UI",
-                9
+                "Meiryo UI",
+                10
             ],
             "background": "#23272e",
             "foreground": "#aaaaaa"
         },
         "Header.TLabel": {
             "font": [
-                "Yu Gothic UI",
-                12,
+                "Meiryo UI",
+                13,
                 "bold"
             ]
         },
         "Nav.TButton": {
             "font": [
-                "Yu Gothic UI",
-                10
+                "Meiryo UI",
+                11
             ],
             "padding": [
                 10,
@@ -60,8 +60,8 @@
         },
         "Settings.TButton": {
             "font": [
-                "Yu Gothic UI",
-                9
+                "Meiryo UI",
+                10
             ],
             "padding": [
                 10,

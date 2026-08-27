@@ -4,6 +4,7 @@ sv_ttk / pywinstyles が未インストールの環境では何もせず、標�
 正常動作する（00_ランチャー、33_テキスト・CSV前処理サポートと同じ任意依存パターン）。
 """
 import sys
+import tkinter as tk
 from tkinter import ttk
 
 try:
@@ -23,6 +24,26 @@ except ImportError:
 # わずかに青みグレー寄りのダークサーフェス色へ寄せる（#157）。
 DARK_SURFACE = "#23272e"
 
+# 視認性の高いUIフォント（#159）。Meiryo UI は Windows 標準で必ず利用でき、
+# かな・小書き文字が読みやすい。未インストール環境向けに代替も並べる。
+UI_FONT_FAMILY = "Meiryo UI"
+UI_FONT = (UI_FONT_FAMILY, 11)
+SMALL_FONT = (UI_FONT_FAMILY, 10)
+HEADER_FONT = (UI_FONT_FAMILY, 13, "bold")
+
+# UI_FONT を適用する ttk スタイル（config.json の styles 指定があればそちらが優先）。
+_FONT_STYLES = (
+    "TButton",
+    "TLabel",
+    "TEntry",
+    "TCombobox",
+    "TCheckbutton",
+    "TRadiobutton",
+    "TNotebook.Tab",
+    "Treeview",
+    "TLabelframe.Label",
+)
+
 # この背景を適用する ttk スタイル。入力欄（Entry/Combobox/Listbox）はあえて
 # 従来の暗色のままにし、フィールドが軽く沈んで見えるようにする。
 _SURFACE_STYLES = (
@@ -40,12 +61,16 @@ _SURFACE_STYLES = (
 )
 
 
-def apply_dark_theme():
-    """sv_ttkが利用可能ならダークテーマを適用する。未導入なら何もしない。"""
-    if not SV_TTK_AVAILABLE:
-        return
-    _sv_ttk.set_theme("dark")
-    _tint_surfaces()
+def apply_dark_theme(root=None):
+    """ダークテーマとUIフォントを適用する。
+
+    sv_ttk があればダークテーマ＋背景色調整を行う。無ければ標準ttkテーマのまま。
+    UIフォント（Meiryo UI）は sv_ttk の有無にかかわらず適用する。
+    """
+    if SV_TTK_AVAILABLE:
+        _sv_ttk.set_theme("dark")
+        _tint_surfaces()
+    _apply_ui_font(root)
 
 
 def _tint_surfaces():
@@ -53,6 +78,23 @@ def _tint_surfaces():
     style = ttk.Style()
     for name in _SURFACE_STYLES:
         style.configure(name, background=DARK_SURFACE)
+
+
+def _apply_ui_font(root=None):
+    """UI_FONT を ttk 各スタイルと Listbox へ適用する（テーマ適用後に呼ぶ）。"""
+    style = ttk.Style()
+    style.configure(".", font=UI_FONT)
+    for name in _FONT_STYLES:
+        style.configure(name, font=UI_FONT)
+    style.configure("Header.TLabel", font=HEADER_FONT)
+    style.configure("Status.TLabel", font=SMALL_FONT)
+
+    target = root or getattr(tk, "_default_root", None)
+    if target is not None:
+        try:
+            target.option_add("*Listbox.font", UI_FONT)
+        except tk.TclError:
+            pass
 
 
 def style_titlebar(window):
