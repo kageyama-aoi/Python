@@ -35,7 +35,7 @@
                 "Yu Gothic UI",
                 9
             ],
-            "background": "#2b2b2b",
+            "background": "#23272e",
             "foreground": "#aaaaaa"
         },
         "Header.TLabel": {
