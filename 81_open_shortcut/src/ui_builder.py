@@ -23,8 +23,7 @@ class UIBuilder:
         self.config = app.config
         self.action_handler = app.action_handler
         self.style = app.style
-        self.icon_images = app.icon_images # icon_imagesはメインアプリで一元管理
-        self.dynamic_style_counter = app.dynamic_style_counter
+        self.icon_images = app.icon_images # icon_imagesはメインアプリで一元管理（同一辞書を共有）
 
         self.page_container = page_container
         self.status_label = status_label
@@ -98,15 +97,22 @@ class UIBuilder:
         elif action == C.Action.SHOW_PAGE:
             display_name = f"→ {name}"
 
-        button_style = "TButton"
         background_color = entry.get(C.ConfigKey.BACKGROUND)
         foreground_color = entry.get(C.ConfigKey.FOREGROUND)
 
         if background_color or foreground_color:
+            # 明示的な色指定は最優先（既存の個別カスタマイズを壊さない）。
+            # 注: sv_ttk（ダークテーマ）導入時はボタンが画像ベースのため background は
+            # 反映されず、foreground（文字色）のみ効く。詳細は README「styles」参照（#151）。
             self.app.dynamic_style_counter += 1
             button_style = f"Dynamic.{self.app.dynamic_style_counter}.TButton"
             style_options = {"background": background_color, "foreground": foreground_color}
             self.style.configure(button_style, **{k: v for k, v in style_options.items() if v is not None})
+        elif action == C.Action.SHOW_PAGE:
+            # ページ遷移ボタンは色指定なしでも自動でNavスタイル（styles.Nav.TButton）が乗る
+            button_style = "Nav.TButton"
+        else:
+            button_style = "TButton"
 
         command = None
         if action == C.Action.OPEN_DIRECTORY:

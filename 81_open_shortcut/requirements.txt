@@ -1,0 +1,6 @@
+# 必須
+jsonschema
+
+# 任意（ダークテーマ。未導入でも標準ttkテーマで動作する）
+sv-ttk
+pywinstyles

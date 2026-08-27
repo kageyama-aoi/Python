@@ -48,19 +48,30 @@ run_tests.bat
 ```
 open_shortcut/
 ├── data/
-│   ├── config.json         # アプリケーションのUIと動作を定義する設定ファイル
-│   └── config.schema.json  # config.jsonの構造を定義するスキーマファイル
+│   ├── config.json          # アプリのUIと動作を定義する設定ファイル（git管理外）
+│   ├── config.example.json  # 初回コピー元のテンプレート
+│   └── config.schema.json   # config.json の構造を定義するスキーマ
 ├── src/
-│   ├── main.py             # メインのGUIアプリケーション
-│   ├── settings_editor.py  # 設定エディタのGUI
-│   ├── config_manager.py   # 設定の読み込み・検証・保存を担当するクラス
-│   └── constants.py        # 設定キーなどの定数を管理
+│   ├── main.py              # エントリポイント。DirectoryOpenerApp（ウィンドウ・リロード統括）
+│   ├── ui_builder.py        # 設定に基づくページ／ボタンの動的構築
+│   ├── action_handler.py    # ディレクトリ／URL／パラメータ付きURL／ページ遷移の実行
+│   ├── config_manager.py    # 設定の読み込み・検証・保存
+│   ├── settings_editor.py   # 設定エディタ本体（下記ミックスインを束ねる）
+│   ├── settings_tab.py      # 設定エディタ「基本設定」タブ（SettingsTabMixin）
+│   ├── pages_tab.py         # 設定エディタ「ページ編集」タブ（PagesTabMixin）
+│   ├── button_form.py       # 設定エディタのボタン設定フォーム（ButtonFormMixin）
+│   ├── theme.py             # sv_ttk / pywinstyles による任意のダークテーマ適用
+│   └── constants.py         # 設定キー・アクション種別などの定数（Enum）
 ├── tests/
-│   └── test_main.py        # アプリケーションの単体テスト
-├── run.bat                 # アプリケーション起動用バッチファイル
-├── run_tests.bat           # テスト実行用バッチファイル
+│   ├── test_main.py             # アプリ本体の単体テスト
+│   ├── test_settings_editor.py  # 設定エディタのレイアウト回帰テスト
+│   └── data/                    # テスト用フィクスチャ
+├── docs/                    # 設計メモ・テストガイド・図
+├── run.bat / run.ps1       # アプリ起動用ラッパー
+├── run_tests.bat / run_tests.ps1  # テスト実行用ラッパー
+├── requirements.txt        # 依存ライブラリ
 ├── README.md               # このファイル
-└── TECHNOLOGIES.md         # 使用技術の詳細な解説
+└── docs/TECHNOLOGIES.md    # 使用技術の詳細な解説
 ```
 
 ## 設定 (`data/config.json`) の詳細
@@ -96,6 +107,12 @@ open_shortcut/
   }
 }
 ```
+
+> **注意（ダークテーマ利用時）**: `sv_ttk`（ダークテーマ）が導入されている環境では、
+> ボタンは画像ベースで描画されるため、`styles` や各エントリの `background` は反映されません
+> （`foreground`＝文字色は反映されます）。ボタンの色分けは `foreground` と、
+> ページ遷移ボタンに自動で乗る `Nav.TButton` スタイルで行ってください。
+> `sv_ttk` 未導入時は標準ttkテーマで `background` も反映されます。
 
 ### `pages`
 
@@ -159,14 +176,15 @@ open_shortcut/
 
 このプロジェクトで使われている技術や設計思想の詳細は、以下のドキュメントを参照してください。
 
-- [**TECHNOLOGIES.md**](./TECHNOLOGIES.md)
+- [**docs/TECHNOLOGIES.md**](./docs/TECHNOLOGIES.md)
 
 ## 依存関係
 
 - Python 3.x
-- `jsonschema`
+- `jsonschema`（必須）
+- `sv-ttk`, `pywinstyles`（任意 / ダークテーマ用。未導入でも標準ttkテーマで動作します）
 
 以下のコマンドで依存ライブラリをインストールできます。
 ```bash
-pip install jsonschema
+pip install -r requirements.txt
 ```

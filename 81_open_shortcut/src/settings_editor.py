@@ -12,6 +12,7 @@ import re
 import copy
 
 from . import constants as C
+from . import theme
 from .config_manager import ConfigManager
 from .settings_tab import SettingsTabMixin
 from .pages_tab import PagesTabMixin
@@ -43,9 +44,11 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         """設定編集ウィンドウを初期化し、初期フォームを構築する。"""
         super().__init__(master)
         self.title("設定エディタ")
+        theme.style_titlebar(self)
         self.config_manager = config_manager
         self.on_save_callback = on_save_callback
-        self.geometry("700x600")
+        self.geometry("900x640")
+        self.minsize(740, 620)
 
         # 編集用の一時的なconfigのコピーを作成
         self.config = copy.deepcopy(self.config_manager.get_config())
@@ -84,9 +87,23 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         main_frame = ttk.Frame(self)
         main_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        # Notebook (タブ)
+        # 下部の操作領域（保存ボタン・ステータス）を Notebook より先に確保する。
+        # Notebook を先に pack すると「基本設定」タブの要求高さが大きく、
+        # ウィンドウが小さいときに最後の保存ボタンが数pxまで潰れてしまうため（#148）。
+        # 保存ボタン（sv_ttk導入時はAccentスタイルで強調。未導入なら通常ボタンにフォールバック）
+        save_button = ttk.Button(
+            main_frame, text="保存して閉じる", command=self.save_config, style="Accent.TButton"
+        )
+        save_button.pack(side="bottom", pady=10)
+
+        # 操作結果を非モーダルで表示するステータス
+        self.status_var = tk.StringVar(value="準備完了")
+        self.status_label = ttk.Label(main_frame, textvariable=self.status_var, anchor=tk.W)
+        self.status_label.pack(side="bottom", fill="x", pady=(8, 0))
+
+        # Notebook (タブ) — 残りの領域を埋める
         notebook = ttk.Notebook(main_frame)
-        notebook.pack(fill="both", expand=True)
+        notebook.pack(side="top", fill="both", expand=True)
 
         # ページ編集タブ
         pages_tab = ttk.Frame(notebook)
@@ -97,15 +114,6 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         settings_tab = ttk.Frame(notebook)
         notebook.add(settings_tab, text="基本設定")
         self.create_settings_tab(settings_tab)
-
-        # 操作結果を非モーダルで表示するステータス
-        self.status_var = tk.StringVar(value="準備完了")
-        self.status_label = ttk.Label(main_frame, textvariable=self.status_var, anchor=tk.W)
-        self.status_label.pack(fill="x", pady=(8, 0))
-
-        # 保存ボタン
-        save_button = ttk.Button(main_frame, text="保存して閉じる", command=self.save_config)
-        save_button.pack(pady=10)
 
     def _set_status(self, message: str):
         """設定画面下部のステータスを更新する。"""

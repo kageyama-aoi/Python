@@ -9,7 +9,8 @@
         "icon_folder": "assets/icons",
         "window_icon": "app_icon.ico",
         "default_button_icon": "2025-07-02_17h53_40.png",
-        "initial_page": "main_menu"
+        "initial_page": "main_menu",
+        "menu_order": "normal"
     },
     "styles": {
         "TButton": {
@@ -17,7 +18,10 @@
                 "Yu Gothic UI",
                 10
             ],
-            "padding": 5,
+            "padding": [
+                10,
+                8
+            ],
             "anchor": "w"
         },
         "TLabel": {
@@ -31,7 +35,8 @@
                 "Yu Gothic UI",
                 9
             ],
-            "background": "lightgray"
+            "background": "#2b2b2b",
+            "foreground": "#aaaaaa"
         },
         "Header.TLabel": {
             "font": [
@@ -39,6 +44,30 @@
                 12,
                 "bold"
             ]
+        },
+        "Nav.TButton": {
+            "font": [
+                "Yu Gothic UI",
+                10
+            ],
+            "padding": [
+                10,
+                8
+            ],
+            "anchor": "w",
+            "background": "#0f3a3d",
+            "foreground": "#4dd0e1"
+        },
+        "Settings.TButton": {
+            "font": [
+                "Yu Gothic UI",
+                9
+            ],
+            "padding": [
+                10,
+                4
+            ],
+            "anchor": "center"
         }
     },
     "pages": {
@@ -50,9 +79,7 @@
                     "name": "テストメニューへ",
                     "action": "show_page",
                     "target": "sub_menu",
-                    "icon": null,
-                    "background": "#e0f7fa",
-                    "foreground": "#006064"
+                    "icon": null
                 },
                 {
                     "type": "separator"
@@ -79,14 +106,13 @@
         "sub_menu": {
             "title": "サブメニュー",
             "window_title": "サブメニュー",
+            "menu_order": "global",
             "entries": [
                 {
                     "name": "メインメニューへ",
                     "action": "show_page",
                     "target": "main_menu",
-                    "icon": null,
-                    "background": "#e0f7fa",
-                    "foreground": "#006064"
+                    "icon": null
                 },
                 {
                     "type": "separator"

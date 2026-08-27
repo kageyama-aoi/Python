@@ -58,8 +58,16 @@
   </p>
 
   <div class="point">
-    このコードは「上から順に読めば理解できる」タイプではありません。  
+    このコードは「上から順に読めば理解できる」タイプではありません。
     読む順番を間違えると、内容が頭に入らない構造になっています。
+  </div>
+
+  <div class="warning">
+    本資料が書かれた後、実際の処理は <strong>ActionHandler</strong>
+    （ボタンの実処理）と <strong>UIBuilder</strong>（ウィジェット構築）に
+    分割されました。本資料中で「DirectoryOpenerAppのメソッド」として
+    説明している処理の一部は、現在はこの2クラスに移動しています
+    （詳細は main_kaisetu.html を参照）。読み方の考え方自体は今も有効です。
   </div>
 </div>
 
@@ -176,22 +184,33 @@ Step5  SettingsEditor を逆方向として読む
   </p>
 
   <pre>
-__init__
+DirectoryOpenerApp.__init__
+ ↓
+theme.apply_dark_theme（sv_ttk導入時のみ）
  ↓
 _setup_window
  ↓
 _setup_styles
  ↓
-_create_widgets
+ui_builder.create_widgets_content   ← ここから先は UIBuilder クラスの中
    ↓
    _populate_page
      ↓
      _create_button
+       ↓
+       _create_simple_action_button / _create_parameterized_url_entry
+ ↓
+show_page（初期ページ表示）
+ ↓
+theme.style_titlebar（sv_ttk＋pywinstyles導入時のみ）
   </pre>
 
   <div class="point">
-    ゴールは  
+    ゴールは
     <strong>「設定1件がUI1要素になるまでの流れ」</strong>を掴むことです。
+    <code>create_widgets_content</code> 以降の実処理は
+    <strong>DirectoryOpenerAppではなくUIBuilderクラス</strong>
+    （<code>src/ui_builder.py</code>）にあることに注意してください。
   </div>
 </div>
 

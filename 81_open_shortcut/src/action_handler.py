@@ -25,13 +25,13 @@ class ActionHandler:
             if os.path.exists(expanded_path):
                 os.startfile(expanded_path)
                 message = f"「{name}」を開きました。"
-                self.app.status_label.config(foreground="blue")
+                self.app.status_label.config(foreground="#64b5f6")
             else:
                 message = f"エラー: パスが見つかりません - {expanded_path}"
-                self.app.status_label.config(foreground="red")
+                self.app.status_label.config(foreground="#e57373")
         except Exception as e:
             message = f"エラー: {e}"
-            self.app.status_label.config(foreground="red")
+            self.app.status_label.config(foreground="#e57373")
 
         self.app.status_label.config(text=message)
 
@@ -40,10 +40,10 @@ class ActionHandler:
         try:
             webbrowser.open_new_tab(url)
             message = f"URL「{name}」をブラウザで開きました。"
-            self.app.status_label.config(foreground="blue")
+            self.app.status_label.config(foreground="#64b5f6")
         except Exception as e:
             message = f"URLを開けませんでした: {e}"
-            self.app.status_label.config(foreground="red")
+            self.app.status_label.config(foreground="#e57373")
         
         self.app.status_label.config(text=message)
 
@@ -61,13 +61,13 @@ class ActionHandler:
 
             webbrowser.open_new_tab(full_url)
             message = f"パラメータ付きURL「{name}」をブラウザで開きました: {full_url}"
-            self.app.status_label.config(foreground="blue")
+            self.app.status_label.config(foreground="#64b5f6")
         except KeyError as e:
             message = f"エラー: URLのプレースホルダー '{e}' に対応するパラメータが見つかりません。"
-            self.app.status_label.config(foreground="red")
+            self.app.status_label.config(foreground="#e57373")
         except Exception as e:
             message = f"パラメータ付きURLを開けませんでした: {e}"
-            self.app.status_label.config(foreground="red")
+            self.app.status_label.config(foreground="#e57373")
 
         self.app.status_label.config(text=message)
 

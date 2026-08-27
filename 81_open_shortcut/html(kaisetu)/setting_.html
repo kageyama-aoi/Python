@@ -61,6 +61,30 @@
 </div>
 
 <div class="box">
+  <h2>1.5. 実体は1クラスではなく3つのMixinの合成（重要・要更新の追記）</h2>
+  <pre><code>
+class SettingsEditor(
+    SettingsTabMixin,   # settings_tab.py : 基本設定タブ・ページ遷移先編集
+    PagesTabMixin,      # pages_tab.py    : ページ編集タブ・並べ替え・表示/非表示
+    ButtonFormMixin,    # button_form.py  : 右ペインのボタン設定フォーム・パラメータ編集
+    tk.Toplevel,
+):
+  </code></pre>
+
+  <p>
+    この資料は元々 <code>SettingsEditor</code> を単一クラスとして説明していましたが、
+    実際には3つのファイルにMixinとして分割されています。
+    <code>settings_editor.py</code> 自身は「タブを組み立てて3つのMixinをつなぐ」だけの
+    薄いオーケストレーション役です。
+  </p>
+
+  <div class="point">
+    以降の章（基本設定タブ・ページ編集タブ・ボタン設定フォーム）は、
+    それぞれ対応するMixinファイルの中身の説明だと読み替えてください。
+  </div>
+</div>
+
+<div class="box">
   <h2>2. なぜ Toplevel なのか</h2>
   <pre><code>
 class SettingsEditor(tk.Toplevel):
@@ -98,14 +122,17 @@ self.config = copy.deepcopy(self.config_manager.get_config())
   <pre>
 SettingsEditor
  ├─ Notebook
- │   ├─ 基本設定タブ
- │   └─ ページ編集タブ
- └─ 保存して閉じるボタン
+ │   ├─ ページ編集タブ（先に追加される＝左側）
+ │   └─ 基本設定タブ
+ ├─ ステータス表示（status_var）: 保存結果等を非モーダルで表示
+ └─ 保存して閉じるボタン（sv_ttk導入時はAccentスタイルで強調）
   </pre>
 
   <div class="point">
     設定の種類ごとに UI を分離し、
     認知負荷を下げる構成になっています。
+    タブの追加順は「ページ編集」が先（＝画面左）である点に注意
+    （旧版の図は順序が逆でした）。
   </div>
 </div>
 
@@ -138,6 +165,16 @@ SettingsEditor
     「どこを編集しているか」を
     <strong>視覚的に常に把握できる</strong>構成です。
   </p>
+
+  <div class="warning">
+    実装Tips: 左右は <code>ttk.PanedWindow</code> で、右ペイン（フォーム）は
+    <strong>中身を追加する前に</strong> <code>paned_window.add()</code> される。
+    そのため一時期「右ペインの要求サイズがほぼ0のため、sashが左に寄ったまま
+    固定され、フォームが数文字幅に潰れる」不具合があった（2026-07-21修正）。
+    フォーム構築後に <code>paned_window.sashpos(0, 幅/2)</code> を明示的に
+    呼び直すことで解消している。PanedWindowに後から中身を追加する構成では
+    注意が必要な典型例。
+  </div>
 </div>
 
 <div class="box">
@@ -188,6 +225,13 @@ on_action_change()
 
   <div class="point">
     手書き JSON 編集ではほぼ不可能な安全性を実現しています。
+  </div>
+
+  <div class="warning">
+    2026-07-21以前は、この編集画面を開くための <code>ParameterEditor</code>
+    クラスが実装されておらず（参照だけあって定義がない状態）、
+    「パラメータ追加/編集」を押すと <code>NameError</code> で確実に落ちる
+    バグがあった。<code>button_form.py</code> に実装を追加して解消済み。
   </div>
 </div>
 

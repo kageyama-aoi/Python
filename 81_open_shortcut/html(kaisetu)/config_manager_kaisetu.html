@@ -105,6 +105,20 @@ def __init__(self, config_path="data/config.json", schema_path="data/config.sche
     <strong>起動時に死ぬなら、起動時に死なせる</strong><br>
     後工程での例外連鎖を防ぐための設計です。
   </div>
+
+  <p>
+    実際には <code>config_path</code>/<code>schema_path</code> をそのまま使わず、
+    内部の <code>_resolve_project_path()</code> でプロジェクトルート基準の
+    絶対パスに解決してから保持しています（相対パスならルート結合、絶対パスなら
+    そのまま）。
+  </p>
+
+  <div class="point">
+    <strong>「どこから実行してもパスが壊れない」</strong>ための地味だが重要な処理です。
+    00_ランチャーから起動する場合とrun.batを直接ダブルクリックする場合とで
+    カレントディレクトリが変わっても、正しく <code>data/config.json</code> を
+    見つけられます。
+  </div>
 </div>
 
 <div class="box">

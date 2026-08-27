@@ -7,6 +7,92 @@ SettingsEditor に組み込むミックスイン。ページ編集タブ（pages
 import tkinter as tk
 from tkinter import ttk, messagebox
 from . import constants as C
+from . import theme
+
+
+class ParameterEditor(tk.Toplevel):
+    """パラメータ付きURLの1パラメータ定義を編集するモーダルウィンドウ。
+
+    保存すると self.result_param_data に parameter_definition 形式の dict が入る。
+    キャンセル・未入力エラーで閉じた場合は None のまま。
+    """
+
+    def __init__(self, master, index=None, param_data=None):
+        super().__init__(master)
+        self.title("パラメータ編集" if index is not None else "パラメータ追加")
+        theme.style_titlebar(self)
+        self.transient(master)
+        self.resizable(False, False)
+
+        self.result_param_data = None
+        param_data = param_data or {}
+
+        form = ttk.Frame(self, padding=12)
+        form.pack(fill="both", expand=True)
+        form.columnconfigure(1, weight=1)
+
+        ttk.Label(form, text="名前:").grid(row=0, column=0, sticky="w", pady=3)
+        self.name_var = tk.StringVar(value=param_data.get(C.ConfigKey.NAME, ""))
+        ttk.Entry(form, textvariable=self.name_var, width=30).grid(row=0, column=1, sticky="ew", pady=3)
+
+        ttk.Label(form, text="ラベル:").grid(row=1, column=0, sticky="w", pady=3)
+        self.label_var = tk.StringVar(value=param_data.get(C.ConfigKey.LABEL, ""))
+        ttk.Entry(form, textvariable=self.label_var, width=30).grid(row=1, column=1, sticky="ew", pady=3)
+
+        ttk.Label(form, text="種別:").grid(row=2, column=0, sticky="w", pady=3)
+        self.type_var = tk.StringVar(value=param_data.get(C.ConfigKey.TYPE, C.ParamType.TEXT.value))
+        ttk.Combobox(
+            form, textvariable=self.type_var,
+            values=[t.value for t in C.ParamType], state="readonly",
+        ).grid(row=2, column=1, sticky="ew", pady=3)
+
+        ttk.Label(form, text="初期値:").grid(row=3, column=0, sticky="w", pady=3)
+        self.default_var = tk.StringVar(value=param_data.get(C.ConfigKey.DEFAULT_VALUE, ""))
+        ttk.Entry(form, textvariable=self.default_var, width=30).grid(row=3, column=1, sticky="ew", pady=3)
+
+        ttk.Label(form, text="選択肢(カンマ区切り):").grid(row=4, column=0, sticky="w", pady=3)
+        options = param_data.get(C.ConfigKey.OPTIONS, [])
+        self.options_var = tk.StringVar(value=", ".join(options))
+        ttk.Entry(form, textvariable=self.options_var, width=30).grid(row=4, column=1, sticky="ew", pady=3)
+        ttk.Label(
+            form, text="pulldownの時のみ使用", foreground="#888888"
+        ).grid(row=5, column=1, sticky="w")
+
+        btn_row = ttk.Frame(self)
+        btn_row.pack(pady=(0, 12))
+        ttk.Button(btn_row, text="OK", style="Accent.TButton", command=self._on_ok).pack(
+            side="left", padx=(0, 8)
+        )
+        ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
+
+        self.grab_set()
+
+    def _on_ok(self):
+        name = self.name_var.get().strip()
+        if not name:
+            messagebox.showerror("入力エラー", "名前は必須です。", parent=self)
+            return
+        param_type = self.type_var.get()
+        if param_type not in (t.value for t in C.ParamType):
+            messagebox.showerror(
+                "入力エラー", "種別は text か pulldown を選択してください。", parent=self
+            )
+            return
+
+        result = {
+            C.ConfigKey.NAME: name,
+            C.ConfigKey.TYPE: param_type,
+            C.ConfigKey.DEFAULT_VALUE: self.default_var.get(),
+        }
+        label = self.label_var.get().strip()
+        if label:
+            result[C.ConfigKey.LABEL] = label
+        options = [v.strip() for v in self.options_var.get().split(",") if v.strip()]
+        if options:
+            result[C.ConfigKey.OPTIONS] = options
+
+        self.result_param_data = result
+        self.destroy()
 
 
 class ButtonFormMixin:
@@ -179,7 +265,6 @@ class ButtonFormMixin:
 
     def open_parameter_editor_window(self, index=None, param_data=None):
         """パラメータ編集ウィンドウを開き、結果を取り込む。"""
-        # NOTE: ParameterEditor class is not defined in this file. Assuming it's defined elsewhere or a placeholder.
         editor_window = ParameterEditor(self, index, param_data)
         self.master.wait_window(editor_window) # Wait for the editor window to close
         if editor_window.result_param_data: # If data was saved

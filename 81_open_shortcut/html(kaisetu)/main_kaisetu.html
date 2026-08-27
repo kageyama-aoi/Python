@@ -67,7 +67,10 @@
   <pre>
 DirectoryOpenerApp
  ├─ ConfigManager      : 設定の読み込み・検証
+ ├─ ActionHandler      : ボタンクリック時の実処理（ディレクトリ/URLを開く等）
+ ├─ UIBuilder          : configからウィジェットを組み立てる処理（旧 _create_widgets 系）
  ├─ SettingsEditor     : 設定編集UI
+ ├─ theme              : sv_ttkダークテーマ・タイトルバー装飾（任意依存）
  ├─ constants (C)      : 定数・キー定義
  └─ Tkinter / ttk      : GUI 表示
   </pre>
@@ -75,6 +78,12 @@ DirectoryOpenerApp
   <div class="point">
     UI ロジックと設定管理を明確に分離しているため、
     GUI 側は「設定をどう描画するか」に専念できます。
+  </div>
+  <div class="point">
+    2026-07時点の構成では、ウィジェット構築（旧 _create_widgets 系）は
+    <strong>UIBuilder クラスへ、ボタンの実処理は ActionHandler クラスへ</strong>
+    それぞれ委譲されています。DirectoryOpenerApp 自身はこれらを初期化して
+    つなぎ合わせる「司令塔」役に専念します。
   </div>
 </div>
 
@@ -132,11 +141,18 @@ for style_name, options in styles_config.items():
 </div>
 
 <div class="box">
-  <h2>6. ページ構造と動的生成（_create_widgets）</h2>
+  <h2>6. ページ構造と動的生成（UIBuilder.create_widgets_content）</h2>
   <p>
     ページは <strong>Frame 単位</strong>で管理され、
     設定ファイルの pages 定義から動的に生成されます。
   </p>
+
+  <div class="point">
+    <strong>この処理の実体は DirectoryOpenerApp ではなく UIBuilder クラス</strong>
+    （<code>ui_builder.py</code> の <code>create_widgets_content()</code>）にあります。
+    DirectoryOpenerApp は <code>self.ui_builder.create_widgets_content()</code> を
+    呼び出すだけです。
+  </div>
 
   <ul>
     <li>ページ定義がなければ即エラー</li>
@@ -146,7 +162,7 @@ for style_name, options in styles_config.items():
 </div>
 
 <div class="box">
-  <h2>7. エントリ生成のディスパッチ設計</h2>
+  <h2>7. エントリ生成のディスパッチ設計（UIBuilder._create_button）</h2>
   <pre><code>
 if action == OPEN_DIRECTORY:
 elif action == OPEN_URL:
@@ -157,11 +173,15 @@ elif action == OPEN_PARAMETERIZED_URL:
   <div class="point">
     <strong>action ごとに責務を分割</strong>することで、
     機能追加時の影響範囲を最小化しています。
+    実装は <code>UIBuilder._create_simple_action_button()</code>
+    （open_directory/open_url/show_page用）と
+    <code>UIBuilder._create_parameterized_url_entry()</code>
+    （open_parameterized_url用）に分かれています。
   </div>
 </div>
 
 <div class="box">
-  <h2>8. 動的スタイル生成の意図</h2>
+  <h2>8. 動的スタイル生成の意図（UIBuilder内）</h2>
   <p>
     ボタンごとに背景色・文字色を変えられるよう、
     スタイルを<strong>実行時に動的生成</strong>しています。
@@ -169,7 +189,11 @@ elif action == OPEN_PARAMETERIZED_URL:
 
   <div class="point">
     ttk の「スタイルはグローバル」という制約を、
-    カウンタ付きスタイル名で回避しています。
+    カウンタ付きスタイル名（<code>Dynamic.N.TButton</code>）で回避しています。
+    ただし現在の sv_ttk ダークテーマでは、この動的スタイルの
+    <code>background</code>（背景色）は反映されず<code>foreground</code>（文字色）のみ
+    反映される点に注意（config.jsonの明るい背景色パレットをそのまま流用すると
+    文字色だけが暗背景に残る）。
   </div>
 </div>
 
@@ -259,8 +283,11 @@ SettingsEditor(
     <li>ページ遷移アニメーション</li>
     <li>ショートカットキー対応</li>
     <li>ログ出力の共通化</li>
-    <li>テーマ切替（ダークモード）</li>
   </ul>
+  <div class="point">
+    「テーマ切替（ダークモード）」は2026-07-21にsv_ttk導入で実装済みのため、
+    このリストから除外しました（<code>src/theme.py</code>）。
+  </div>
 </div>
 
 </body>

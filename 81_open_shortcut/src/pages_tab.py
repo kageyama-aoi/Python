@@ -101,6 +101,17 @@ class PagesTabMixin:
         paned_window.add(right_pane, weight=1)
         self.create_button_form(right_pane)
 
+        # 右ペインはadd()時点では空で要求サイズがほぼ0のため、sashが左に寄ったまま
+        # 固定されてしまう。フォーム構築後にウィンドウ幅の半分へ明示的に置き直す。
+        def _center_sash():
+            if not paned_window.winfo_exists():
+                return
+            paned_window.update_idletasks()
+            width = paned_window.winfo_width()
+            if width > 1:
+                paned_window.sashpos(0, width // 2)
+        parent.after(50, _center_sash)
+
     def _populate_page_listbox(self, page_name):
         """
         指定されたページのリストボックスをクリアし、configデータに基づいて再構築する。

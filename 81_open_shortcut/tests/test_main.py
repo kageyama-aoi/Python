@@ -239,5 +239,24 @@ class TestDirectoryOpenerApp(unittest.TestCase):
         self.assertButtonNotExists(initial_button_text, f"古いボタン '{initial_button_text}' がUIに残っています。")
         self.assertButtonExists(modified_button_text, f"新しいボタン '{modified_button_text}' が作成されていません。")
 
+    def test_icon_images_dict_shared_after_reload(self):
+        """リロード後も UIBuilder と app が同一の icon_images 辞書を共有し続けること（#149）。"""
+        self.assertIs(
+            self.app.ui_builder.icon_images, self.app.icon_images,
+            "初期状態で icon_images 辞書が共有されていません。",
+        )
+
+        self.app.reload_ui()
+        self.app.master.update()
+
+        self.assertIs(
+            self.app.ui_builder.icon_images, self.app.icon_images,
+            "リロード後に icon_images 辞書が別オブジェクトへ差し替えられています。",
+        )
+
+        # UIBuilder 経由の書き込みが app 側の辞書へも反映されること
+        self.app.ui_builder.icon_images["__probe__"] = object()
+        self.assertIn("__probe__", self.app.icon_images)
+
 if __name__ == '__main__':
     unittest.main()

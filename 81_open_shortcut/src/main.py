@@ -8,6 +8,7 @@ from .config_manager import ConfigManager
 from .action_handler import ActionHandler
 from .ui_builder import UIBuilder
 from . import constants as C
+from . import theme
 
 class DirectoryOpenerApp:
     """
@@ -38,12 +39,15 @@ class DirectoryOpenerApp:
         self.page_container.pack(fill=tk.BOTH, expand=True)
         self.status_label = ttk.Label(self.master, text="準備完了", style="Status.TLabel", anchor=tk.W, padding=(10, 5, 10, 5))
         self.status_label.pack(fill=tk.X, side=tk.BOTTOM)
-        self.settings_button = ttk.Button(self.master, text="設定", command=self.open_settings_window)
+        self.settings_button = ttk.Button(
+            self.master, text="設定", command=self.open_settings_window, style="Settings.TButton"
+        )
         self.settings_button.pack(side=tk.RIGHT, anchor=tk.SE, padx=10, pady=5)
 
         self.ui_builder = UIBuilder(self, self.page_container, self.status_label, self.settings_button)
 
         # --- UI Setup ---
+        theme.apply_dark_theme()  # リロードのたびに再適用する必要はないため、初回のみここで行う
         self._setup_window()
         self._setup_styles()
         self.ui_builder.create_widgets_content()
@@ -51,6 +55,7 @@ class DirectoryOpenerApp:
         # 初期ページを表示
         initial_page = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.INITIAL_PAGE, "home")
         self.show_page(initial_page)
+        theme.style_titlebar(self.master)
 
     def _setup_window(self):
         """ウィンドウのタイトル、サイズ、アイコンなどを設定する。"""
@@ -102,9 +107,12 @@ class DirectoryOpenerApp:
             widget.destroy()
         self.page_container.pack_forget() # 一度アンパックして再パック
 
-        # Reset internal state before rebuilding
+        # Reset internal state before rebuilding.
+        # icon_images は UIBuilder が __init__ 時に参照を共有しているため、
+        # 辞書を作り直す（= 別オブジェクトにする）とリロード後に UIBuilder が
+        # 迷子の旧辞書へ書き込み続けてしまう。必ず同一オブジェクトを clear する（#149）。
         self.pages = {}
-        self.icon_images = {}
+        self.icon_images.clear()
         self.dynamic_style_counter = 0
 
         # 3. Reload config
