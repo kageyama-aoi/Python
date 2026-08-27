@@ -62,14 +62,30 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         ja = self.SETTING_LABELS.get(key_value, key_value)
         return f"{ja} ({key_value})"
 
-    def _format_page_tab_label(self, page_name: str, page_data: dict) -> str:
-        """ページタブを「日本語（英語）」形式で表示する。"""
+    def _clean_page_title(self, page_name: str, page_data: dict) -> str:
+        """ページタイトルから英語補足（例: [Tframe], (memo)）を除いた表示名を返す。"""
         title = page_data.get(C.ConfigKey.TITLE, page_name)
-        # 日本語タイトル内の英語補足（例: [Tframe], (memo)）を除去して重複表記を防ぐ
-        cleaned_title = re.sub(r"\s*[\[\(（]\s*[A-Za-z0-9_\- ]+\s*[\]\)）]\s*", "", str(title)).strip()
-        if not cleaned_title:
-            cleaned_title = page_name
-        return f"{cleaned_title} ({page_name})"
+        cleaned_title = re.sub(r"\s*[\[\(（]\s*[A-Za-z0-9_\- ]+\s*[\]\)）]\s*", "", str(title))
+        # 余分な空白を詰める（"テスト [島村]" -> "テスト[島村]"）
+        cleaned_title = re.sub(r"\s+([\[\(（])", r"\1", cleaned_title)
+        cleaned_title = re.sub(r"\s{2,}", " ", cleaned_title).strip()
+        return cleaned_title or page_name
+
+    def _format_page_tab_label(self, page_name: str, page_data: dict) -> str:
+        """ページを「日本語（英語ID）」形式で表示する（コンボボックスの選択肢など）。"""
+        return f"{self._clean_page_title(page_name, page_data)} ({page_name})"
+
+    def _format_page_tab_short_label(self, page_name: str, page_data: dict) -> str:
+        """幅の限られたタブ用の短い表示名。IDが日本語名と重複する場合のみIDを併記する。"""
+        cleaned = self._clean_page_title(page_name, page_data)
+        pages = self.config.get(C.ConfigKey.PAGES, {})
+        others = [
+            self._clean_page_title(pid, pdata)
+            for pid, pdata in pages.items() if pid != page_name
+        ]
+        if cleaned in others:
+            return f"{cleaned} ({page_name})"
+        return cleaned
 
     def _build_page_selector_maps(self):
         """ページ選択用の表示名<->IDマップを構築する。"""

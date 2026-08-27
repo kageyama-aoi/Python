@@ -33,7 +33,7 @@ class PagesTabMixin:
 
         for page_name, page_data in tab_order:
             list_frame = ttk.Frame(pages_notebook)
-            pages_notebook.add(list_frame, text=self._format_page_tab_label(page_name, page_data))
+            pages_notebook.add(list_frame, text=self._format_page_tab_short_label(page_name, page_data))
             self.page_frame_to_name[list_frame] = page_name
             self.page_name_to_frame[page_name] = list_frame
 
@@ -54,8 +54,7 @@ class PagesTabMixin:
                 textvariable=page_menu_order_var,
                 values=["全体設定に従う", "通常", "逆順"],
                 state="readonly",
-                justify="right",
-                width=12,
+                width=14,  # 「全体設定に従う」が収まる幅
             )
             page_order_combo.pack(side="left", padx=2)
 
@@ -109,7 +108,10 @@ class PagesTabMixin:
             paned_window.update_idletasks()
             width = paned_window.winfo_width()
             if width > 1:
-                paned_window.sashpos(0, width // 2)
+                # 左ペイン（ページ一覧・タブ）をやや広めに。右のフォームは
+                # 入力欄が収まる幅（約380px）を確保する。
+                left = min(int(width * 0.55), max(width - 380, width // 2))
+                paned_window.sashpos(0, left)
         parent.after(50, _center_sash)
 
     def _populate_page_listbox(self, page_name):

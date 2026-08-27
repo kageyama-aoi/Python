@@ -77,6 +77,23 @@ class TestSettingsEditorLayout(unittest.TestCase):
         self.assertTrue(hasattr(self.editor, "status_label"))
         self.assertEqual(self.editor.status_label.pack_info().get("side"), "bottom")
 
+    def test_page_tab_short_label_drops_redundant_id(self):
+        """タブ用の短いラベルは、名前が一意なら (id) を付けないこと（#156）。"""
+        pages = self.editor.config["pages"]
+        # test_config_initial.json は main_menu / sub_menu の2ページ（タイトルも一意）
+        for page_name, page_data in pages.items():
+            short = self.editor._format_page_tab_short_label(page_name, page_data)
+            full = self.editor._format_page_tab_label(page_name, page_data)
+            self.assertNotIn("(", short, f"短ラベルにIDが混入: {short!r}")
+            self.assertIn("(", full, f"完全ラベルにIDが無い: {full!r}")
+
+    def test_clean_page_title_collapses_space_before_bracket(self):
+        """タイトルの括弧前の空白は詰めること（#156）。"""
+        cleaned = self.editor._clean_page_title(
+            "x", {"title": "テスト [島村]"}
+        )
+        self.assertEqual(cleaned, "テスト[島村]")
+
 
 if __name__ == '__main__':
     unittest.main()
