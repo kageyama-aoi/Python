@@ -258,5 +258,18 @@ class TestDirectoryOpenerApp(unittest.TestCase):
         self.app.ui_builder.icon_images["__probe__"] = object()
         self.assertIn("__probe__", self.app.icon_images)
 
+    def test_colored_button_styles_do_not_grow_on_reload(self):
+        """色付きボタンのスタイルはリロードを繰り返しても増え続けないこと（#152）。"""
+        first = len(self.app.ui_builder._colored_button_styles)
+
+        for _ in range(4):
+            self.app.reload_ui()
+            self.app.master.update()
+
+        self.assertEqual(
+            len(self.app.ui_builder._colored_button_styles), first,
+            "リロードのたびにボタンスタイルが増えています（色ペアのメモ化が効いていません）。",
+        )
+
 if __name__ == '__main__':
     unittest.main()

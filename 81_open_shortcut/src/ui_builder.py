@@ -25,6 +25,10 @@ class UIBuilder:
         self.style = app.style
         self.icon_images = app.icon_images # icon_imagesはメインアプリで一元管理（同一辞書を共有）
 
+        # 色ペア(bg, fg) -> ttkスタイル名 のメモ。ボタン1個ごとに採番せず、
+        # 同じ色は使い回し、リロードでも作り直さない（#152）。
+        self._colored_button_styles: dict[tuple[str, str], str] = {}
+
         self.page_container = page_container
         self.status_label = status_label
         self.settings_button = settings_button
@@ -72,6 +76,33 @@ class UIBuilder:
             else:
                 self._create_button(parent_frame, entry, icon_folder, default_icon_name)
 
+    def _colored_button_style(self, background: str | None, foreground: str | None) -> str | None:
+        """背景色/文字色の組み合わせごとに一意なttkスタイル名を返す。
+
+        同じ色ペアは同じスタイルを使い回し、リロード後も作り直さない。
+        色指定が無ければ None を返す（呼び出し側で既定スタイルを選ぶ）。
+
+        注: sv_ttk（ダークテーマ）導入時はボタンが画像ベースのため background は
+        反映されず、foreground（文字色）のみ効く。詳細は README「styles」参照（#151）。
+        """
+        bg = (background or "").strip()
+        fg = (foreground or "").strip()
+        if not bg and not fg:
+            return None
+
+        key = (bg.lower(), fg.lower())
+        style_name = self._colored_button_styles.get(key)
+        if style_name is None:
+            style_name = f"Colored{len(self._colored_button_styles)}.TButton"
+            options = {}
+            if bg:
+                options["background"] = bg
+            if fg:
+                options["foreground"] = fg
+            self.style.configure(style_name, **options)
+            self._colored_button_styles[key] = style_name
+        return style_name
+
     def _create_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """エントリのactionに応じて、適切なUI要素を作成するディスパッチャ。"""
         action = entry.get(C.ConfigKey.ACTION)
@@ -97,22 +128,16 @@ class UIBuilder:
         elif action == C.Action.SHOW_PAGE:
             display_name = f"→ {name}"
 
-        background_color = entry.get(C.ConfigKey.BACKGROUND)
-        foreground_color = entry.get(C.ConfigKey.FOREGROUND)
-
-        if background_color or foreground_color:
-            # 明示的な色指定は最優先（既存の個別カスタマイズを壊さない）。
-            # 注: sv_ttk（ダークテーマ）導入時はボタンが画像ベースのため background は
-            # 反映されず、foreground（文字色）のみ効く。詳細は README「styles」参照（#151）。
-            self.app.dynamic_style_counter += 1
-            button_style = f"Dynamic.{self.app.dynamic_style_counter}.TButton"
-            style_options = {"background": background_color, "foreground": foreground_color}
-            self.style.configure(button_style, **{k: v for k, v in style_options.items() if v is not None})
-        elif action == C.Action.SHOW_PAGE:
-            # ページ遷移ボタンは色指定なしでも自動でNavスタイル（styles.Nav.TButton）が乗る
-            button_style = "Nav.TButton"
-        else:
-            button_style = "TButton"
+        # 明示的な色指定は最優先（既存の個別カスタマイズを壊さない）
+        button_style = self._colored_button_style(
+            entry.get(C.ConfigKey.BACKGROUND), entry.get(C.ConfigKey.FOREGROUND)
+        )
+        if button_style is None:
+            if action == C.Action.SHOW_PAGE:
+                # ページ遷移ボタンは色指定なしでも自動でNavスタイル（styles.Nav.TButton）が乗る
+                button_style = "Nav.TButton"
+            else:
+                button_style = "TButton"
 
         command = None
         if action == C.Action.OPEN_DIRECTORY:
@@ -158,15 +183,9 @@ class UIBuilder:
             return
 
         display_name = f"⚙️ {name}"
-        button_style = "TButton"
-        background_color = entry.get(C.ConfigKey.BACKGROUND)
-        foreground_color = entry.get(C.ConfigKey.FOREGROUND)
-
-        if background_color or foreground_color:
-            self.app.dynamic_style_counter += 1
-            button_style = f"Dynamic.{self.app.dynamic_style_counter}.TButton"
-            style_options = {"background": background_color, "foreground": foreground_color}
-            self.style.configure(button_style, **{k: v for k, v in style_options.items() if v is not None})
+        button_style = self._colored_button_style(
+            entry.get(C.ConfigKey.BACKGROUND), entry.get(C.ConfigKey.FOREGROUND)
+        ) or "TButton"
 
         icon_name = entry.get(C.ConfigKey.ICON) or default_icon_name
         button_icon = None

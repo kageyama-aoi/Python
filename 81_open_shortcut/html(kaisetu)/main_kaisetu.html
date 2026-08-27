@@ -189,7 +189,10 @@ elif action == OPEN_PARAMETERIZED_URL:
 
   <div class="point">
     ttk の「スタイルはグローバル」という制約を、
-    カウンタ付きスタイル名（<code>Dynamic.N.TButton</code>）で回避しています。
+    色ペア <code>(background, foreground)</code> ごとにメモ化したスタイル名
+    （<code>Colored{n}.TButton</code>、<code>UIBuilder._colored_button_style()</code>）で回避しています。
+    同じ色は使い回し、リロードでも作り直しません（旧実装のカウンタ方式
+    <code>Dynamic.N.TButton</code> は #152 で廃止）。
     ただし現在の sv_ttk ダークテーマでは、この動的スタイルの
     <code>background</code>（背景色）は反映されず<code>foreground</code>（文字色）のみ
     反映される点に注意（config.jsonの明るい背景色パレットをそのまま流用すると

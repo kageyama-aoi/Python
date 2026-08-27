@@ -21,7 +21,6 @@ class DirectoryOpenerApp:
         self.master = master
         self.icon_images = {}  # PhotoImageオブジェクトを保持 (ガベージコレクション対策)
         self.style = ttk.Style()
-        self.dynamic_style_counter = 0
         self.pages = {}
         self._after_id = None # UIリロードのスケジュールID
 
@@ -113,7 +112,6 @@ class DirectoryOpenerApp:
         # 迷子の旧辞書へ書き込み続けてしまう。必ず同一オブジェクトを clear する（#149）。
         self.pages = {}
         self.icon_images.clear()
-        self.dynamic_style_counter = 0
 
         # 3. Reload config
         if not self.config_manager.reload():
