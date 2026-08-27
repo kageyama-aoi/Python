@@ -55,3 +55,8 @@ class ParamType(str, Enum):
     """パラメータ入力のUI種別。"""
     TEXT = "text"
     PULLDOWN = "pulldown"
+
+class StatusColor:
+    """ステータス表示の文字色（sv_ttk ダーク背景で WCAG AA 相当）。"""
+    SUCCESS = "#64b5f6"  # 成功（青系）
+    ERROR = "#e57373"    # 失敗（赤系）
