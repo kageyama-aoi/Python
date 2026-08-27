@@ -106,7 +106,7 @@ def style_titlebar(window):
     # ウィンドウ地の色も DARK_SURFACE に合わせる（ttkウィジェットの隙間対策）。
     try:
         window.configure(background=DARK_SURFACE)
-    except Exception:
+    except tk.TclError:
         pass
 
     if not PYWINSTYLES_AVAILABLE:

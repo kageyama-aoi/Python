@@ -335,7 +335,7 @@ class ButtonFormMixin:
             try:
                 current_frame = pages_notebook.nametowidget(pages_notebook.select())
                 page_name = self.page_frame_to_name.get(current_frame)
-            except Exception:
+            except (tk.TclError, KeyError):
                 page_name = None
         if not page_name or page_name not in self.config.get(C.ConfigKey.PAGES, {}):
             messagebox.showerror("エラー", "保存先のページを特定できませんでした。")

@@ -52,6 +52,21 @@ class TestButtonForm(unittest.TestCase):
         self.assertEqual(self._F(C.ConfigKey.PATH).get(), "", "パス欄に前の値が残っています。")
         self.assertEqual(self._F(C.ConfigKey.NAME).get(), "マイリンク", "名前まで消えています。")
 
+    def test_switching_away_from_parameterized_url_clears_params(self):
+        """parameterized_url から他アクションへ切り替えると base_url とパラメータが残らない（#158）。"""
+        self.editor.add_button(self.pages[0])
+        self._F(C.ConfigKey.NAME).set("API")
+        self._F(C.ConfigKey.ACTION).set(C.Action.OPEN_PARAMETERIZED_URL.value)
+        self.editor._on_action_selected()
+        self._F(C.ConfigKey.BASE_URL).set("https://example.com/{id}")
+        self.editor.current_parameters = [{"name": "id", "type": "text"}]
+
+        self._F(C.ConfigKey.ACTION).set(C.Action.OPEN_URL.value)
+        self.editor._on_action_selected()
+
+        self.assertEqual(self._F(C.ConfigKey.BASE_URL).get(), "", "ベースURLが残っています。")
+        self.assertEqual(self.editor.current_parameters, [], "パラメータ定義が残っています。")
+
     def test_dirty_flag_and_discard_guard(self):
         """未保存の入力があると add_button が確認を挟む（#158）。"""
         self.editor.add_button(self.pages[0])
