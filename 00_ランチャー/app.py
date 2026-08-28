@@ -709,12 +709,14 @@ class LauncherApp(tk.Tk):
         frame = ttk.LabelFrame(parent, text=name)
         frame.pack(fill="x", padx=4, pady=4)
 
-        header_row = ttk.Frame(frame)
-        header_row.pack(fill="x", padx=6, pady=(2, 0))
+        # 補助ボタン（☆・⚙設定）と説明文を1行に収める。別行にすると見出しとの間に
+        # ボタン高さぶんの縦空白が空いてしまうため、説明文をこの行の左側に流し込む（#160）。
+        top_row = ttk.Frame(frame)
+        top_row.pack(fill="x", padx=8, pady=(2, 2))
 
         is_fav = rel_str in self.favorites
         ttk.Button(
-            header_row,
+            top_row,
             text="★" if is_fav else "☆",
             width=3,
             style=BTN_TERTIARY,
@@ -728,7 +730,7 @@ class LauncherApp(tk.Tk):
             config_path = tool["_dir"] / config_name
             if config_path.exists():
                 ttk.Button(
-                    header_row,
+                    top_row,
                     text="⚙設定",
                     width=7,
                     style=BTN_TERTIARY,
@@ -737,8 +739,8 @@ class LauncherApp(tk.Tk):
                 break
 
         if desc:
-            desc_label = ttk.Label(frame, text=desc, justify="left")
-            desc_label.pack(anchor="w", fill="x", padx=8, pady=(4, 2))
+            desc_label = ttk.Label(top_row, text=desc, justify="left")
+            desc_label.pack(side="left", fill="x", expand=True)
             # ウィンドウ幅に折り返しを追従させる（固定値だとリサイズ時にズレるため）。
             desc_label.bind(
                 "<Configure>", lambda e, w=desc_label: w.configure(wraplength=max(200, e.width))
