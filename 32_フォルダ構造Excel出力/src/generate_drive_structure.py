@@ -113,6 +113,20 @@ FILE_LINK_LABEL = "開く"
 # 並べ替えで大きいファイルを探せるようにする。
 FROZEN_COLUMN_COUNT = 4
 
+# 出力Excelのフォント。Meiryo UI は Windows 標準で必ず利用でき、
+# かな・記号・パス文字列が Calibri（既定）より読みやすい。
+# 未インストール環境では Excel 側が既定フォントで代替表示する。
+EXCEL_FONT_NAME = "Meiryo UI"
+EXCEL_FONT_SIZE = 10
+
+
+def _make_excel_format(workbook, props=None):
+    """EXCEL_FONT_NAME / SIZE を既定に持つ xlsxwriter フォーマットを作る。"""
+    merged = {"font_name": EXCEL_FONT_NAME, "font_size": EXCEL_FONT_SIZE}
+    if props:
+        merged.update(props)
+    return workbook.add_format(merged)
+
 
 def format_size(size_bytes):
     """バイト数を人が読みやすい単位（B/KB/MB/GB/TB）の文字列に変換する"""
@@ -281,19 +295,22 @@ def save_dataframe_to_excel(df, excel_path):
             workbook = writer.book
             worksheet = writer.sheets['Sheet1']
 
+            # 全セルの既定フォント（Meiryo UI）。列書式として後段の set_column で適用する。
+            base_format = _make_excel_format(workbook)
+
             # ヘッダー用の書式を定義
-            header_format = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': 'black', 'align': 'center', 'valign': 'vcenter'})
+            header_format = _make_excel_format(workbook, {'bold': True, 'font_color': 'white', 'bg_color': 'black', 'align': 'center', 'valign': 'vcenter'})
 
             # ヘッダーを手動で書き込む
             for col_num, value in enumerate(df_display.columns.values):
                 worksheet.write(0, col_num, value, header_format)
 
-            hyperlink_format = workbook.add_format({'font_color': 'blue', 'underline': 1})
+            hyperlink_format = _make_excel_format(workbook, {'font_color': 'blue', 'underline': 1})
 
             # 書式を定義
-            folder_format = workbook.add_format({'bg_color': '#FFFFCC', 'bold': True}) # 薄い黄色、太字
-            file_format = workbook.add_format({'bg_color': '#CCEEFF'})   # 薄い水色
-            file_name_format = workbook.add_format({'bg_color': '#CCEEFF', 'bold': True})  # ファイル行のアイテム名は太字で強調
+            folder_format = _make_excel_format(workbook, {'bg_color': '#FFFFCC', 'bold': True}) # 薄い黄色、太字
+            file_format = _make_excel_format(workbook, {'bg_color': '#CCEEFF'})   # 薄い水色
+            file_name_format = _make_excel_format(workbook, {'bg_color': '#CCEEFF', 'bold': True})  # ファイル行のアイテム名は太字で強調
 
             try:
                 # 表示用DataFrameでのタイプ列の位置を再計算 (df_display基準)
@@ -372,7 +389,7 @@ def save_dataframe_to_excel(df, excel_path):
                 if num_rows > 0:
                     max_width = max(max_width, df_display.iloc[:, col_idx].map(_display_width).max())
                 width = min(max(max_width + 2, MIN_COLUMN_WIDTH), MAX_COLUMN_WIDTH)
-                worksheet.set_column(col_idx, col_idx, width)
+                worksheet.set_column(col_idx, col_idx, width, base_format)
 
             # --- ヘッダー行とA〜D列（タイプ・フルパス・サイズ2列）を固定し、
             # 右にスクロールしても見出しとサイズが常に見えるようにする ---

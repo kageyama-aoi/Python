@@ -447,6 +447,17 @@ def test_save_dataframe_to_excel_sets_column_widths(tmp_path):
         assert dim.width <= generate_drive_structure.MAX_COLUMN_WIDTH + 2  # マージン込みの上限チェック
 
 
+def test_save_dataframe_to_excel_uses_readable_font(tmp_path):
+    out_path = tmp_path / "out.xlsx"
+    save_dataframe_to_excel(_sample_nested_df(), str(out_path))
+
+    ws = load_workbook(out_path).active
+    # データセル・ヘッダーセルとも EXCEL_FONT_NAME が効いている
+    for ref in ("A1", "F1", "A2", "F3"):
+        assert ws[ref].font.name == generate_drive_structure.EXCEL_FONT_NAME, ref
+        assert ws[ref].font.size == generate_drive_structure.EXCEL_FONT_SIZE, ref
+
+
 def test_save_dataframe_to_excel_freezes_header_row_and_size_columns(tmp_path):
     out_path = tmp_path / "out.xlsx"
     save_dataframe_to_excel(_sample_nested_df(), str(out_path))
