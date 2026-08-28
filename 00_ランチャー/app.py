@@ -33,11 +33,26 @@ import json
 import os
 import re
 import subprocess
+import sys
 import threading
 import tkinter as tk
 from collections import defaultdict
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
+
+# Optional: pip install sv-ttk      → Windows 11 スタイルのダークテーマが有効になる
+# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
+try:
+    import sv_ttk as _sv_ttk
+    _SV_TTK = True
+except ImportError:
+    _SV_TTK = False
+
+try:
+    import pywinstyles as _pywinstyles
+    _PYWINSTYLES = True
+except ImportError:
+    _PYWINSTYLES = False
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 FAVORITES_FILE = Path(__file__).resolve().parent / "favorites.json"
@@ -48,6 +63,44 @@ KIND_LABELS = {
     "server": "サーバー",
     "generator": "生成",
 }
+
+# フォント定義（ここで一元管理。33_テキスト・CSV前処理サポートのlauncher_gui.pyと揃える）
+UI_FONT_FAMILY = "Yu Gothic UI"
+UI_FONT = (UI_FONT_FAMILY, 9)
+UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
+HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")   # カテゴリ見出し
+TAG_FONT = (UI_FONT_FAMILY, 8)               # 種別タグ等の補足テキスト
+PATH_FONT = (UI_FONT_FAMILY, 8)              # 相対パス表示
+
+# ボタン3段階の共通スタイル（全ボタンは必ずこの3種のどれかで生成する）
+#   Primary   : サブウィンドウの主操作（保存して閉じる）。14pt bold・高さ40px
+#   Secondary : ツール実行ボタン・キャンセル等の標準操作。11pt・高さ32px
+#   Tertiary  : ★お気に入り・⚙設定・参照...等の補助操作。10pt・高さ26px・枠なし
+BTN_PRIMARY = "Primary.Accent.TButton"
+BTN_SECONDARY = "Secondary.TButton"
+BTN_TERTIARY = "Tertiary.Toolbutton"
+_BUTTON_SPECS = {
+    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 40, "hpad": 20},
+    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 32, "hpad": 12},
+    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 26, "hpad": 6},
+}
+
+
+def _style_titlebar(window):
+    """タイトルバーをダークテーマに揃える（sv_ttk＋pywinstylesがあるときだけ。失敗しても無害）。
+    Windows 11 はヘッダー色の直接指定、Windows 10 はダークスタイル適用＋再描画ハックで対応する。"""
+    if not (_SV_TTK and _PYWINSTYLES):
+        return
+    try:
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.build >= 22000:   # Windows 11
+            _pywinstyles.change_header_color(window, "#1c1c1c")
+        elif version.major == 10:                            # Windows 10
+            _pywinstyles.apply_style(window, "dark")
+            window.wm_attributes("-alpha", 0.99)              # 色が即時反映されないための再描画ハック
+            window.wm_attributes("-alpha", 1)
+    except Exception:
+        pass
 
 # ディレクトリ番号帯とカテゴリ名の対応（過去のリネームコミットの命名を踏襲）
 CATEGORY_LABELS = {
@@ -218,6 +271,7 @@ class ConfigEditorWindow(tk.Toplevel):
         self.config_path = config_path
         self.minsize(480, 120)
         self.transient(master)
+        _style_titlebar(self)
 
         try:
             with open(config_path, "r", encoding="utf-8") as f:
@@ -277,7 +331,7 @@ class ConfigEditorWindow(tk.Toplevel):
             entry.grid(row=row, column=1, sticky="ew", pady=3)
             if kind == "str" and _PATH_KEY_RE.search(key):
                 ttk.Button(
-                    form, text="参照...", width=7,
+                    form, text="参照...", style=BTN_TERTIARY,
                     command=lambda v=var: self._browse_dir(v),
                 ).grid(row=row, column=2, sticky="w", padx=(6, 0), pady=3)
             self._fields.append((key, kind, var))
@@ -285,16 +339,19 @@ class ConfigEditorWindow(tk.Toplevel):
         hint = ttk.Label(
             self,
             text="リストはカンマ区切り、辞書はJSON形式で編集します。",
-            foreground="gray",
+            font=TAG_FONT,
+            foreground="#888888",
         )
         hint.pack(anchor="w", padx=12)
 
         btn_row = ttk.Frame(self)
         btn_row.pack(pady=(6, 12))
-        ttk.Button(btn_row, text="保存して閉じる", command=self._save).pack(
+        ttk.Button(btn_row, text="保存して閉じる", style=BTN_PRIMARY, command=self._save).pack(
             side="left", padx=(0, 8)
         )
-        ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
+        ttk.Button(btn_row, text="キャンセル", style=BTN_SECONDARY, command=self.destroy).pack(
+            side="left"
+        )
 
     def _browse_dir(self, var: tk.StringVar):
         _browse_dir_into_var(self, var, self.config_path.parent)
@@ -352,6 +409,7 @@ class IniConfigEditorWindow(tk.Toplevel):
         self.config_path = config_path
         self.minsize(480, 120)
         self.transient(master)
+        _style_titlebar(self)
 
         parser = configparser.ConfigParser(interpolation=None)
         parser.optionxform = str  # キーの大文字小文字を保持する
@@ -378,7 +436,7 @@ class IniConfigEditorWindow(tk.Toplevel):
 
         row = 0
         for section in parser.sections():
-            ttk.Label(form, text=f"[{section}]", font=("", 9, "bold")).grid(
+            ttk.Label(form, text=f"[{section}]", font=UI_FONT_BOLD).grid(
                 row=row, column=0, columnspan=2, sticky="w",
                 pady=(8 if row else 0, 2),
             )
@@ -392,12 +450,12 @@ class IniConfigEditorWindow(tk.Toplevel):
                 entry.grid(row=row, column=1, sticky="ew", pady=3)
                 if "\n" in value:
                     entry.config(state="disabled")
-                    ttk.Label(form, text="(複数行値のため編集不可)", foreground="gray").grid(
-                        row=row, column=2, sticky="w", padx=(6, 0)
-                    )
+                    ttk.Label(
+                        form, text="(複数行値のため編集不可)", font=TAG_FONT, foreground="#888888"
+                    ).grid(row=row, column=2, sticky="w", padx=(6, 0))
                 elif _PATH_KEY_RE.search(key):
                     ttk.Button(
-                        form, text="参照...", width=7,
+                        form, text="参照...", style=BTN_TERTIARY,
                         command=lambda v=var: _browse_dir_into_var(
                             self, v, self.config_path.parent
                         ),
@@ -407,10 +465,12 @@ class IniConfigEditorWindow(tk.Toplevel):
 
         btn_row = ttk.Frame(self)
         btn_row.pack(pady=(6, 12))
-        ttk.Button(btn_row, text="保存して閉じる", command=self._save).pack(
+        ttk.Button(btn_row, text="保存して閉じる", style=BTN_PRIMARY, command=self._save).pack(
             side="left", padx=(0, 8)
         )
-        ttk.Button(btn_row, text="キャンセル", command=self.destroy).pack(side="left")
+        ttk.Button(btn_row, text="キャンセル", style=BTN_SECONDARY, command=self.destroy).pack(
+            side="left"
+        )
 
     def _replace_value_line(self, lines: list, section: str, key: str, new_value: str) -> bool:
         """指定セクション内のキー行を探し、値部分だけ書き換える。見つからなければFalse。"""
@@ -486,10 +546,12 @@ class CollapsibleSection(ttk.Frame):
         header = ttk.Frame(self)
         header.pack(fill="x")
 
-        self.toggle_label = ttk.Label(header, text=self._arrow(), width=2, cursor="hand2")
+        self.toggle_label = ttk.Label(
+            header, text=self._arrow(), width=2, font=HEADER_FONT, cursor="hand2"
+        )
         self.toggle_label.pack(side="left")
         self.title_label = ttk.Label(
-            header, text=title, font=("", 10, "bold"), cursor="hand2"
+            header, text=title, font=HEADER_FONT, cursor="hand2"
         )
         self.title_label.pack(side="left", padx=(2, 0))
 
@@ -522,6 +584,10 @@ class LauncherApp(tk.Tk):
         self.geometry("820x640")
         self.minsize(600, 400)
 
+        if _SV_TTK:
+            _sv_ttk.set_theme("dark")
+        style = self._setup_style()  # フォント統一はテーマ適用後に行う（sv_ttkの上書きを防ぐ）
+
         self.favorites = load_favorites()
 
         # ── 検索バー（固定・スクロールしない） ──
@@ -533,18 +599,24 @@ class LauncherApp(tk.Tk):
         search_entry = ttk.Entry(search_bar, textvariable=self.search_var)
         search_entry.pack(side="left", fill="x", expand=True, padx=(6, 6))
         ttk.Button(
-            search_bar, text="クリア", command=lambda: self.search_var.set("")
+            search_bar, text="クリア", style=BTN_TERTIARY, command=lambda: self.search_var.set("")
         ).pack(side="left")
 
         # ── スクロール可能な本体 ──
-        canvas = tk.Canvas(self, highlightthickness=0)
+        canvas_bg = style.lookup("TFrame", "background") or self.cget("background")
+        canvas = tk.Canvas(self, highlightthickness=0, background=canvas_bg)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.body = ttk.Frame(canvas)
 
         self.body.bind(
             "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-        canvas.create_window((0, 0), window=self.body, anchor="nw")
+        body_window = canvas.create_window((0, 0), window=self.body, anchor="nw")
+        # canvas幅にbodyを追従させる。これがないと説明文のwraplengthをウィンドウ幅に
+        # 連動させても、body自体の実効幅が古いまま残り折り返しがズレる。
+        canvas.bind(
+            "<Configure>", lambda e: canvas.itemconfig(body_window, width=e.width)
+        )
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.pack(side="left", fill="both", expand=True)
@@ -560,6 +632,29 @@ class LauncherApp(tk.Tk):
         self._sections = []
 
         self.build_tool_list()
+        _style_titlebar(self)
+
+    def _setup_style(self):
+        """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
+        style = ttk.Style(self)
+        for name in ("TLabel", "TButton", "TCheckbutton", "TEntry", "TLabelframe"):
+            style.configure(name, font=UI_FONT)
+        style.configure("TLabelframe.Label", font=UI_FONT_BOLD)  # ツール名見出し
+
+        # ボタン3段階: 目標高さ(px)に合わせて縦paddingを実測較正する。
+        # フォント行高やテーマのchrome（枠線・フォーカスリング）はDPI・テーマ依存のため、
+        # padding=0 のプローブボタンで素の高さを測り、不足分を上下paddingに配分する。
+        for style_name, spec in _BUTTON_SPECS.items():
+            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
+            probe = ttk.Button(self, text="あ", style=style_name)
+            self.update_idletasks()
+            base_h = probe.winfo_reqheight()
+            probe.destroy()
+            extra = max(0, spec["height"] - base_h)
+            top, bottom = extra // 2, extra - extra // 2
+            style.configure(style_name, padding=(spec["hpad"], top, spec["hpad"], bottom))
+        style.configure(BTN_TERTIARY, foreground="#888888")
+        return style
 
     def build_tool_list(self):
         for w in self.body.winfo_children():
@@ -619,6 +714,7 @@ class LauncherApp(tk.Tk):
             header_row,
             text="★" if is_fav else "☆",
             width=3,
+            style=BTN_TERTIARY,
             command=lambda: self.toggle_favorite(rel_str),
         ).pack(side="right")
 
@@ -632,16 +728,20 @@ class LauncherApp(tk.Tk):
                     header_row,
                     text="⚙設定",
                     width=7,
+                    style=BTN_TERTIARY,
                     command=lambda p=config_path, n=name, c=editor_cls: c(self, p, n),
                 ).pack(side="right", padx=(0, 4))
                 break
 
         if desc:
-            ttk.Label(frame, text=desc, wraplength=660, justify="left").pack(
-                anchor="w", padx=8, pady=(4, 2)
+            desc_label = ttk.Label(frame, text=desc, justify="left")
+            desc_label.pack(anchor="w", fill="x", padx=8, pady=(4, 2))
+            # ウィンドウ幅に折り返しを追従させる（固定値だとリサイズ時にズレるため）。
+            desc_label.bind(
+                "<Configure>", lambda e, w=desc_label: w.configure(wraplength=max(200, e.width))
             )
 
-        ttk.Label(frame, text=rel_str, foreground="gray").pack(
+        ttk.Label(frame, text=rel_str, font=PATH_FONT, foreground="#888888").pack(
             anchor="w", padx=8, pady=(0, 4)
         )
 
@@ -670,10 +770,17 @@ class LauncherApp(tk.Tk):
             if action.get("note"):
                 messagebox.showinfo(label, action["note"])
 
-        btn = ttk.Button(parent, text=f"{label} [{kind_label}]", command=on_click)
-        btn.pack(side="left", padx=(0, 6))
+        action_box = ttk.Frame(parent)
+        action_box.pack(side="left", padx=(0, 10))
 
-        ttk.Label(parent, textvariable=status_var, foreground="blue").pack(side="left")
+        btn = ttk.Button(action_box, text=label, style=BTN_SECONDARY, command=on_click)
+        btn.pack(side="left")
+        if kind_label:
+            ttk.Label(action_box, text=kind_label, font=TAG_FONT, foreground="#888888").pack(
+                side="left", padx=(4, 0)
+            )
+
+        ttk.Label(parent, textvariable=status_var, foreground="#4a9eff").pack(side="left")
 
     def toggle_favorite(self, rel_str: str):
         if rel_str in self.favorites:
