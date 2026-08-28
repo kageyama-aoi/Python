@@ -2,10 +2,9 @@
 # generate_drive_structure.py を、実行ログをリアルタイムに見ながら実行できるようにする
 # 単一ツール向けランチャー。Python 標準ライブラリ（Tkinter）のみで動作する。
 # 31_CSVまとめ閲覧Excel化/src/launcher_gui.py の設計を踏襲している。
-# フォルダ選択ダイアログ・古い出力削除の確認ダイアログは generate_drive_structure.py 側の
-# 既存のtkinterダイアログがそのまま表示される（#134でコンソール非依存のGUIダイアログ化済み）。
-# Optional: pip install sv-ttk      → Windows 11 スタイルのテーマが有効になる
-# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
+# テーマ・フォント・ボタン3段階スタイル・タイトルバー処理は theme.py に集約
+# （sv-ttk / pywinstyles は theme.py 側で任意 import。未導入でも標準ttkで動作する）。
+# 古い出力削除の確認ダイアログは generate_drive_structure.py 側のものがそのまま表示される。
 
 import json
 import os
@@ -22,17 +21,21 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-try:
-    import sv_ttk as _sv_ttk
-    _SV_TTK = True
-except ImportError:
-    _SV_TTK = False
-
-try:
-    import pywinstyles as _pywinstyles
-    _PYWINSTYLES = True
-except ImportError:
-    _PYWINSTYLES = False
+import theme
+from theme import (
+    ACCENT_FG,
+    BTN_PRIMARY,
+    BTN_SECONDARY,
+    BTN_TERTIARY,
+    ERROR_SOFT_FG,
+    HEADER_FONT,
+    LOG_BG,
+    LOG_FG,
+    LOG_FONT,
+    MUTED_FG,
+    SUCCESS_FG,
+    UI_FONT_BOLD,
+)
 
 # src/ の1つ上（プロジェクトルート）を基準にする。cwdに依存しないため、
 # run.batから起動しても直接 `python src/launcher_gui.py` を実行しても同じ場所を指す。
@@ -48,39 +51,20 @@ ABOUT_TEXT = (
     "出力されるもの： data/output/ に drive_structure_<日時>.xlsx（階層構造付きExcel）"
 )
 
-UI_FONT_FAMILY = "Yu Gothic UI"
-UI_FONT = (UI_FONT_FAMILY, 9)
-UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
-HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")
-LOG_FONT = ("ＭＳ ゴシック", 10)
-
-# Treeview選択行の強調色（sv_ttkダークテーマの既定は低コントラストなため明示指定。31番と同じ値）
-TREE_SELECT_BG = "#2f6fed"
-TREE_SELECT_FG = "#ffffff"
-
-BTN_PRIMARY = "Primary.Accent.TButton"
-BTN_SECONDARY = "Secondary.TButton"
-BTN_TERTIARY = "Tertiary.Toolbutton"
-_BUTTON_SPECS = {
-    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 40, "hpad": 20},
-    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 32, "hpad": 12},
-    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 26, "hpad": 6},
-}
-
 _LOG_TAGS = {
-    "header": {"foreground": "#4a9eff"},
-    "debug": {"foreground": "#888888"},
-    "pass": {"foreground": "#4ec94e"},
-    "fail": {"foreground": "#ff5555", "font": LOG_FONT + ("bold",)},
-    "error": {"foreground": "#ff7777"},
-    "warn": {"foreground": "#ffb347"},
+    "header": {"foreground": theme.ACCENT_FG},
+    "debug": {"foreground": theme.MUTED_FG},
+    "pass": {"foreground": theme.SUCCESS_FG},
+    "fail": {"foreground": theme.ERROR_FG, "font": LOG_FONT + ("bold",)},
+    "error": {"foreground": theme.ERROR_SOFT_FG},
+    "warn": {"foreground": theme.WARN_FG},
 }
 
 _SUMMARY_COLORS = {
-    "idle": "#888888",
-    "running": "#4a9eff",
-    "done": "#4ec94e",
-    "empty": "#ffb347",
+    "idle": theme.MUTED_FG,
+    "running": theme.ACCENT_FG,
+    "done": theme.SUCCESS_FG,
+    "empty": theme.WARN_FG,
 }
 
 _SENTINEL_RUN_DONE = object()
@@ -104,21 +88,6 @@ def _format_filesize(size_bytes):
     if size_bytes < 1024 * 1024:
         return f"{size_bytes / 1024:.1f} KB"
     return f"{size_bytes / 1024 / 1024:.1f} MB"
-
-
-def _style_titlebar(window):
-    if not (_SV_TTK and _PYWINSTYLES):
-        return
-    try:
-        version = sys.getwindowsversion()
-        if version.major == 10 and version.build >= 22000:
-            _pywinstyles.change_header_color(window, "#1c1c1c")
-        elif version.major == 10:
-            _pywinstyles.apply_style(window, "dark")
-            window.wm_attributes("-alpha", 0.99)
-            window.wm_attributes("-alpha", 1)
-    except Exception:
-        pass
 
 
 def _open_in_explorer(path):
@@ -215,7 +184,7 @@ class ConfigEditorWindow(tk.Toplevel):
         self.resizable(True, True)
         self.transient(master)
         self.grab_set()
-        _style_titlebar(self)
+        theme.style_titlebar(self)
 
         config = load_config()
         if config is None:
@@ -239,7 +208,7 @@ class ConfigEditorWindow(tk.Toplevel):
         ttk.Entry(root_dir_frame, textvariable=self.root_dir_var).grid(row=0, column=0, sticky="ew")
         ttk.Button(root_dir_frame, text="参照...", width=8, style=BTN_SECONDARY,
                    command=self._browse_root_dir).grid(row=0, column=1, padx=(6, 0))
-        hint = ttk.Label(frame, foreground="#888888",
+        hint = ttk.Label(frame, foreground=MUTED_FG,
                          text="※ 実行のたびにフォルダ選択ダイアログが開くため、通常はここを編集する必要はない")
         hint.grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 10))
 
@@ -265,7 +234,7 @@ class ConfigEditorWindow(tk.Toplevel):
         ttk.Entry(frame, textvariable=self.excluded_folder_names_var).grid(
             row=6, column=1, sticky="ew", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, foreground="#888888", text="※ 拡張子・フォルダ名はカンマ区切りで入力").grid(
+        ttk.Label(frame, foreground=MUTED_FG, text="※ 拡張子・フォルダ名はカンマ区切りで入力").grid(
             row=7, column=0, columnspan=2, sticky="w", pady=(2, 0))
 
         btn_frame = ttk.Frame(frame)
@@ -322,37 +291,15 @@ class LauncherApp(tk.Tk):
         self._last_output_file = None
 
         self._build_ui()
-
-        if _SV_TTK:
-            _sv_ttk.set_theme("dark")
-        self._setup_style()
+        self.style = theme.apply_theme(self)
 
         self.refresh_config_summary()
         self.after(100, self._drain_log_queue)
         self.after(300, lambda: threading.Thread(target=cleanup_old_logs, daemon=True).start())
         self.protocol("WM_DELETE_WINDOW", self._on_close)
-        _style_titlebar(self)
+        theme.style_titlebar(self)
 
     # -------------------------------------------------- UI 構築
-
-    def _setup_style(self):
-        style = ttk.Style(self)
-        for name in ("TLabel", "TButton", "TCheckbutton", "TEntry", "Treeview"):
-            style.configure(name, font=UI_FONT)
-        style.configure("TLabelframe.Label", font=UI_FONT_BOLD)
-        style.map("Treeview", background=[("selected", TREE_SELECT_BG)],
-                  foreground=[("selected", TREE_SELECT_FG)])
-
-        for style_name, spec in _BUTTON_SPECS.items():
-            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
-            probe = ttk.Button(self, text="あ", style=style_name)
-            self.update_idletasks()
-            base_h = probe.winfo_reqheight()
-            probe.destroy()
-            extra = max(0, spec["height"] - base_h)
-            top, bottom = extra // 2, extra - extra // 2
-            style.configure(style_name, padding=(spec["hpad"], top, spec["hpad"], bottom))
-        style.configure(BTN_TERTIARY, foreground="#888888")
 
     def _build_ui(self):
         about = ttk.LabelFrame(self, text="このツールについて", padding=10)
@@ -395,7 +342,7 @@ class LauncherApp(tk.Tk):
                    command=lambda: (LOGS_DIR.mkdir(parents=True, exist_ok=True), _open_in_explorer(LOGS_DIR))
                    ).pack(side="left", fill="x", expand=True, padx=(4, 0))
 
-        self.status_label = ttk.Label(left, text="待機中", foreground="#888888")
+        self.status_label = ttk.Label(left, text="待機中", foreground=MUTED_FG)
         self.status_label.pack(anchor="w", pady=(12, 0))
 
         # ---- 右ペイン
@@ -405,8 +352,8 @@ class LauncherApp(tk.Tk):
         right.columnconfigure(0, weight=1)
 
         self.log_text = ScrolledText(right, font=LOG_FONT, state="disabled",
-                                     background="#1e1e1e", foreground="#e0e0e0",
-                                     insertbackground="#e0e0e0")
+                                     background=LOG_BG, foreground=LOG_FG,
+                                     insertbackground=LOG_FG)
         self.log_text.grid(row=0, column=0, sticky="nsew")
         for tag, opts in _LOG_TAGS.items():
             self.log_text.tag_configure(tag, **opts)
@@ -438,7 +385,7 @@ class LauncherApp(tk.Tk):
             self.config_label.config(
                 text=f"config/config.json が見つかりません。\n"
                      f"「設定を編集...」から作成してください。",
-                foreground="#ff7777")
+                foreground=ERROR_SOFT_FG)
             return
         excluded_ext = ", ".join(config.get("excluded_extensions", [])) or "(なし)"
         excluded_dir = ", ".join(config.get("excluded_folder_names", [])) or "(なし)"
@@ -522,7 +469,7 @@ class LauncherApp(tk.Tk):
         self.stop_btn.config(state="normal" if running else "disabled")
         self.status_label.config(
             text="実行中..." if running else "待機中",
-            foreground="#4a9eff" if running else "#888888")
+            foreground=ACCENT_FG if running else MUTED_FG)
 
     def _on_close(self):
         proc = self.proc
