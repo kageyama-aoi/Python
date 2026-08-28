@@ -8,6 +8,7 @@ show_tree.build_report をそのまま使う（CLI と挙動を一致させる�
 import os
 import re
 import sys
+import threading
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, filedialog
@@ -39,6 +40,7 @@ class ShowTreeApp(tk.Tk):
         self.geometry("900x640")
         self.minsize(680, 480)
 
+        self._result = None  # ワーカースレッドが (種別, 内容) を書き、_poll_result が拾う
         self._build_ui()
         self.style = theme.apply_theme(self)
         theme.style_titlebar(self)
@@ -97,19 +99,43 @@ class ShowTreeApp(tk.Tk):
 
     def _generate(self):
         try:
-            report = build_report(
-                self.root_var.get().strip(),
-                self.depth_var.get(),
-                self.hidden_var.get(),
-                _split_list(self.ext_var.get()),
-                _split_list(self.ignore_var.get()),
-            )
-        except (ValueError, tk.TclError) as exc:
-            self._set_text(f"[ERROR] {exc}")
-            self.status.config(text="失敗")
+            depth = self.depth_var.get()
+        except tk.TclError:
+            self.status.config(text="深さには数値を入力してください")
             return
-        self._set_text("\n".join(report))
-        self.status.config(text="生成しました")
+        params = (
+            self.root_var.get().strip(),
+            depth,
+            self.hidden_var.get(),
+            _split_list(self.ext_var.get()),
+            _split_list(self.ignore_var.get()),
+        )
+        self.status.config(text="生成中...")
+        # 巨大なツリーでも UI が固まらないよう別スレッドで生成し、
+        # 結果はメインスレッドの _poll_result がポーリングして反映する
+        # （tkinter は他スレッドから触れないため。launcher_gui と同じ方針）。
+        self._result = None
+        threading.Thread(target=self._generate_worker, args=params, daemon=True).start()
+        self._poll_result()
+
+    def _generate_worker(self, *params):
+        try:
+            self._result = ("ok", "\n".join(build_report(*params)))
+        except ValueError as exc:
+            self._result = ("err", str(exc))
+
+    def _poll_result(self):
+        if self._result is None:
+            self.after(80, self._poll_result)
+            return
+        kind, payload = self._result
+        self._result = None
+        if kind == "ok":
+            self._set_text(payload)
+            self.status.config(text="生成しました")
+        else:
+            self._set_text(f"[ERROR] {payload}")
+            self.status.config(text="失敗")
 
     def _set_text(self, content):
         self.text.delete("1.0", "end")

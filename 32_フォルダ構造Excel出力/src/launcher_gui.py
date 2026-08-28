@@ -641,7 +641,7 @@ class LauncherApp(tk.Tk):
         return f"{label} {mm:02d}:{ss:02d}{count_part}"
 
     def _tick_elapsed(self):
-        if not self.is_running:
+        if not self.is_running or not self.winfo_exists():
             return
         self.progress_detail.config(text=self._elapsed_text())
         self._elapsed_job = self.after(1000, self._tick_elapsed)
