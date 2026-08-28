@@ -54,6 +54,8 @@ python app.py
 | sv-ttk | **任意**。`pip install sv-ttk` で Windows 11 スタイルのダークテーマが有効になる。未インストールでも標準 ttk テーマで正常動作する |
 | pywinstyles | **任意**。`pip install pywinstyles` で全ウィンドウのタイトルバーもダークテーマに揃う（sv-ttk 併用時のみ。Win11はヘッダー色指定、Win10はダークスタイルで対応） |
 
+UIフォントは視認性の高い **Meiryo UI**（`app.py` の `UI_FONT_FAMILY`）で統一しています（各ツール側GUIと同方針）。
+
 ## 既知の制約
 
 - `entry`は起動時にツールフォルダ内の絶対パスに変換してから実行している。日本語を含むフォルダ名では、相対パス＋`cwd`指定の組み合わせだと`cmd.exe`が実行ファイルを見つけられないことがあるため

@@ -64,13 +64,15 @@ KIND_LABELS = {
     "generator": "生成",
 }
 
-# フォント定義（ここで一元管理。33_テキスト・CSV前処理サポートのlauncher_gui.pyと揃える）
-UI_FONT_FAMILY = "Yu Gothic UI"
-UI_FONT = (UI_FONT_FAMILY, 9)
-UI_FONT_BOLD = (UI_FONT_FAMILY, 9, "bold")
-HEADER_FONT = (UI_FONT_FAMILY, 11, "bold")   # カテゴリ見出し
-TAG_FONT = (UI_FONT_FAMILY, 8)               # 種別タグ等の補足テキスト
-PATH_FONT = (UI_FONT_FAMILY, 8)              # 相対パス表示
+# フォント定義（ここで一元管理）。視認性の高い Meiryo UI に統一する（#160、81_open_shortcut #159 と同方針）。
+# Meiryo UI は Windows 標準で必ず利用でき、かな・小書き文字が読みやすい。
+# Yu Gothic UI より字面がやや大きいため、旧サイズから 1pt ずつ引き上げている。
+UI_FONT_FAMILY = "Meiryo UI"
+UI_FONT = (UI_FONT_FAMILY, 10)
+UI_FONT_BOLD = (UI_FONT_FAMILY, 10, "bold")
+HEADER_FONT = (UI_FONT_FAMILY, 12, "bold")   # カテゴリ見出し
+TAG_FONT = (UI_FONT_FAMILY, 9)               # 種別タグ等の補足テキスト
+PATH_FONT = (UI_FONT_FAMILY, 9)              # 相対パス表示
 
 # ボタン3段階の共通スタイル（全ボタンは必ずこの3種のどれかで生成する）
 #   Primary   : サブウィンドウの主操作（保存して閉じる）。14pt bold・高さ40px
@@ -80,9 +82,9 @@ BTN_PRIMARY = "Primary.Accent.TButton"
 BTN_SECONDARY = "Secondary.TButton"
 BTN_TERTIARY = "Tertiary.Toolbutton"
 _BUTTON_SPECS = {
-    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 40, "hpad": 20},
-    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 32, "hpad": 12},
-    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 26, "hpad": 6},
+    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 42, "hpad": 20},
+    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 34, "hpad": 12},
+    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 28, "hpad": 6},
 }
 
 
@@ -637,6 +639,7 @@ class LauncherApp(tk.Tk):
     def _setup_style(self):
         """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
         style = ttk.Style(self)
+        style.configure(".", font=UI_FONT)  # 個別指定しないウィジェットへのフォールバック
         for name in ("TLabel", "TButton", "TCheckbutton", "TEntry", "TLabelframe"):
             style.configure(name, font=UI_FONT)
         style.configure("TLabelframe.Label", font=UI_FONT_BOLD)  # ツール名見出し
