@@ -2,7 +2,19 @@
 
 - 調査日: 2026-07-31
 - 調査範囲: `C:\Users\kageyama\Tools\Python` 配下全体
-- ステータス: 調査のみ。修正は未着手
+- ステータス: 調査完了。**2026-08-28 (#162)** に `00_ランチャー` 側を `theme.py` へ切り出し済み
+
+## 2026-08-28 更新（#162）
+
+- `00_ランチャー/app.py` からテーマ／フォント／ボタン3段階スタイル／`style_titlebar`
+  （下表 #1〜#5 の 00 側）を `00_ランチャー/theme.py` に抽出した。`81_open_shortcut/src/theme.py`
+  と同型で、関数 `apply_theme(root)` / `style_titlebar(window)` を公開する。
+- 設定エディタ（`ConfigEditorWindow` / `IniConfigEditorWindow`）は `00_ランチャー/config_editors.py`
+  に分離し、JSON型ラウンドトリップ・INI行置換を純関数化して `tests/test_config_editors.py` を追加。
+- 以降の下表の行番号は分割前の app.py のもの。00 側の該当コードは `theme.py` / `config_editors.py`
+  に移動している。
+- **残タスク**: `00_ランチャー/theme.py` と `33_テキスト・CSV前処理サポート/launcher_gui.py` の
+  テーマ部分がまだ二重管理。両者が対等に参照できる共通モジュール（第3の場所）への集約は未着手。
 
 ## 背景・目的
 

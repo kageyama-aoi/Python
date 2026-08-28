@@ -28,31 +28,32 @@ favorites.json（このファイルと同じ場所に自動生成、gitignore対
 ウィンドウが開く。JSONは元の型を保ったまま全体を書き戻し、INIは変更したキーの
 行だけを置換してコメント・空行を保持する。
 """
-import configparser
 import json
 import os
 import re
 import subprocess
-import sys
 import threading
 import tkinter as tk
 from collections import defaultdict
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import messagebox, ttk
 
-# Optional: pip install sv-ttk      → Windows 11 スタイルのダークテーマが有効になる
-# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
-try:
-    import sv_ttk as _sv_ttk
-    _SV_TTK = True
-except ImportError:
-    _SV_TTK = False
+from config_editors import ConfigEditorWindow, IniConfigEditorWindow
+from theme import (
+    BTN_SECONDARY,
+    BTN_TERTIARY,
+    HEADER_FONT,
+    MUTED_FG,
+    PATH_FONT,
+    STATUS_FG,
+    TAG_FONT,
+    apply_theme,
+    style_titlebar,
+)
 
-try:
-    import pywinstyles as _pywinstyles
-    _PYWINSTYLES = True
-except ImportError:
-    _PYWINSTYLES = False
+# テーマ・フォント・ボタン3段階スタイル・タイトルバー処理は theme.py に集約
+# （sv-ttk / pywinstyles は theme.py 側で任意 import。未導入でも標準ttkで動作する）。
+# 設定エディタ（config.json / config.ini）のウィンドウは config_editors.py。
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 FAVORITES_FILE = Path(__file__).resolve().parent / "favorites.json"
@@ -63,46 +64,6 @@ KIND_LABELS = {
     "server": "サーバー",
     "generator": "生成",
 }
-
-# フォント定義（ここで一元管理）。視認性の高い Meiryo UI に統一する（#160、81_open_shortcut #159 と同方針）。
-# Meiryo UI は Windows 標準で必ず利用でき、かな・小書き文字が読みやすい。
-# Yu Gothic UI より字面がやや大きいため、旧サイズから 1pt ずつ引き上げている。
-UI_FONT_FAMILY = "Meiryo UI"
-UI_FONT = (UI_FONT_FAMILY, 10)
-UI_FONT_BOLD = (UI_FONT_FAMILY, 10, "bold")
-HEADER_FONT = (UI_FONT_FAMILY, 12, "bold")   # カテゴリ見出し
-TAG_FONT = (UI_FONT_FAMILY, 9)               # 種別タグ等の補足テキスト
-PATH_FONT = (UI_FONT_FAMILY, 9)              # 相対パス表示
-
-# ボタン3段階の共通スタイル（全ボタンは必ずこの3種のどれかで生成する）
-#   Primary   : サブウィンドウの主操作（保存して閉じる）。14pt bold・高さ40px
-#   Secondary : ツール実行ボタン・キャンセル等の標準操作。11pt・高さ32px
-#   Tertiary  : ★お気に入り・⚙設定・参照...等の補助操作。10pt・高さ26px・枠なし
-BTN_PRIMARY = "Primary.Accent.TButton"
-BTN_SECONDARY = "Secondary.TButton"
-BTN_TERTIARY = "Tertiary.Toolbutton"
-_BUTTON_SPECS = {
-    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 14, "bold"), "height": 42, "hpad": 20},
-    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 11),         "height": 34, "hpad": 12},
-    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 10),         "height": 28, "hpad": 6},
-}
-
-
-def _style_titlebar(window):
-    """タイトルバーをダークテーマに揃える（sv_ttk＋pywinstylesがあるときだけ。失敗しても無害）。
-    Windows 11 はヘッダー色の直接指定、Windows 10 はダークスタイル適用＋再描画ハックで対応する。"""
-    if not (_SV_TTK and _PYWINSTYLES):
-        return
-    try:
-        version = sys.getwindowsversion()
-        if version.major == 10 and version.build >= 22000:   # Windows 11
-            _pywinstyles.change_header_color(window, "#1c1c1c")
-        elif version.major == 10:                            # Windows 10
-            _pywinstyles.apply_style(window, "dark")
-            window.wm_attributes("-alpha", 0.99)              # 色が即時反映されないための再描画ハック
-            window.wm_attributes("-alpha", 1)
-    except Exception:
-        pass
 
 # ディレクトリ番号帯とカテゴリ名の対応（過去のリネームコミットの命名を踏襲）
 CATEGORY_LABELS = {
@@ -242,300 +203,6 @@ def run_generator(
     threading.Thread(target=worker, daemon=True).start()
 
 
-# フォルダ参照ボタンを付ける対象キーの判定（例: root_dir, TargetDirectory, icon_folder）
-_PATH_KEY_RE = re.compile(r"(dir|path|folder)", re.IGNORECASE)
-
-
-def _browse_dir_into_var(parent, var: tk.StringVar, fallback_dir: Path):
-    """フォルダ選択ダイアログを開き、選択結果を入力欄の変数へ反映する。"""
-    current = var.get()
-    initial = current if Path(current).is_dir() else str(fallback_dir)
-    selected = filedialog.askdirectory(parent=parent, initialdir=initial)
-    if selected:
-        var.set(selected)
-
-
-class ConfigEditorWindow(tk.Toplevel):
-    """config.json の全キーを自動フォーム化して編集・保存するサブウィンドウ。
-
-    型ごとの編集方式:
-    - bool            → チェックボックス
-    - str / int / float → 1行入力（キー名に dir/path/folder を含む文字列値は
-                          フォルダ参照ボタン付き）
-    - list（全要素が文字列）→ カンマ区切りの1行入力
-    - dict などその他  → JSON文字列として編集
-    保存時は元の型へ変換して書き戻す。変換できない入力はエラー表示して中断する。
-    """
-
-    def __init__(self, master, config_path: Path, tool_name: str):
-        super().__init__(master)
-        self.title(f"⚙設定 - {tool_name}")
-        self.config_path = config_path
-        self.minsize(480, 120)
-        self.transient(master)
-        _style_titlebar(self)
-
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                self.data = json.load(f)
-        except (json.JSONDecodeError, OSError) as exc:
-            messagebox.showerror(
-                "読み込みエラー", f"{config_path.name} を読み込めませんでした:\n{exc}",
-                parent=master,
-            )
-            self.destroy()
-            return
-        if not isinstance(self.data, dict):
-            messagebox.showerror(
-                "読み込みエラー",
-                f"{config_path.name} のトップレベルがオブジェクトではないため編集できません。",
-                parent=master,
-            )
-            self.destroy()
-            return
-
-        # (キー, 編集方式, 入力変数) のリスト。保存時にここから値を復元する。
-        self._fields = []
-        self._build_form()
-        self.grab_set()
-
-    def _build_form(self):
-        form = ttk.Frame(self)
-        form.pack(fill="both", expand=True, padx=12, pady=(12, 4))
-        form.columnconfigure(1, weight=1)
-
-        for row, (key, value) in enumerate(self.data.items()):
-            ttk.Label(form, text=key).grid(
-                row=row, column=0, sticky="w", padx=(0, 10), pady=3
-            )
-            # bool は int のサブクラスなので、int より先に判定する
-            if isinstance(value, bool):
-                var = tk.BooleanVar(value=value)
-                ttk.Checkbutton(form, variable=var).grid(row=row, column=1, sticky="w", pady=3)
-                self._fields.append((key, "bool", var))
-                continue
-
-            if isinstance(value, str):
-                kind = "str"
-                text = value
-            elif isinstance(value, (int, float)):
-                kind = "number"
-                text = str(value)
-            elif isinstance(value, list) and all(isinstance(v, str) for v in value):
-                kind = "list_str"
-                text = ", ".join(value)
-            else:
-                kind = "json"
-                text = json.dumps(value, ensure_ascii=False)
-
-            var = tk.StringVar(value=text)
-            entry = ttk.Entry(form, textvariable=var, width=48)
-            entry.grid(row=row, column=1, sticky="ew", pady=3)
-            if kind == "str" and _PATH_KEY_RE.search(key):
-                ttk.Button(
-                    form, text="参照...", style=BTN_TERTIARY,
-                    command=lambda v=var: self._browse_dir(v),
-                ).grid(row=row, column=2, sticky="w", padx=(6, 0), pady=3)
-            self._fields.append((key, kind, var))
-
-        hint = ttk.Label(
-            self,
-            text="リストはカンマ区切り、辞書はJSON形式で編集します。",
-            font=TAG_FONT,
-            foreground="#888888",
-        )
-        hint.pack(anchor="w", padx=12)
-
-        btn_row = ttk.Frame(self)
-        btn_row.pack(pady=(6, 12))
-        ttk.Button(btn_row, text="保存して閉じる", style=BTN_PRIMARY, command=self._save).pack(
-            side="left", padx=(0, 8)
-        )
-        ttk.Button(btn_row, text="キャンセル", style=BTN_SECONDARY, command=self.destroy).pack(
-            side="left"
-        )
-
-    def _browse_dir(self, var: tk.StringVar):
-        _browse_dir_into_var(self, var, self.config_path.parent)
-
-    def _save(self):
-        new_data = dict(self.data)
-        for key, kind, var in self._fields:
-            raw = var.get()
-            try:
-                if kind == "bool":
-                    new_data[key] = bool(raw)
-                elif kind == "number":
-                    original = self.data[key]
-                    new_data[key] = type(original)(raw)
-                elif kind == "list_str":
-                    new_data[key] = [v.strip() for v in raw.split(",") if v.strip()]
-                elif kind == "json":
-                    new_data[key] = json.loads(raw)
-                else:
-                    new_data[key] = raw
-            except (ValueError, json.JSONDecodeError) as exc:
-                messagebox.showerror(
-                    "入力エラー", f"'{key}' の値を変換できません:\n{exc}", parent=self
-                )
-                return
-
-        try:
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                json.dump(new_data, f, ensure_ascii=False, indent=2)
-                f.write("\n")
-        except OSError as exc:
-            messagebox.showerror(
-                "保存エラー", f"{self.config_path.name} に保存できませんでした:\n{exc}",
-                parent=self,
-            )
-            return
-        self.destroy()
-
-
-class IniConfigEditorWindow(tk.Toplevel):
-    """config.ini をセクションごとにフォーム化して編集・保存するサブウィンドウ。
-
-    INIの値はすべて文字列として編集する。保存はファイル全体の書き直しではなく
-    変更されたキーの行だけを置換する方式で、コメント行・空行・キーの記述順を
-    保持する（configparserで書き戻すとコメントが全て消えるため）。
-    複数行にまたがる値（継続行）は行置換で壊れるため編集不可として表示する。
-    """
-
-    _SECTION_RE = re.compile(r"^\s*\[(.+?)\]")
-    _KEY_LINE_RE = re.compile(r"^(\s*)([^=:\s][^=:]*?)(\s*[=:]\s*)")
-
-    def __init__(self, master, config_path: Path, tool_name: str):
-        super().__init__(master)
-        self.title(f"⚙設定 - {tool_name}")
-        self.config_path = config_path
-        self.minsize(480, 120)
-        self.transient(master)
-        _style_titlebar(self)
-
-        parser = configparser.ConfigParser(interpolation=None)
-        parser.optionxform = str  # キーの大文字小文字を保持する
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                parser.read_file(f)
-        except (configparser.Error, OSError, UnicodeDecodeError) as exc:
-            messagebox.showerror(
-                "読み込みエラー", f"{config_path.name} を読み込めませんでした:\n{exc}",
-                parent=master,
-            )
-            self.destroy()
-            return
-
-        # (セクション, キー, 入力変数, 元の値) のリスト。保存時に差分だけ書き込む。
-        self._fields = []
-        self._build_form(parser)
-        self.grab_set()
-
-    def _build_form(self, parser: configparser.ConfigParser):
-        form = ttk.Frame(self)
-        form.pack(fill="both", expand=True, padx=12, pady=(12, 4))
-        form.columnconfigure(1, weight=1)
-
-        row = 0
-        for section in parser.sections():
-            ttk.Label(form, text=f"[{section}]", font=UI_FONT_BOLD).grid(
-                row=row, column=0, columnspan=2, sticky="w",
-                pady=(8 if row else 0, 2),
-            )
-            row += 1
-            for key, value in parser.items(section):
-                ttk.Label(form, text=key).grid(
-                    row=row, column=0, sticky="w", padx=(12, 10), pady=3
-                )
-                var = tk.StringVar(value=value)
-                entry = ttk.Entry(form, textvariable=var, width=48)
-                entry.grid(row=row, column=1, sticky="ew", pady=3)
-                if "\n" in value:
-                    entry.config(state="disabled")
-                    ttk.Label(
-                        form, text="(複数行値のため編集不可)", font=TAG_FONT, foreground="#888888"
-                    ).grid(row=row, column=2, sticky="w", padx=(6, 0))
-                elif _PATH_KEY_RE.search(key):
-                    ttk.Button(
-                        form, text="参照...", style=BTN_TERTIARY,
-                        command=lambda v=var: _browse_dir_into_var(
-                            self, v, self.config_path.parent
-                        ),
-                    ).grid(row=row, column=2, sticky="w", padx=(6, 0), pady=3)
-                self._fields.append((section, key, var, value))
-                row += 1
-
-        btn_row = ttk.Frame(self)
-        btn_row.pack(pady=(6, 12))
-        ttk.Button(btn_row, text="保存して閉じる", style=BTN_PRIMARY, command=self._save).pack(
-            side="left", padx=(0, 8)
-        )
-        ttk.Button(btn_row, text="キャンセル", style=BTN_SECONDARY, command=self.destroy).pack(
-            side="left"
-        )
-
-    def _replace_value_line(self, lines: list, section: str, key: str, new_value: str) -> bool:
-        """指定セクション内のキー行を探し、値部分だけ書き換える。見つからなければFalse。"""
-        current_section = None
-        for i, line in enumerate(lines):
-            m = self._SECTION_RE.match(line)
-            if m:
-                current_section = m.group(1)
-                continue
-            if current_section != section:
-                continue
-            stripped = line.lstrip()
-            if not stripped or stripped.startswith((";", "#")):
-                continue
-            km = self._KEY_LINE_RE.match(line)
-            if km and km.group(2).strip() == key:
-                newline = "\n" if line.endswith("\n") else ""
-                lines[i] = f"{km.group(1)}{km.group(2)}{km.group(3)}{new_value}{newline}"
-                return True
-        return False
-
-    def _save(self):
-        try:
-            lines = self.config_path.read_text(encoding="utf-8").splitlines(keepends=True)
-        except (OSError, UnicodeDecodeError) as exc:
-            messagebox.showerror(
-                "保存エラー", f"{self.config_path.name} を読み直せませんでした:\n{exc}",
-                parent=self,
-            )
-            return
-
-        changed = False
-        for section, key, var, original in self._fields:
-            new_value = var.get()
-            if new_value == original:
-                continue
-            if "\n" in new_value:
-                messagebox.showerror(
-                    "入力エラー", f"'{key}' に改行は入力できません。", parent=self
-                )
-                return
-            if not self._replace_value_line(lines, section, key, new_value):
-                messagebox.showerror(
-                    "保存エラー",
-                    f"[{section}] の '{key}' の行が見つからず、保存を中断しました。\n"
-                    f"{self.config_path.name} を直接確認してください。",
-                    parent=self,
-                )
-                return
-            changed = True
-
-        if changed:
-            try:
-                self.config_path.write_text("".join(lines), encoding="utf-8")
-            except OSError as exc:
-                messagebox.showerror(
-                    "保存エラー",
-                    f"{self.config_path.name} に保存できませんでした:\n{exc}",
-                    parent=self,
-                )
-                return
-        self.destroy()
-
 
 class CollapsibleSection(ttk.Frame):
     """クリックで開閉できるセクション。見出しをクリックすると中身の表示/非表示を切り替える。"""
@@ -586,9 +253,7 @@ class LauncherApp(tk.Tk):
         self.geometry("820x640")
         self.minsize(600, 400)
 
-        if _SV_TTK:
-            _sv_ttk.set_theme("dark")
-        style = self._setup_style()  # フォント統一はテーマ適用後に行う（sv_ttkの上書きを防ぐ）
+        self.style = apply_theme(self)
 
         self.favorites = load_favorites()
 
@@ -605,7 +270,7 @@ class LauncherApp(tk.Tk):
         ).pack(side="left")
 
         # ── スクロール可能な本体 ──
-        canvas_bg = style.lookup("TFrame", "background") or self.cget("background")
+        canvas_bg = self.style.lookup("TFrame", "background") or self.cget("background")
         canvas = tk.Canvas(self, highlightthickness=0, background=canvas_bg)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.body = ttk.Frame(canvas)
@@ -634,30 +299,7 @@ class LauncherApp(tk.Tk):
         self._sections = []
 
         self.build_tool_list()
-        _style_titlebar(self)
-
-    def _setup_style(self):
-        """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。"""
-        style = ttk.Style(self)
-        style.configure(".", font=UI_FONT)  # 個別指定しないウィジェットへのフォールバック
-        for name in ("TLabel", "TButton", "TCheckbutton", "TEntry", "TLabelframe"):
-            style.configure(name, font=UI_FONT)
-        style.configure("TLabelframe.Label", font=UI_FONT_BOLD)  # ツール名見出し
-
-        # ボタン3段階: 目標高さ(px)に合わせて縦paddingを実測較正する。
-        # フォント行高やテーマのchrome（枠線・フォーカスリング）はDPI・テーマ依存のため、
-        # padding=0 のプローブボタンで素の高さを測り、不足分を上下paddingに配分する。
-        for style_name, spec in _BUTTON_SPECS.items():
-            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
-            probe = ttk.Button(self, text="あ", style=style_name)
-            self.update_idletasks()
-            base_h = probe.winfo_reqheight()
-            probe.destroy()
-            extra = max(0, spec["height"] - base_h)
-            top, bottom = extra // 2, extra - extra // 2
-            style.configure(style_name, padding=(spec["hpad"], top, spec["hpad"], bottom))
-        style.configure(BTN_TERTIARY, foreground="#888888")
-        return style
+        style_titlebar(self)
 
     def build_tool_list(self):
         for w in self.body.winfo_children():
@@ -746,7 +388,7 @@ class LauncherApp(tk.Tk):
                 "<Configure>", lambda e, w=desc_label: w.configure(wraplength=max(200, e.width))
             )
 
-        ttk.Label(frame, text=rel_str, font=PATH_FONT, foreground="#888888").pack(
+        ttk.Label(frame, text=rel_str, font=PATH_FONT, foreground=MUTED_FG).pack(
             anchor="w", padx=8, pady=(0, 4)
         )
 
@@ -781,11 +423,11 @@ class LauncherApp(tk.Tk):
         btn = ttk.Button(action_box, text=label, style=BTN_SECONDARY, command=on_click)
         btn.pack(side="left")
         if kind_label:
-            ttk.Label(action_box, text=kind_label, font=TAG_FONT, foreground="#888888").pack(
+            ttk.Label(action_box, text=kind_label, font=TAG_FONT, foreground=MUTED_FG).pack(
                 side="left", padx=(4, 0)
             )
 
-        ttk.Label(parent, textvariable=status_var, foreground="#4a9eff").pack(side="left")
+        ttk.Label(parent, textvariable=status_var, foreground=STATUS_FG).pack(side="left")
 
     def toggle_favorite(self, rel_str: str):
         if rel_str in self.favorites:
