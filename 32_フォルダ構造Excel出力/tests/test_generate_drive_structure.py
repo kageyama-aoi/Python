@@ -256,6 +256,22 @@ def test_scan_deep_nesting_keeps_depth_first_order(tmp_path):
     ]
 
 
+def test_scan_emits_progress_log_at_milestones(tmp_path, caplog):
+    root = tmp_path / "root"
+    root.mkdir()
+    total = generate_drive_structure.SCAN_PROGRESS_LOG_EVERY * 2 + 3
+    for i in range(total):
+        (root / f"f{i:05d}.txt").write_text("x", encoding="utf-8")
+
+    with caplog.at_level("INFO"):
+        items = DirectoryScanner(str(root)).scan()
+
+    assert len(items) == total
+    progress_msgs = [r.message for r in caplog.records if "スキャン中" in r.message]
+    # 500 と 1000 の2回（1003件目では出ない）
+    assert progress_msgs == ["スキャン中... 500 件", "スキャン中... 1,000 件"]
+
+
 # ---- create_dataframe_with_fullpath ----
 
 def test_create_dataframe_empty_input():

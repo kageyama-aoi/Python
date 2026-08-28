@@ -165,12 +165,23 @@ class ScannedItem:
         self.item_type = item_type
         self.size_bytes = size_bytes
 
+# 収集件数がこの倍数に達するたびに進捗ログを1行出す（GUIランチャーの経過表示用）。
+SCAN_PROGRESS_LOG_EVERY = 500
+
+
 class DirectoryScanner:
     def __init__(self, root_path, excluded_extensions=None, excluded_folder_names=None):
         self.root_path = root_path
         self.excluded_extensions = excluded_extensions if excluded_extensions is not None else []
         self.excluded_folder_names = excluded_folder_names if excluded_folder_names is not None else []
         self.scanned_data = []
+        self._progress_milestone = 0
+
+    def _log_scan_progress(self, count):
+        """収集件数が SCAN_PROGRESS_LOG_EVERY の倍数を超えるたびに1行だけ出す。"""
+        if count >= self._progress_milestone + SCAN_PROGRESS_LOG_EVERY:
+            self._progress_milestone = count - (count % SCAN_PROGRESS_LOG_EVERY)
+            logging.info(f"スキャン中... {count:,} 件")
 
     def scan(self):
         """
@@ -216,6 +227,7 @@ class DirectoryScanner:
             item_full_path = os.path.join(dirpath, dirname)
             # フォルダの配下合計サイズは計算しない（処理速度とシンプルさを優先）
             file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, dirname, 'folder'))
+            self._log_scan_progress(len(file_structure))
             self._scan_dir(item_full_path, parent_levels + [dirname], excluded_folder_names_lower, file_structure)
 
         for filename in filenames:
@@ -232,6 +244,7 @@ class DirectoryScanner:
                 logging.warning(f"サイズを取得できませんでした: {item_full_path} ({e})")
                 size_bytes = None
             file_structure.append(ScannedItem(item_full_path, dirpath, parent_levels, filename, 'file', size_bytes))
+            self._log_scan_progress(len(file_structure))
 
 def create_dataframe_with_fullpath(scanned_items):
     """収集した ScannedItem のリストから Pandas DataFrame を作成する。フルパス列・タイプ列・サイズ列を含む。"""

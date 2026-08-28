@@ -8,7 +8,9 @@
 
 import json
 import os
+import re
 import sys
+import time
 import queue
 import zipfile
 import threading
@@ -272,6 +274,9 @@ class LauncherApp(tk.Tk):
         self.proc = None
         self.is_running = False
         self._last_output_file = None
+        self._run_started_at = None
+        self._scanned_count = 0
+        self._elapsed_job = None
 
         self._build_ui()
         self.style = theme.apply_theme(self)
@@ -340,8 +345,12 @@ class LauncherApp(tk.Tk):
                    command=lambda: (LOGS_DIR.mkdir(parents=True, exist_ok=True), _open_in_explorer(LOGS_DIR))
                    ).pack(side="left", fill="x", expand=True, padx=(4, 0))
 
-        self.status_label = ttk.Label(left, text="待機中", foreground=MUTED_FG)
-        self.status_label.pack(anchor="w", pady=(12, 0))
+        status_box = ttk.Frame(left)
+        status_box.pack(fill="x", pady=(12, 0))
+        self.status_label = ttk.Label(status_box, text="待機中", foreground=MUTED_FG)
+        self.status_label.pack(anchor="w")
+        self.progress = ttk.Progressbar(status_box, mode="indeterminate")
+        self.progress_detail = ttk.Label(status_box, text="", foreground=MUTED_FG)
 
         # ---- 右ペイン
         right = ttk.Frame(paned)
@@ -517,6 +526,48 @@ class LauncherApp(tk.Tk):
             text="実行中..." if running else "待機中",
             foreground=ACCENT_FG if running else MUTED_FG)
 
+        if running:
+            self._run_started_at = time.monotonic()
+            self._scanned_count = 0
+            self.progress.pack(fill="x", pady=(4, 2))
+            self.progress.start(15)
+            self.progress_detail.pack(anchor="w")
+            self._tick_elapsed()
+        else:
+            self.progress.stop()
+            self.progress.pack_forget()
+            if self._elapsed_job is not None:
+                self.after_cancel(self._elapsed_job)
+                self._elapsed_job = None
+            self.progress_detail.config(text=self._elapsed_text(final=True))
+
+    def _elapsed_text(self, final=False):
+        if self._run_started_at is None:
+            return ""
+        elapsed = int(time.monotonic() - self._run_started_at)
+        mm, ss = divmod(elapsed, 60)
+        count_part = f" ・ 収集 {self._scanned_count:,} 件" if self._scanned_count else ""
+        label = "所要" if final else "経過"
+        return f"{label} {mm:02d}:{ss:02d}{count_part}"
+
+    def _tick_elapsed(self):
+        if not self.is_running:
+            return
+        self.progress_detail.config(text=self._elapsed_text())
+        self._elapsed_job = self.after(1000, self._tick_elapsed)
+
+    _SCAN_COUNT_RE = re.compile(r"([\d,]+)\s*件")
+
+    def _note_progress(self, text):
+        """スキャン進捗ログから収集件数を拾う（経過表示の「収集 N 件」に使う）。"""
+        if "スキャン中" in text or "取得しました" in text:
+            m = self._SCAN_COUNT_RE.search(text)
+            if m:
+                try:
+                    self._scanned_count = int(m.group(1).replace(",", ""))
+                except ValueError:
+                    pass
+
     def _on_close(self):
         proc = self.proc
         if proc is not None:
@@ -562,6 +613,8 @@ class LauncherApp(tk.Tk):
             return
         self.log_text.configure(state="normal")
         for text, tag in entries:
+            if self.is_running:
+                self._note_progress(text)
             if tag is None:
                 tag = self._get_log_tag(text)
             if tag:
