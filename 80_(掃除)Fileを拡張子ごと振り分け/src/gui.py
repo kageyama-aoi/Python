@@ -26,7 +26,7 @@ from .organizer import (
 from .settings_editor import SettingsEditor
 
 WINDOW_TITLE = "ファイル振り分けツール"
-WINDOW_GEOMETRY = "820x620"
+WINDOW_GEOMETRY = "940x640"
 
 MAX_LOG_LINES_PER_FLUSH = 500
 MAX_LOG_DISPLAY_LINES = 5000
@@ -48,6 +48,9 @@ _ACTION_LABEL = {
 
 _SENTINEL_DONE = object()
 
+NO_EXT_LABEL = "(拡張子なし)"
+ALL_ROW_IID = "__all__"
+
 
 class OrganizeApp:
     """振り分けツールのメインウィンドウ。"""
@@ -62,9 +65,14 @@ class OrganizeApp:
         self.log_queue: queue.Queue = queue.Queue()
         self._flash_job: str | None = None
 
+        # プレビュー表示の状態
+        self._preview_rows: list[dict] = []   # 明細ツリーの元データ
+        self._ext_filter: str | None = None   # None=すべて、それ以外=その拡張子ラベルだけ
+        self._sort: tuple[str, bool] | None = None  # (列, 降順か)
+
         master.title(WINDOW_TITLE)
         master.geometry(WINDOW_GEOMETRY)
-        master.minsize(680, 480)
+        master.minsize(780, 480)
 
         theme.apply_dark_theme(master)
         self._setup_styles()
@@ -136,24 +144,41 @@ class OrganizeApp:
         )
         self.settings_btn.pack(side=tk.RIGHT)
 
-        # --- プレビュー結果ツリー ---
+        # --- プレビュー結果（左:拡張子別集計 / 右:明細ツリー） ---
         tree_frame = ttk.Frame(outer)
         tree_frame.grid(row=2, column=0, sticky="nsew")
         tree_frame.rowconfigure(0, weight=1)
-        tree_frame.columnconfigure(0, weight=1)
-        columns = ("action", "dest", "note")
-        self.tree = ttk.Treeview(tree_frame, columns=columns, show="tree headings", height=10)
-        self.tree.heading("#0", text="ファイル名")
-        self.tree.heading("action", text="動作")
-        self.tree.heading("dest", text="移動先フォルダ")
-        self.tree.heading("note", text="備考")
-        self.tree.column("#0", width=320, stretch=True)
+        tree_frame.columnconfigure(1, weight=1)
+
+        self.summary_tree = ttk.Treeview(
+            tree_frame, columns=("count",), show="tree headings", height=10, selectmode="browse"
+        )
+        self.summary_tree.heading("#0", text="拡張子")
+        self.summary_tree.heading("count", text="件数")
+        self.summary_tree.column("#0", width=120, stretch=False)
+        self.summary_tree.column("count", width=56, anchor=tk.E, stretch=False)
+        self.summary_tree.grid(row=0, column=0, sticky="ns", padx=(0, 8))
+        self.summary_tree.bind("<<TreeviewSelect>>", self._on_summary_select)
+
+        self._tree_columns = ("action", "dest", "note")
+        self._tree_headings = {
+            "#0": "ファイル名",
+            "action": "動作",
+            "dest": "移動先フォルダ",
+            "note": "備考",
+        }
+        self.tree = ttk.Treeview(
+            tree_frame, columns=self._tree_columns, show="tree headings", height=10
+        )
+        for col, label in self._tree_headings.items():
+            self.tree.heading(col, text=label, command=lambda c=col: self._sort_by(c))
+        self.tree.column("#0", width=300, stretch=True)
         self.tree.column("action", width=90, anchor=tk.CENTER, stretch=False)
-        self.tree.column("dest", width=180, stretch=False)
-        self.tree.column("note", width=180, stretch=True)
-        self.tree.grid(row=0, column=0, sticky="nsew")
+        self.tree.column("dest", width=170, stretch=False)
+        self.tree.column("note", width=170, stretch=True)
+        self.tree.grid(row=0, column=1, sticky="nsew")
         tree_scroll = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        tree_scroll.grid(row=0, column=1, sticky="ns")
+        tree_scroll.grid(row=0, column=2, sticky="ns")
         self.tree.configure(yscrollcommand=tree_scroll.set)
         self.tree.tag_configure("rename", foreground="#d29922")
         self.tree.tag_configure("skip", foreground="#9aa0a6")
@@ -198,6 +223,7 @@ class OrganizeApp:
     def _invalidate_plan(self, message: str) -> None:
         self.plan = None
         self.execute_btn.configure(state=tk.DISABLED)
+        self._reset_preview_view()
         self._set_status(message, "idle")
 
     def _on_preview(self) -> None:
@@ -209,8 +235,18 @@ class OrganizeApp:
             return
         self._set_running(True)
         self._set_status("プレビュー中…", "busy")
-        self.tree.delete(*self.tree.get_children())
+        self._reset_preview_view()
         threading.Thread(target=self._preview_worker, args=(target,), daemon=True).start()
+
+    def _reset_preview_view(self) -> None:
+        """絞り込み・ソート・表示内容をまっさらにする。"""
+        self._preview_rows = []
+        self._ext_filter = None
+        self._sort = None
+        self.tree.delete(*self.tree.get_children())
+        self.summary_tree.delete(*self.summary_tree.get_children())
+        for col, label in self._tree_headings.items():
+            self.tree.heading(col, text=label)
 
     def _post(self, callback, *args) -> None:
         """ワーカースレッドからメインスレッドへ処理を渡す。
@@ -230,21 +266,37 @@ class OrganizeApp:
             return
         self._post(self._preview_done, plan)
 
+    @staticmethod
+    def _ext_label(item: PlannedMove) -> str:
+        ext = item.source.suffix[1:].lower()
+        return ext if ext else NO_EXT_LABEL
+
     def _preview_done(self, plan: list[PlannedMove]) -> None:
         self.plan = plan
         moved = renamed = skipped = 0
         new_dirs: set[str] = set()
+        rows: list[dict] = []
+
         for item in plan:
             name = item.source.name
             if item.action == ACTION_SKIP:
-                skipped += 1
-                self.tree.insert(
-                    "", tk.END, text=name, values=("スキップ", "", item.reason), tags=("skip",)
+                # ファイル以外（フォルダ・ログフォルダ）は集計対象外
+                is_file_row = item.source.is_file()
+                if is_file_row:
+                    skipped += 1
+                rows.append(
+                    {
+                        "text": name,
+                        "values": ("スキップ", "", item.reason),
+                        "tags": ("skip",),
+                        "ext": self._ext_label(item) if is_file_row else None,
+                    }
                 )
                 continue
+
             dest_dir_name = item.dest_dir.name if item.dest_dir else ""
-            note_parts = []
-            tags = []
+            note_parts: list[str] = []
+            tags: list[str] = []
             if item.creates_dir:
                 new_dirs.add(dest_dir_name)
                 note_parts.append("新規フォルダ")
@@ -256,13 +308,22 @@ class OrganizeApp:
             else:
                 moved += 1
                 tags.append("move")
-            self.tree.insert(
-                "",
-                tk.END,
-                text=name,
-                values=(_ACTION_LABEL[item.action], dest_dir_name, " / ".join(note_parts)),
-                tags=tuple(tags),
+            rows.append(
+                {
+                    "text": name,
+                    "values": (
+                        _ACTION_LABEL[item.action],
+                        dest_dir_name,
+                        " / ".join(note_parts),
+                    ),
+                    "tags": tuple(tags),
+                    "ext": self._ext_label(item),
+                }
             )
+
+        self._preview_rows = rows
+        self._populate_summary()
+        self._render_tree()
 
         self._set_running(False)
         total = moved + renamed
@@ -284,6 +345,74 @@ class OrganizeApp:
         self._set_running(False)
         self._set_status(f"プレビュー失敗: {message}", "error")
         messagebox.showerror(WINDOW_TITLE, f"プレビューに失敗しました:\n{message}")
+
+    # -------------------------------------------------- 集計パネル / 絞り込み / ソート
+    def _populate_summary(self) -> None:
+        """拡張子別の件数を多い順に集計パネルへ表示する。"""
+        self.summary_tree.delete(*self.summary_tree.get_children())
+        counts: dict[str, int] = {}
+        for row in self._preview_rows:
+            ext = row["ext"]
+            if ext is None:
+                continue
+            counts[ext] = counts.get(ext, 0) + 1
+        total = sum(counts.values())
+
+        self.summary_tree.insert("", tk.END, iid=ALL_ROW_IID, text="すべて", values=(total,))
+        # 件数の多い順、同数なら名前順。iid はファイル名由来の拡張子と衝突しないよう接頭辞付き
+        for ext, count in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            self.summary_tree.insert("", tk.END, iid=f"ext:{ext}", text=ext, values=(count,))
+
+        target = f"ext:{self._ext_filter}" if self._ext_filter else ALL_ROW_IID
+        if self.summary_tree.exists(target):
+            self.summary_tree.selection_set(target)
+
+    def _on_summary_select(self, _event=None) -> None:
+        selection = self.summary_tree.selection()
+        if not selection:
+            return
+        iid = selection[0]
+        new_filter = None if iid == ALL_ROW_IID else iid.removeprefix("ext:")
+        if new_filter == self._ext_filter:
+            return
+        self._ext_filter = new_filter
+        self._render_tree()
+
+    def _sort_by(self, column: str) -> None:
+        if self._sort and self._sort[0] == column:
+            self._sort = (column, not self._sort[1])
+        else:
+            self._sort = (column, False)
+        self._render_tree()
+
+    def _row_sort_key(self, row: dict, column: str):
+        if column == "#0":
+            return row["text"].lower()
+        idx = self._tree_columns.index(column)
+        return str(row["values"][idx]).lower()
+
+    def _render_tree(self) -> None:
+        """現在の絞り込み・ソート状態で明細ツリーを再描画する。"""
+        self.tree.delete(*self.tree.get_children())
+
+        rows = self._preview_rows
+        if self._ext_filter is not None:
+            rows = [r for r in rows if r["ext"] == self._ext_filter]
+        if self._sort is not None:
+            column, reverse = self._sort
+            rows = sorted(rows, key=lambda r: self._row_sort_key(r, column), reverse=reverse)
+
+        for row in rows:
+            self.tree.insert(
+                "", tk.END, text=row["text"], values=row["values"], tags=row["tags"]
+            )
+
+        # 見出しのソート方向マーカー
+        for col, label in self._tree_headings.items():
+            mark = ""
+            if self._sort and self._sort[0] == col:
+                mark = " ▼" if self._sort[1] else " ▲"
+            self.tree.heading(col, text=label + mark)
 
     def _on_execute(self) -> None:
         if self.is_running or not self.plan:
@@ -317,7 +446,7 @@ class OrganizeApp:
         self.plan = None
         self._set_running(False)
         self.execute_btn.configure(state=tk.DISABLED)
-        self.tree.delete(*self.tree.get_children())
+        self._reset_preview_view()
         level = "error" if result.failed else "ok"
         self._set_status(
             f"完了: 移動 {result.moved} / 改名 {result.renamed} / "
