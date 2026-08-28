@@ -174,6 +174,99 @@ def _count_output_rows(path):
 # 設定編集サブウィンドウ
 # ------------------------------------------------------------------
 
+_EXT_PRESETS = [
+    ".log", ".tmp", ".bak", ".png", ".jpg", ".jpeg", ".gif",
+    ".zip", ".exe", ".pyc", ".DS_Store", "desktop.ini",
+]
+_FOLDER_PRESETS = [
+    "OLD", "old", "backup", "バックアップ", "アーカイブ", "不要",
+    "output", "logs", "__pycache__", ".git", "node_modules", ".venv", "venv",
+]
+
+
+def split_tokens(text):
+    """カンマ・空白・改行区切りの文字列をトークン列に分解する（空要素は除外）。"""
+    return [t for t in re.split(r"[,\s]+", text.strip()) if t]
+
+
+def merge_unique(existing, additions):
+    """existing の順序を保ったまま、未収録の additions を末尾に足したリストを返す。"""
+    result = list(existing)
+    seen = set(result)
+    for item in additions:
+        if item not in seen:
+            result.append(item)
+            seen.add(item)
+    return result
+
+
+class _TagListEditor(ttk.LabelFrame):
+    """文字列リスト（除外拡張子・除外フォルダ名など）を追加/削除で編集するウィジェット。"""
+
+    def __init__(self, parent, title, items, presets):
+        super().__init__(parent, text=title, padding=8)
+        self.columnconfigure(0, weight=1)
+
+        list_row = ttk.Frame(self)
+        list_row.grid(row=0, column=0, sticky="ew")
+        list_row.columnconfigure(0, weight=1)
+        self._listbox = tk.Listbox(list_row, height=5, selectmode="extended",
+                                   activestyle="none", exportselection=False)
+        self._listbox.grid(row=0, column=0, sticky="ew")
+        sb = ttk.Scrollbar(list_row, orient="vertical", command=self._listbox.yview)
+        sb.grid(row=0, column=1, sticky="ns")
+        self._listbox.config(yscrollcommand=sb.set)
+        self._listbox.bind("<Double-Button-1>", lambda e: self._remove_selected())
+        self._listbox.bind("<Delete>", lambda e: self._remove_selected())
+        for item in items:
+            self._listbox.insert("end", item)
+
+        add_row = ttk.Frame(self)
+        add_row.grid(row=1, column=0, sticky="ew", pady=(6, 2))
+        add_row.columnconfigure(0, weight=1)
+        self._entry = ttk.Entry(add_row)
+        self._entry.grid(row=0, column=0, sticky="ew")
+        self._entry.bind("<Return>", lambda e: self._add_from_entry())
+        ttk.Button(add_row, text="追加", width=6, style=BTN_SECONDARY,
+                   command=self._add_from_entry).grid(row=0, column=1, padx=(6, 0))
+        ttk.Button(add_row, text="選択を削除", style=BTN_TERTIARY,
+                   command=self._remove_selected).grid(row=0, column=2, padx=(6, 0))
+
+        preset_row = ttk.Frame(self)
+        preset_row.grid(row=2, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(preset_row, text="プリセットから追加:", foreground=MUTED_FG).pack(
+            side="left", padx=(0, 6))
+        self._preset_combo = ttk.Combobox(preset_row, state="readonly",
+                                          values=presets, width=18)
+        self._preset_combo.pack(side="left")
+        self._preset_combo.bind("<<ComboboxSelected>>", self._add_from_preset)
+        ttk.Button(preset_row, text="すべて追加", style=BTN_TERTIARY,
+                   command=lambda: self._add_items(presets)).pack(side="left", padx=(6, 0))
+
+    def _add_from_preset(self, _event=None):
+        value = self._preset_combo.get()
+        if value:
+            self._add_items([value])
+        self._preset_combo.set("")
+
+    def _add_from_entry(self):
+        self._add_items(split_tokens(self._entry.get()))
+        self._entry.delete(0, "end")
+
+    def _add_items(self, additions):
+        merged = merge_unique(self.get_items(), additions)
+        self._listbox.delete(0, "end")
+        for item in merged:
+            self._listbox.insert("end", item)
+
+    def _remove_selected(self):
+        for idx in reversed(self._listbox.curselection()):
+            self._listbox.delete(idx)
+
+    def get_items(self):
+        return list(self._listbox.get(0, "end"))
+
+
 class ConfigEditorWindow(tk.Toplevel):
     """config/config.json をGUIで編集する。"""
 
@@ -181,8 +274,8 @@ class ConfigEditorWindow(tk.Toplevel):
         super().__init__(master)
         self.on_saved = on_saved
         self.title("設定編集 (config/config.json)")
-        self.geometry("640x420")
-        self.minsize(560, 380)
+        self.geometry("700x640")
+        self.minsize(600, 560)
         self.resizable(True, True)
         self.transient(master)
         self.grab_set()
@@ -216,19 +309,18 @@ class ConfigEditorWindow(tk.Toplevel):
         ttk.Entry(frame, textvariable=self.output_filename_var).grid(
             row=2, column=1, sticky="ew", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="除外拡張子 (excluded_extensions)").grid(row=3, column=0, sticky="w", pady=4)
-        self.excluded_extensions_var = tk.StringVar(
-            value=", ".join(config.get("excluded_extensions", [])))
-        ttk.Entry(frame, textvariable=self.excluded_extensions_var).grid(
-            row=3, column=1, sticky="ew", padx=(12, 0), pady=4)
+        self.ext_editor = _TagListEditor(
+            frame, "除外拡張子 (excluded_extensions)",
+            config.get("excluded_extensions", []), _EXT_PRESETS)
+        self.ext_editor.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(12, 6))
 
-        ttk.Label(frame, text="除外フォルダ名 (excluded_folder_names)").grid(row=4, column=0, sticky="w", pady=4)
-        self.excluded_folder_names_var = tk.StringVar(
-            value=", ".join(config.get("excluded_folder_names", [])))
-        ttk.Entry(frame, textvariable=self.excluded_folder_names_var).grid(
-            row=4, column=1, sticky="ew", padx=(12, 0), pady=4)
+        self.folder_editor = _TagListEditor(
+            frame, "除外フォルダ名 (excluded_folder_names・大文字小文字は区別しない)",
+            config.get("excluded_folder_names", []), _FOLDER_PRESETS)
+        self.folder_editor.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(6, 6))
 
-        ttk.Label(frame, foreground=MUTED_FG, text="※ 拡張子・フォルダ名はカンマ区切りで入力").grid(
+        ttk.Label(frame, foreground=MUTED_FG,
+                  text="※ 入力欄はカンマ・空白区切りでまとめて追加できます。項目のダブルクリックで削除。").grid(
             row=5, column=0, columnspan=2, sticky="w", pady=(2, 0))
 
         btn_frame = ttk.Frame(frame)
@@ -243,10 +335,8 @@ class ConfigEditorWindow(tk.Toplevel):
         config.setdefault("root_dir", ".")  # スキャン対象はメイン画面側で管理する
         config["output_base_dir"] = self.output_base_dir_var.get().strip() or "data/output"
         config["output_filename"] = self.output_filename_var.get().strip() or "drive_structure.xlsx"
-        config["excluded_extensions"] = [
-            v.strip() for v in self.excluded_extensions_var.get().split(",") if v.strip()]
-        config["excluded_folder_names"] = [
-            v.strip() for v in self.excluded_folder_names_var.get().split(",") if v.strip()]
+        config["excluded_extensions"] = self.ext_editor.get_items()
+        config["excluded_folder_names"] = self.folder_editor.get_items()
         try:
             CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
             CONFIG_PATH.write_text(
