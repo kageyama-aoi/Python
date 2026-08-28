@@ -289,9 +289,12 @@ class LauncherApp(tk.Tk):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        canvas.bind_all(
-            "<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units")
-        )
+        # ホイールスクロールはポインタが本体上にある間だけ有効にする。bind_all にすると
+        # 設定エディタ等の子ウィンドウでホイールを回しても裏の親ランチャーが動いてしまう。
+        def _on_mousewheel(e):
+            canvas.yview_scroll(int(-e.delta / 120), "units")
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
         # フィルタ対象の登録簿。(検索用テキスト, ツールのFrame, 所属セクション) のタプルを
         # 登録順（=表示したい順）に保持する。
