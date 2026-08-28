@@ -1,0 +1,8 @@
+# 本体は標準ライブラリ（tkinter / configparser / shutil）のみで動作する。
+
+# 任意（ダークテーマ。未導入でも標準 ttk テーマで動作する）
+sv-ttk
+pywinstyles
+
+# 任意（GUI スクリプト検証のスクリーンショット取得に使用）
+pillow

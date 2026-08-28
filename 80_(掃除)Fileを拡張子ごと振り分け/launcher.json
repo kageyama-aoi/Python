@@ -1,12 +1,17 @@
 {
-  "name": "ファイル整理ツール",
-  "description": "指定ディレクトリ内のファイルを拡張子ごとのサブディレクトリへ振り分ける",
+  "name": "ファイル振り分けツール",
+  "description": "指定フォルダ内のファイルを拡張子ごとのサブフォルダへ振り分ける。GUIでプレビュー（ドライラン）してから実行できる",
   "actions": [
     {
-      "label": "実行",
+      "label": "起動",
+      "kind": "gui",
+      "entry": "run.bat"
+    },
+    {
+      "label": "CLIで即実行",
       "kind": "cli",
-      "entry": "run.bat",
-      "note": "config.iniのTargetDirectoryを対象に実際にファイルを移動する。実行前に対象パスを確認すること"
+      "entry": "run_cli.bat",
+      "note": "プレビューなしでconfig.iniのTargetDirectoryを即振り分ける。対象パスを事前に確認すること"
     }
   ]
 }

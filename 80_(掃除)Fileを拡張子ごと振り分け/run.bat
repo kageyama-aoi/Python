@@ -1,4 +1,5 @@
 @echo off
 chcp 65001 >nul
-python "%~dp0organize_files.py"
-pause
+cd /d "%~dp0"
+python -m src.main
+if errorlevel 1 pause
