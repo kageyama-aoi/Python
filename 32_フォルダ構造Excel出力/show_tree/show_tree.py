@@ -75,6 +75,34 @@ def build_tree(root, max_depth, show_hidden, ext_filter, ignore_set):
     return lines
 
 
+def build_report(root, depth=DEFAULT_DEPTH, show_hidden=False, ext=None, ignore=None):
+    """ヘッダー＋ツリー＋サマリーの行リストを返す（CLI と GUI で共用）。
+
+    root がディレクトリでなければ ValueError。
+    """
+    if not os.path.isdir(root):
+        raise ValueError(f"ディレクトリが見つかりません: {root}")
+
+    ignore_set = DEFAULT_IGNORE | set(ignore or [])
+    ext_filter = set(ext) if ext else None
+
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    out = [
+        f"# Directory Tree  ({ts})",
+        f"# depth={depth}  hidden={'ON' if show_hidden else 'OFF'}  "
+        f"ext={list(ext_filter) if ext_filter else 'ALL'}  ignore={sorted(ignore_set)}",
+        "",
+    ]
+
+    lines = build_tree(root, depth, show_hidden, ext_filter, ignore_set)
+    out.extend(lines)
+
+    dirs = sum(1 for l in lines[1:] if l.rstrip().endswith("/"))
+    files = sum(1 for l in lines[1:] if not l.rstrip().endswith("/") and ("├" in l or "└" in l))
+    out.extend(["", f"# {dirs} directories, {files} files (depth<={depth})"])
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(description="ディレクトリツリーを表示する")
     parser.add_argument("root", nargs="?", default=DEFAULT_ROOT, help="起点ディレクトリ")
@@ -84,30 +112,14 @@ def main():
     parser.add_argument("--ignore", nargs="*", default=[], help="除外するフォルダ・ファイル名")
     args = parser.parse_args()
 
-    root = args.root
-    if not os.path.isdir(root):
-        print(f"[ERROR] ディレクトリが見つかりません: {root}", file=sys.stderr)
+    try:
+        report = build_report(args.root, args.depth, args.all, args.ext, args.ignore)
+    except ValueError as e:
+        print(f"[ERROR] {e}", file=sys.stderr)
         sys.exit(1)
 
-    ignore_set = DEFAULT_IGNORE | set(args.ignore)
-    ext_filter = set(args.ext) if args.ext else None
-
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"# Directory Tree  ({ts})")
-    print(f"# depth={args.depth}  hidden={'ON' if args.all else 'OFF'}  "
-          f"ext={list(ext_filter) if ext_filter else 'ALL'}  "
-          f"ignore={sorted(ignore_set)}")
-    print()
-
-    lines = build_tree(root, args.depth, args.all, ext_filter, ignore_set)
-    for line in lines:
+    for line in report:
         print(line)
-
-    # サマリー
-    dirs  = sum(1 for l in lines[1:] if l.rstrip().endswith("/"))
-    files = sum(1 for l in lines[1:] if not l.rstrip().endswith("/") and ("├" in l or "└" in l))
-    print()
-    print(f"# {dirs} directories, {files} files (depth≤{args.depth})")
 
 
 if __name__ == "__main__":

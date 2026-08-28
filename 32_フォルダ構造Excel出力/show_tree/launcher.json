@@ -3,9 +3,10 @@
   "description": "指定フォルダのディレクトリ構成をツリー表示する",
   "actions": [
     {
-      "label": "実行（このフォルダ以下を表示）",
-      "kind": "cli",
-      "entry": "run.bat"
+      "label": "ツリー表示GUIを起動",
+      "kind": "gui",
+      "entry": "run.bat",
+      "note": "フォルダを選び、深さ・除外条件を指定してツリーを生成。「コピー」でClaude等に貼り付け可能。CLIは python show_tree.py"
     }
   ]
 }
