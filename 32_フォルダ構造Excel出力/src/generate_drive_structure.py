@@ -1,3 +1,4 @@
+import argparse
 import os
 import pandas as pd
 import json
@@ -468,17 +469,49 @@ def ask_directory(initial_dir):
     finally:
         root.destroy()
 
-def main():
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="指定フォルダの構造を階層付きExcelに出力する")
+    parser.add_argument(
+        "--root-dir",
+        help="スキャン対象フォルダ。指定するとフォルダ選択ダイアログを表示しない（GUIランチャーが利用）",
+    )
+    parser.add_argument(
+        "--no-dialog",
+        action="store_true",
+        help="フォルダ選択ダイアログを表示せず config.json の root_dir をそのまま使う",
+    )
+    return parser.parse_args(argv)
+
+
+def resolve_root_dir(config_manager, args):
+    """スキャン対象フォルダを決める。
+
+    --root-dir が渡された場合はそれを使い、--no-dialog なら config の root_dir をそのまま使う。
+    どちらも無ければ従来どおりフォルダ選択ダイアログを表示する。
+    """
+    if args.root_dir:
+        return args.root_dir
+    if args.no_dialog:
+        return config_manager.root_dir
+    return ask_directory(config_manager.root_dir)
+
+
+def main(argv=None):
     """スクリプトのメイン処理"""
     setup_logging() # ロギング設定を呼び出し
+    args = parse_args(argv)
     try:
         logging.info("スクリプト実行開始")
 
         config_manager = ConfigManager(CONFIG_FILE_PATH)
 
-        root_dir_path = ask_directory(config_manager.root_dir)
+        root_dir_path = resolve_root_dir(config_manager, args)
         if not root_dir_path:
             logging.info("フォルダが選択されなかったため、処理を中断します。")
+            return
+        if not os.path.isdir(root_dir_path):
+            logging.critical(f"スキャン対象フォルダが存在しません: {root_dir_path}")
             return
         if root_dir_path != config_manager.root_dir:
             config_manager.save_root_dir(root_dir_path)

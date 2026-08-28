@@ -18,6 +18,8 @@ from generate_drive_structure import (
     create_dataframe_with_fullpath,
     format_size,
     manage_old_output_files,
+    parse_args,
+    resolve_root_dir,
     save_dataframe_to_excel,
 )
 
@@ -386,6 +388,41 @@ def test_manage_old_output_files_ignores_non_matching_names(tmp_path, monkeypatc
 
     monkeypatch.setattr(generate_drive_structure, 'confirm_delete_old_files', _fail)
     manage_old_output_files(str(out_dir), "drive_structure.xlsx", "drive_structure_20260101_000000.xlsx")
+
+
+# ---- parse_args / resolve_root_dir ----
+
+class _FakeConfigManager:
+    def __init__(self, root_dir):
+        self.root_dir = root_dir
+
+
+def test_parse_args_defaults():
+    args = parse_args([])
+    assert args.root_dir is None
+    assert args.no_dialog is False
+
+
+def test_resolve_root_dir_uses_explicit_root_dir(monkeypatch):
+    def _boom(_initial):
+        raise AssertionError("--root-dir 指定時はダイアログを開かない")
+    monkeypatch.setattr(generate_drive_structure, "ask_directory", _boom)
+    result = resolve_root_dir(_FakeConfigManager("C:/cfg"), parse_args(["--root-dir", "X:/foo"]))
+    assert result == "X:/foo"
+
+
+def test_resolve_root_dir_no_dialog_uses_config(monkeypatch):
+    def _boom(_initial):
+        raise AssertionError("--no-dialog 指定時はダイアログを開かない")
+    monkeypatch.setattr(generate_drive_structure, "ask_directory", _boom)
+    result = resolve_root_dir(_FakeConfigManager("C:/cfg"), parse_args(["--no-dialog"]))
+    assert result == "C:/cfg"
+
+
+def test_resolve_root_dir_falls_back_to_dialog(monkeypatch):
+    monkeypatch.setattr(generate_drive_structure, "ask_directory", lambda initial: f"picked:{initial}")
+    result = resolve_root_dir(_FakeConfigManager("C:/cfg"), parse_args([]))
+    assert result == "picked:C:/cfg"
 
 
 # ---- save_dataframe_to_excel ----

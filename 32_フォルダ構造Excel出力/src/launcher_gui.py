@@ -35,6 +35,7 @@ from theme import (
     MUTED_FG,
     SUCCESS_FG,
     UI_FONT_BOLD,
+    WARN_FG,
 )
 
 # src/ の1つ上（プロジェクトルート）を基準にする。cwdに依存しないため、
@@ -46,8 +47,7 @@ LOGS_DIR = BASE_DIR / "data" / "logs"
 LOG_CLEANUP_DAYS = 30
 
 ABOUT_TEXT = (
-    "準備するもの： 「設定を編集...」でスキャン対象・出力設定・除外条件を確認する\n"
-    "　　　　　　（実行時にフォルダ選択ダイアログが開くので、都度スキャン対象を選べる）\n"
+    "準備するもの： 左上でスキャン対象フォルダを指定（「参照...」）。出力先・除外条件は「設定を編集...」で調整\n"
     "出力されるもの： data/output/ に drive_structure_<日時>.xlsx（階層構造付きExcel）"
 )
 
@@ -200,62 +200,45 @@ class ConfigEditorWindow(tk.Toplevel):
         frame.pack(fill="both", expand=True)
         frame.columnconfigure(1, weight=1)
 
-        ttk.Label(frame, text="スキャン対象フォルダ (root_dir)").grid(row=0, column=0, sticky="w", pady=(0, 4))
-        self.root_dir_var = tk.StringVar(value=config.get("root_dir", ""))
-        root_dir_frame = ttk.Frame(frame)
-        root_dir_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 10))
-        root_dir_frame.columnconfigure(0, weight=1)
-        ttk.Entry(root_dir_frame, textvariable=self.root_dir_var).grid(row=0, column=0, sticky="ew")
-        ttk.Button(root_dir_frame, text="参照...", width=8, style=BTN_SECONDARY,
-                   command=self._browse_root_dir).grid(row=0, column=1, padx=(6, 0))
-        hint = ttk.Label(frame, foreground=MUTED_FG,
-                         text="※ 実行のたびにフォルダ選択ダイアログが開くため、通常はここを編集する必要はない")
-        hint.grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 10))
+        ttk.Label(frame, foreground=MUTED_FG,
+                  text="スキャン対象フォルダはメイン画面の「スキャン対象フォルダ」で指定します。").grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, 12))
 
-        ttk.Label(frame, text="出力先フォルダ (output_base_dir)").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text="出力先フォルダ (output_base_dir)").grid(row=1, column=0, sticky="w", pady=4)
         self.output_base_dir_var = tk.StringVar(value=config.get("output_base_dir", "data/output"))
         ttk.Entry(frame, textvariable=self.output_base_dir_var).grid(
-            row=3, column=1, sticky="ew", padx=(12, 0), pady=4)
+            row=1, column=1, sticky="ew", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="出力ファイル名 (output_filename)").grid(row=4, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text="出力ファイル名 (output_filename)").grid(row=2, column=0, sticky="w", pady=4)
         self.output_filename_var = tk.StringVar(value=config.get("output_filename", "drive_structure.xlsx"))
         ttk.Entry(frame, textvariable=self.output_filename_var).grid(
-            row=4, column=1, sticky="ew", padx=(12, 0), pady=4)
+            row=2, column=1, sticky="ew", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="除外拡張子 (excluded_extensions)").grid(row=5, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text="除外拡張子 (excluded_extensions)").grid(row=3, column=0, sticky="w", pady=4)
         self.excluded_extensions_var = tk.StringVar(
             value=", ".join(config.get("excluded_extensions", [])))
         ttk.Entry(frame, textvariable=self.excluded_extensions_var).grid(
-            row=5, column=1, sticky="ew", padx=(12, 0), pady=4)
+            row=3, column=1, sticky="ew", padx=(12, 0), pady=4)
 
-        ttk.Label(frame, text="除外フォルダ名 (excluded_folder_names)").grid(row=6, column=0, sticky="w", pady=4)
+        ttk.Label(frame, text="除外フォルダ名 (excluded_folder_names)").grid(row=4, column=0, sticky="w", pady=4)
         self.excluded_folder_names_var = tk.StringVar(
             value=", ".join(config.get("excluded_folder_names", [])))
         ttk.Entry(frame, textvariable=self.excluded_folder_names_var).grid(
-            row=6, column=1, sticky="ew", padx=(12, 0), pady=4)
+            row=4, column=1, sticky="ew", padx=(12, 0), pady=4)
 
         ttk.Label(frame, foreground=MUTED_FG, text="※ 拡張子・フォルダ名はカンマ区切りで入力").grid(
-            row=7, column=0, columnspan=2, sticky="w", pady=(2, 0))
+            row=5, column=0, columnspan=2, sticky="w", pady=(2, 0))
 
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=8, column=0, columnspan=2, sticky="e", pady=(16, 0))
+        btn_frame.grid(row=6, column=0, columnspan=2, sticky="e", pady=(16, 0))
         ttk.Button(btn_frame, text="保存", style=BTN_SECONDARY,
                    command=self._save).pack(side="left", padx=(0, 8))
         ttk.Button(btn_frame, text="キャンセル", style=BTN_TERTIARY,
                    command=self.destroy).pack(side="left")
 
-    def _browse_root_dir(self):
-        initial = self.root_dir_var.get()
-        path = filedialog.askdirectory(
-            title="スキャンするフォルダを選択してください",
-            initialdir=initial if os.path.isdir(initial) else os.path.expanduser("~"),
-            parent=self)
-        if path:
-            self.root_dir_var.set(path)
-
     def _save(self):
         config = load_config() or {}
-        config["root_dir"] = self.root_dir_var.get().strip() or "."
+        config.setdefault("root_dir", ".")  # スキャン対象はメイン画面側で管理する
         config["output_base_dir"] = self.output_base_dir_var.get().strip() or "data/output"
         config["output_filename"] = self.output_filename_var.get().strip() or "drive_structure.xlsx"
         config["excluded_extensions"] = [
@@ -313,7 +296,22 @@ class LauncherApp(tk.Tk):
         left = ttk.Frame(paned, padding=(0, 0, 8, 0))
         paned.add(left, weight=0)
 
-        ttk.Label(left, text="現在の設定", font=HEADER_FONT).pack(anchor="w")
+        # スキャン対象フォルダ（メイン画面で直接指定・確認できる）
+        ttk.Label(left, text="スキャン対象フォルダ", font=HEADER_FONT).pack(anchor="w")
+        self.root_dir_var = tk.StringVar()
+        rd_row = ttk.Frame(left)
+        rd_row.pack(fill="x", pady=(4, 2))
+        self.root_dir_entry = ttk.Entry(rd_row, textvariable=self.root_dir_var)
+        self.root_dir_entry.pack(side="left", fill="x", expand=True)
+        ttk.Button(rd_row, text="参照...", width=8, style=BTN_SECONDARY,
+                   command=self._browse_root_dir).pack(side="left", padx=(4, 0))
+        self.root_dir_hint = ttk.Label(left, text="", foreground=MUTED_FG,
+                                       wraplength=340, justify="left")
+        self.root_dir_hint.pack(anchor="w", pady=(0, 12))
+        self.root_dir_var.trace_add("write", lambda *_: self._update_root_dir_hint())
+
+        # 出力先・除外設定（詳細は「設定を編集...」）
+        ttk.Label(left, text="出力先・除外設定", font=HEADER_FONT).pack(anchor="w")
         self.config_label = ttk.Label(left, text="", justify="left", wraplength=340)
         self.config_label.pack(anchor="w", fill="x", pady=(4, 8))
 
@@ -383,18 +381,55 @@ class LauncherApp(tk.Tk):
         config = load_config()
         if config is None:
             self.config_label.config(
-                text=f"config/config.json が見つかりません。\n"
-                     f"「設定を編集...」から作成してください。",
+                text="config/config.json が見つかりません。\n「設定を編集...」から作成してください。",
                 foreground=ERROR_SOFT_FG)
+            self._update_root_dir_hint()
             return
+        # config を正としてスキャン対象欄を同期（"." は未指定扱い）
+        cfg_root = str(config.get("root_dir", "")).strip()
+        self.root_dir_var.set("" if cfg_root in ("", ".") else cfg_root)
         excluded_ext = ", ".join(config.get("excluded_extensions", [])) or "(なし)"
         excluded_dir = ", ".join(config.get("excluded_folder_names", [])) or "(なし)"
         self.config_label.config(foreground="", text=(
-            f"root_dir:\n  {config.get('root_dir', '(未設定)')}\n\n"
             f"出力先:\n  {config.get('output_base_dir', '?')}/{config.get('output_filename', '?')}\n\n"
             f"除外拡張子:\n  {excluded_ext}\n\n"
             f"除外フォルダ名:\n  {excluded_dir}"
         ))
+
+    def _update_root_dir_hint(self):
+        path = self.root_dir_var.get().strip()
+        if not path:
+            self.root_dir_hint.config(
+                text="未指定です。実行すると従来どおりフォルダ選択ダイアログが開きます。",
+                foreground=WARN_FG)
+        elif os.path.isdir(path):
+            self.root_dir_hint.config(
+                text="実行するとこのフォルダをスキャンします。", foreground=MUTED_FG)
+        else:
+            self.root_dir_hint.config(
+                text="⚠ このパスは見つかりません。「参照...」で選び直してください。",
+                foreground=ERROR_SOFT_FG)
+
+    def _browse_root_dir(self):
+        current = self.root_dir_var.get().strip()
+        initial = current if os.path.isdir(current) else os.path.expanduser("~")
+        path = filedialog.askdirectory(
+            title="スキャンするフォルダを選択してください", initialdir=initial, parent=self)
+        if path:
+            self.root_dir_var.set(path)
+            self._persist_root_dir(path)
+
+    def _persist_root_dir(self, path):
+        """スキャン対象を config.json に書き戻す（次回起動時の初期表示用）。"""
+        config = load_config()
+        if config is None:
+            return
+        config["root_dir"] = path
+        try:
+            CONFIG_PATH.write_text(
+                json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        except OSError:
+            pass
 
     def _open_config_editor(self):
         ConfigEditorWindow(self, on_saved=self.refresh_config_summary)
@@ -411,12 +446,23 @@ class LauncherApp(tk.Tk):
             return
 
         cmd = [sys.executable, "-u", str(BASE_DIR / "src" / "generate_drive_structure.py")]
+        root_dir = self.root_dir_var.get().strip()
+        if root_dir and not os.path.isdir(root_dir):
+            messagebox.showerror(
+                "実行できません", f"スキャン対象フォルダが見つかりません:\n{root_dir}")
+            return
+        if root_dir:
+            cmd += ["--root-dir", root_dir]
+
         snapshot = _snapshot_output_dir()
 
         self._reset_run_summary()
         self._set_running(True)
         self._append_log(f"=== 実行開始 {datetime.now():%Y-%m-%d %H:%M:%S} ===\n")
-        self._append_log("[launcher] フォルダ選択ダイアログが開きます（前面に表示されない場合はタスクバーを確認）\n", tag="debug")
+        if root_dir:
+            self._append_log(f"[launcher] スキャン対象: {root_dir}\n", tag="debug")
+        else:
+            self._append_log("[launcher] フォルダ選択ダイアログが開きます（前面に表示されない場合はタスクバーを確認）\n", tag="debug")
 
         threading.Thread(target=self._run_process, args=(cmd, snapshot), daemon=True).start()
 
