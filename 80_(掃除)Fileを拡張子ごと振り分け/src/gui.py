@@ -10,10 +10,10 @@ import queue
 import threading
 import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from . import theme
-from .config_io import DEFAULT_CONFIG_PATH, OrganizeConfig, load_config
+from .config_io import DEFAULT_CONFIG_PATH, OrganizeConfig, load_config, save_config
 from .organizer import (
     ACTION_MOVE,
     ACTION_RENAME,
@@ -67,6 +67,7 @@ class OrganizeApp:
 
         # プレビュー表示の状態
         self._preview_rows: list[dict] = []   # 明細ツリーの元データ
+        self._rendered_rows: list[dict] = []  # 現在ツリーに表示中の行（右クリック用）
         self._ext_filter: str | None = None   # None=すべて、それ以外=その拡張子ラベルだけ
         self._sort: tuple[str, bool] | None = None  # (列, 降順か)
 
@@ -183,6 +184,7 @@ class OrganizeApp:
         self.tree.tag_configure("rename", foreground="#d29922")
         self.tree.tag_configure("skip", foreground="#9aa0a6")
         self.tree.tag_configure("newdir", foreground="#4a90d9")
+        self.tree.bind("<Button-3>", self._on_tree_right_click)
 
         # --- サマリー / 状態 ---
         self.status_var = tk.StringVar()
@@ -241,6 +243,7 @@ class OrganizeApp:
     def _reset_preview_view(self) -> None:
         """絞り込み・ソート・表示内容をまっさらにする。"""
         self._preview_rows = []
+        self._rendered_rows = []
         self._ext_filter = None
         self._sort = None
         self.tree.delete(*self.tree.get_children())
@@ -402,6 +405,7 @@ class OrganizeApp:
             column, reverse = self._sort
             rows = sorted(rows, key=lambda r: self._row_sort_key(r, column), reverse=reverse)
 
+        self._rendered_rows = list(rows)
         for row in rows:
             self.tree.insert(
                 "", tk.END, text=row["text"], values=row["values"], tags=row["tags"]
@@ -413,6 +417,96 @@ class OrganizeApp:
             if self._sort and self._sort[0] == col:
                 mark = " ▼" if self._sort[1] else " ▲"
             self.tree.heading(col, text=label + mark)
+
+    # ------------------------------------------- プレビュー行の右クリックで設定変更
+    def _on_tree_right_click(self, event) -> None:
+        if self.is_running:
+            return
+        iid = self.tree.identify_row(event.y)
+        if not iid:
+            return
+        self.tree.selection_set(iid)
+        row = self._rendered_rows[self.tree.index(iid)]
+        ext, filename = row.get("ext"), row["text"]
+
+        # メニューは self に保持する（ローカル変数のままだと GC されコマンドが発火しない）
+        menu = self._context_menu = tk.Menu(self.tree, tearoff=0)
+        if ext:
+            assign = tk.Menu(menu, tearoff=0)
+            for group in self.config.extension_groups:
+                assign.add_command(
+                    label=group, command=lambda g=group: self._assign_ext_to_group(ext, g)
+                )
+            assign.add_separator()
+            assign.add_command(label="新規グループ…", command=lambda: self._assign_ext_new_group(ext))
+            menu.add_cascade(label=f"「.{ext}」をグループに割り当て", menu=assign)
+            menu.add_command(
+                label=f"「.{ext}」を除外拡張子に追加",
+                command=lambda: self._add_exclude("extensions", ext),
+            )
+        menu.add_command(
+            label=f"「{filename}」をファイル名除外に追加",
+            command=lambda: self._add_exclude("filenames", filename),
+        )
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _clone_config(self) -> tuple[dict[str, list[str]], set[str], set[str]]:
+        groups = {k: list(v) for k, v in self.config.extension_groups.items()}
+        return groups, set(self.config.exclude_filenames), set(self.config.exclude_extensions)
+
+    def _commit_config(self, groups, names, exts, message: str) -> None:
+        new_config = OrganizeConfig(
+            target_dir=self.config.target_dir,
+            log_dir_name=self.config.log_dir_name,
+            extension_groups={g: e for g, e in groups.items() if e},
+            exclude_filenames=names,
+            exclude_extensions=exts,
+        )
+        if not messagebox.askyesno(
+            WINDOW_TITLE, f"{message}\nconfig.ini を保存して再プレビューします。", parent=self.master
+        ):
+            return
+        try:
+            save_config(self.config_path, new_config)
+        except OSError as e:
+            messagebox.showerror(WINDOW_TITLE, f"保存に失敗しました:\n{e}")
+            return
+        self.config = new_config
+        self._set_status(f"{message} → config.ini を更新しました。", "ok")
+        self._on_preview()
+
+    def _assign_ext_to_group(self, ext: str, group: str) -> None:
+        groups, names, exts = self._clone_config()
+        if ext in groups.get(group, []):
+            return
+        owner = next((g for g, es in groups.items() if ext in es), None)
+        groups.setdefault(group, [])
+        if owner:
+            groups[owner].remove(ext)
+        groups[group].append(ext)
+        moved = f"（{owner} から移動）" if owner else ""
+        self._commit_config(groups, names, exts, f"「.{ext}」を {group} に割り当て{moved}")
+
+    def _assign_ext_new_group(self, ext: str) -> None:
+        name = simpledialog.askstring(
+            "新規グループ", "グループ名（移動先フォルダ名）:", parent=self.master
+        )
+        if not name or not name.strip():
+            return
+        self._assign_ext_to_group(ext, name.strip().lower())
+
+    def _add_exclude(self, kind: str, value: str) -> None:
+        groups, names, exts = self._clone_config()
+        if kind == "extensions":
+            exts.add(value.lower())
+            label = f"「.{value}」を除外拡張子に追加"
+        else:
+            names.add(value)
+            label = f"「{value}」をファイル名除外に追加"
+        self._commit_config(groups, names, exts, label)
 
     def _on_execute(self) -> None:
         if self.is_running or not self.plan:
