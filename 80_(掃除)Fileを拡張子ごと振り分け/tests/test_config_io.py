@@ -78,6 +78,24 @@ class SaveConfigTest(unittest.TestCase):
         self.assertEqual(reloaded.exclude_filenames, {"desktop.ini"})
         self.assertEqual(reloaded.exclude_extensions, {"exe"})
 
+    def test_saved_file_keeps_comments(self):
+        cfg = OrganizeConfig(target_dir=Path("D:\\inbox"), extension_groups={"images": ["jpg"]})
+        out = self.tmp / "config.ini"
+        save_config(out, cfg)
+        text = out.read_text(encoding="utf-8")
+        comment_lines = [ln for ln in text.splitlines() if ln.strip().startswith(";")]
+        self.assertGreaterEqual(len(comment_lines), 3)
+        # コメント付きでも読み戻せる
+        self.assertEqual(load_config(out).extension_groups, {"images": ["jpg"]})
+
+    def test_percent_in_path_survives(self):
+        cfg = OrganizeConfig(target_dir=Path(r"C:\Users\me\Downloads\%TEMP%_data"))
+        out = self.tmp / "config.ini"
+        save_config(out, cfg)
+        self.assertEqual(
+            load_config(out).target_dir, Path(r"C:\Users\me\Downloads\%TEMP%_data")
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

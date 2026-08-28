@@ -43,13 +43,30 @@ class OrganizeConfig:
         return mapping
 
 
+def default_config(target_dir: Path | None = None) -> OrganizeConfig:
+    """初期状態の設定（「既定に戻す」用）。target_dir を渡すとその値を保持する。"""
+    return OrganizeConfig(
+        target_dir=Path(target_dir) if target_dir is not None else Path.home() / "Downloads",
+        log_dir_name="logs",
+        extension_groups={
+            "images": ["jpg", "jpeg", "png", "gif", "bmp", "webp"],
+            "documents": ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "pdf"],
+            "archives": ["zip", "rar", "7z", "tar", "gz"],
+            "videos": ["mp4", "mov", "avi", "mkv"],
+            "audio": ["mp3", "wav", "flac"],
+        },
+        exclude_filenames={"desktop.ini", ".DS_Store", "thumbs.db"},
+        exclude_extensions={"exe", "msi", "ini", "bat", "py"},
+    )
+
+
 def load_config(path: Path | None = None) -> OrganizeConfig:
     """config.ini を読み込んで OrganizeConfig を返す。"""
     config_path = Path(path) if path is not None else DEFAULT_CONFIG_PATH
     if not config_path.exists():
         raise FileNotFoundError(f"設定ファイルが見つかりません: {config_path}")
 
-    parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser(interpolation=None)
     parser.read(config_path, encoding="utf-8")
 
     if not parser.has_option("Settings", "TargetDirectory"):
@@ -84,21 +101,31 @@ def load_config(path: Path | None = None) -> OrganizeConfig:
 def save_config(path: Path, cfg: OrganizeConfig) -> None:
     """OrganizeConfig を config.ini に書き戻す。
 
-    注意: configparser はコメント行（';' 始まり）を保持しないため、
-    保存すると既存のコメントは失われる。呼び出し側で確認を取ること。
+    configparser.write() はコメントを保持しないため、説明コメント付きの
+    テンプレートを毎回組み立てて直接書き出す。これにより GUI から保存しても
+    設定ファイルが常に自己説明的なまま保たれる。
     """
-    parser = configparser.ConfigParser()
-    parser["Settings"] = {
-        "TargetDirectory": str(cfg.target_dir),
-        "LogDirectoryName": cfg.log_dir_name,
-    }
-    parser["ExtensionGroups"] = {
-        folder_name: ", ".join(exts) for folder_name, exts in cfg.extension_groups.items()
-    }
-    parser["Exclude"] = {
-        "filenames": ", ".join(sorted(cfg.exclude_filenames)),
-        "extensions": ", ".join(sorted(cfg.exclude_extensions)),
-    }
+    lines = [
+        "; ファイル振り分けツール設定 — GUIの［設定］から編集できます",
+        "",
+        "[Settings]",
+        "; 整理対象のフォルダ / ログを保存するフォルダ名",
+        f"TargetDirectory = {cfg.target_dir}",
+        f"LogDirectoryName = {cfg.log_dir_name}",
+        "",
+        "[ExtensionGroups]",
+        "; フォルダ名 = そこにまとめる拡張子（カンマ区切り）",
+    ]
+    for folder_name, exts in cfg.extension_groups.items():
+        lines.append(f"{folder_name} = {', '.join(exts)}")
+    lines += [
+        "",
+        "[Exclude]",
+        "; 整理対象から除外するファイル名 / 拡張子（カンマ区切り）",
+        f"filenames = {', '.join(sorted(cfg.exclude_filenames))}",
+        f"extensions = {', '.join(sorted(cfg.exclude_extensions))}",
+        "",
+    ]
 
     with open(path, "w", encoding="utf-8", newline="") as fp:
-        parser.write(fp)
+        fp.write("\n".join(lines))
