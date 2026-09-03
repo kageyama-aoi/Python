@@ -31,8 +31,14 @@ class MappingEditorWindow(tk.Toplevel):
         self.tree.column("note", width=140)
         self.tree.pack(fill="both", expand=True, padx=10, pady=(10, 4))
 
-        self.delete_btn = ttk.Button(self, text="選択行を削除", command=self._on_delete)
-        self.delete_btn.pack(anchor="e", padx=10)
+        btn_bar = ttk.Frame(self)
+        btn_bar.pack(fill="x", padx=10)
+        self.scan_btn = ttk.Button(
+            btn_bar, text="inputをスキャンして候補追加", command=self._on_scan_inputs
+        )
+        self.scan_btn.pack(side="left")
+        self.delete_btn = ttk.Button(btn_bar, text="選択行を削除", command=self._on_delete)
+        self.delete_btn.pack(side="right")
 
         form_frame = ttk.LabelFrame(self, text="新規登録", padding=10)
         form_frame.pack(fill="x", padx=10, pady=10)
@@ -65,6 +71,7 @@ class MappingEditorWindow(tk.Toplevel):
         self.config_combo.configure(state=state)
         self.register_btn.configure(state="disabled" if locked else "normal")
         self.delete_btn.configure(state="disabled" if locked else "normal")
+        self.scan_btn.configure(state="disabled" if locked else "normal")
 
     def _reload_file_lists(self):
         dirs = self.ctx.dirs
@@ -118,6 +125,20 @@ class MappingEditorWindow(tk.Toplevel):
 
         mapping_handler.add_mapping_entry(self.ctx, keyword, config_name)
         self.refresh()
+
+    def _on_scan_inputs(self):
+        """data/input の新規ファイル名から未登録のキーワード候補を追記する
+        （設定ファイル名は要手動確認。旧「mapping.csv 更新」ボタン相当）。"""
+        added = mapping_handler.build_or_update_mapping(self.ctx)
+        self.refresh()
+        if added:
+            messagebox.showinfo(
+                "候補を追加しました",
+                f"{added}件の候補を追加しました。設定ファイル名（適用Config）は一覧で確認・修正してください。",
+                parent=self,
+            )
+        else:
+            messagebox.showinfo("候補なし", "未登録の新規ファイルはありませんでした。", parent=self)
 
     def _on_delete(self):
         selection = self.tree.selection()

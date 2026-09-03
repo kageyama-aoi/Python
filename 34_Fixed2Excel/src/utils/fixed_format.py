@@ -125,17 +125,20 @@ def validate_config_rules(config_rules):
                 messages.append(f"{label}「{r['name']}」: 開始位置が {r['start'] + 1}（1以上にしてください）")
 
         cursor = 0
+        first = True
         for r in sorted(rules, key=lambda r: r["start"]):
             s, e = r["start"], r["start"] + r["length"]
             if s < cursor:
                 messages.append(
                     f"{label}「{r['name']}」（開始位置 {s + 1}）: 直前のフィールドと {cursor - s} バイト重なっています"
                 )
-            elif s > cursor:
+            elif s > cursor and not (first and s == 1):
+                # 先頭フィールドが2バイト目から始まる隙間はレコード種別コード（区分）の分で正常
                 messages.append(
                     f"{label}: 開始位置 {cursor + 1}〜{s} に未定義のバイトがあります（「{r['name']}」の手前）"
                 )
             cursor = max(cursor, e)
+            first = False
         end_positions[label] = cursor
 
     if len(set(end_positions.values())) > 1:
