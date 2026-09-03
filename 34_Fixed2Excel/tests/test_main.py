@@ -1926,3 +1926,45 @@ def test_config_wizard_window_on_create_generates_config_and_mapping_and_trigger
     assert triggered == ["to_excel"]
 
     root.destroy()
+
+
+# ---- メイン画面レイアウトの見直し（作業順の3ブロック構成） ----
+
+def test_main_window_has_workflow_buttons_and_folder_menu(monkeypatch):
+    tk = pytest.importorskip("tkinter")
+    from src import gui as gui_module
+
+    monkeypatch.setattr(gui_module, "create_context", lambda logger: _make_ctx(
+        {"configs": "x", "input": "x", "output": "x", "recreated": "x"},
+        "m.csv", {"keyword": "k", "config_name": "c", "note": "n"},
+    ))
+    try:
+        app = gui_module.Fixed2ExcelApp()
+    except tk.TclError:
+        pytest.skip("Tk 表示環境なし")
+    app.withdraw()
+    app.update_idletasks()
+
+    # ふだんの作業＋初回＋その他の6アクションが self.buttons に揃っている
+    assert set(app.buttons) == {
+        "to_excel", "to_fixed", "init", "config_wizard", "diff_check", "edit_mapping",
+    }
+
+    # フォルダを開くはドロップダウン（Menubutton）に集約され、実行中も押せる
+    menubuttons = []
+    def walk(w):
+        for c in w.winfo_children():
+            if c.winfo_class() == "TMenubutton":
+                menubuttons.append(c)
+            walk(c)
+    walk(app)
+    assert len(menubuttons) == 1
+    menu = app.nametowidget(menubuttons[0]["menu"])
+    assert menu.index("end") == 3  # 4項目（設定/入力/出力/復元後）
+
+    app._set_running(True)
+    assert all(str(b["state"]) == "disabled" for b in app.buttons.values())
+    assert str(menubuttons[0]["state"]) == "normal"  # フォルダは処理中でも開ける
+    app._set_running(False)
+
+    app.destroy()
