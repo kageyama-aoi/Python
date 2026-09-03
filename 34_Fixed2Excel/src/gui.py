@@ -16,7 +16,7 @@ from src import theme
 from src.app_context import create_context
 from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
-from src.handlers import diff_checker, excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
+from src.handlers import diff_checker, fixed_to_excel, mapping_handler, setup_handler
 
 
 class QueueLogHandler(logging.Handler):
@@ -158,8 +158,8 @@ class Fixed2ExcelApp(tk.Tk):
     # よく使う変換操作: 押しやすい上部に大きめのボタンで配置
     PRIMARY_ACTIONS = [
         ("固定長テキスト → Excel 変換", "to_excel"),
-        ("Excel → 固定長テキスト 復元", "to_fixed"),
-        ("差分チェック（入力 vs 復元後）", "diff_check"),
+        ("Excel → 固定長テキスト 復元（＋差分チェック）", "to_fixed"),
+        ("差分チェック（入力 vs 復元後）のみ", "diff_check"),
     ]
     # 初回セットアップ等、使用頻度の低い操作: 下部に小さめでまとめ、実行前に確認する
     SETUP_ACTIONS = [
@@ -336,7 +336,7 @@ class Fixed2ExcelApp(tk.Tk):
             elif action_key == "to_excel":
                 fixed_to_excel.convert_all(self.ctx)
             elif action_key == "to_fixed":
-                excel_to_fixed.restore_all(self.ctx)
+                diff_checker.restore_and_check(self.ctx)
             elif action_key == "diff_check":
                 diff_checker.check_all(self.ctx)
         except Exception:

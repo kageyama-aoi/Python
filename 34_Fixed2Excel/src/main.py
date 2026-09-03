@@ -6,15 +6,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.app_context import create_context
 from src.utils.logger import setup_logger
-from src.handlers import setup_handler, mapping_handler, fixed_to_excel, excel_to_fixed, diff_checker
+from src.handlers import setup_handler, mapping_handler, fixed_to_excel, diff_checker
 
 MENU = """
 === 34_Fixed2Excel ===
 1: 環境初期化（フォルダ作成 + サンプルConfig/固定長テキスト生成）
 2: mapping.csv 更新（inputの新規ファイルを追記）
 3: 固定長テキスト -> Excel 変換
-4: Excel -> 固定長テキスト 復元
-5: 差分チェック（入力 vs 復元後）
+4: Excel -> 固定長テキスト 復元（続けて差分チェックも実行）
+5: 差分チェック（入力 vs 復元後）のみ
 0: 終了
 """
 
@@ -36,7 +36,7 @@ def main():
             elif choice == "3":
                 fixed_to_excel.convert_all(ctx)
             elif choice == "4":
-                excel_to_fixed.restore_all(ctx)
+                diff_checker.restore_and_check(ctx)
             elif choice == "5":
                 diff_checker.check_all(ctx)
             elif choice == "0":

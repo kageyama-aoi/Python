@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 
+from src.handlers.excel_to_fixed import restore_all
 from src.handlers.fixed_to_excel import process_file
 from src.utils.fixed_format import load_config_rules, resolve_config_path
 from src.utils.log_tags import log_diff, log_end, log_start
@@ -90,3 +91,13 @@ def check_all(ctx):
             logger.warning(f"{txt_name}: 差分{diff_count}件検出（詳細は上記ログ参照）")
 
     log_end(logger, "入力/復元後 差分チェック完了")
+
+
+def restore_and_check(ctx):
+    """Excel→固定長復元をしてから、そのまま入力との差分チェックを続けて実行する。
+
+    往復（固定長→Excel編集→固定長復元）の安全確認を1アクションにまとめるための入口。
+    差分チェックを回し忘れて意図しない変化に気づけない事故を防ぐ。
+    """
+    restore_all(ctx)
+    check_all(ctx)
