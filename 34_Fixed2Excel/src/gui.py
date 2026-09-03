@@ -83,14 +83,15 @@ ABOUT_TEXT = """このツールは、桁位置で項目が決まっている「�
 
 【はじめての場合】
 
-1. 「環境初期化」を押す
+1. 「はじめに（初回のみ）」の「環境初期化」を押す
    → サンプルファイルと、必要なフォルダ（configs/input/output等）が用意されます。
 
-2. 「固定長テキスト → Excel 変換」を押す
-   → data/input 内のファイルがExcelになって data/output に出てきます。
+2. 自分のファイルを扱うときは、隣の「新しいファイルに対応」で
+   桁位置を登録します（サンプルだけ試すなら不要）。
 
-3. Excelで中身を確認・編集し、「Excel → 固定長テキスト 復元」で
-   元の形式に戻せます。
+3. あとは「ふだんの作業」の ① → （Excelで確認・修正）→ ③ を繰り返します。
+   ① data/input のファイルが data/output にExcelで出てきます。
+   ③ 修正したExcelを固定長に戻し、続けて差分チェックまで自動で行います。
 
 
 【新しい種類のファイルに対応するには】
@@ -149,22 +150,12 @@ class AboutWindow(tk.Toplevel):
 
 
 class Fixed2ExcelApp(tk.Tk):
-    # よく使う変換操作: 押しやすい上部に大きめのボタンで配置
-    PRIMARY_ACTIONS = [
-        ("固定長テキスト → Excel 変換", "to_excel"),
-        ("Excel → 固定長テキスト 復元（＋差分チェック）", "to_fixed"),
-        ("差分チェック（入力 vs 復元後）のみ", "diff_check"),
-    ]
-    # 初回セットアップ等、使用頻度の低い操作: 下部に小さめでまとめ、実行前に確認する
-    SETUP_ACTIONS = [
-        ("環境初期化", "init"),
-    ]
     # 各データフォルダをエクスプローラーで開くだけの操作: 処理中でも押せてよい
     FOLDER_ACTIONS = [
-        ("設定(configs)", "configs"),
-        ("入力(input)", "input"),
-        ("出力(output)", "output"),
-        ("復元後(recreated_input)", "recreated"),
+        ("設定（configs）", "configs"),
+        ("入力（input）", "input"),
+        ("出力（output）", "output"),
+        ("復元後（recreated_input）", "recreated"),
     ]
 
     def __init__(self):
@@ -182,6 +173,7 @@ class Fixed2ExcelApp(tk.Tk):
 
         # sv_ttk dark（あれば）＋ Meiryo UI ＋ ボタン3段階スタイルをまとめて適用（theme.py）。
         self.style = theme.apply_theme(self)
+        self.style.configure("TMenubutton", font=theme.UI_FONT)  # 「フォルダを開く ▾」用
 
         self.after(100, self._drain_log_queue)
         theme.style_titlebar(self)
@@ -203,62 +195,66 @@ class Fixed2ExcelApp(tk.Tk):
         ttk.Button(top_bar, text="このツールについて", style=BTN_TERTIARY,
                   command=self._show_about).pack(side="right")
 
-        # 3つの主要操作は縦に積んで全幅にする（Meiryo UI 14pt bold のラベルは横並びだと
-        # ウィンドウ幅に収まらず末尾が切れるため。縦積みの方が同格の操作として読みやすい）。
-        primary_frame = ttk.Frame(self, padding=(10, 10, 10, 4))
-        primary_frame.pack(fill="x")
-        for label, action_key in self.PRIMARY_ACTIONS:
-            btn = ttk.Button(
-                primary_frame, text=label, style=BTN_PRIMARY,
-                command=lambda k=action_key: self._run_action(k),
-            )
-            btn.pack(fill="x", pady=2)
-            self.buttons[action_key] = btn
+        # ── ふだんの作業: 変換 → (Excelで編集) → 復元 の順に、①③を大きなボタンで、
+        #    ②はボタンではなく手順の説明として置く ─────────────────────
+        work = ttk.LabelFrame(self, text="ふだんの作業", padding=(12, 8))
+        work.pack(fill="x", padx=10, pady=(10, 4))
+        self.buttons["to_excel"] = ttk.Button(
+            work, text="①  固定長テキスト → Excel に変換", style=BTN_PRIMARY,
+            command=lambda: self._run_action("to_excel"),
+        )
+        self.buttons["to_excel"].pack(fill="x", pady=(0, 4))
+        ttk.Label(
+            work, foreground=theme.MUTED_FG,
+            text="②  出力された Excel を開いて内容を確認・修正します（手作業）",
+        ).pack(anchor="w", pady=2)
+        self.buttons["to_fixed"] = ttk.Button(
+            work, text="③  Excel → 固定長テキストに戻す（差分チェック付き）", style=BTN_PRIMARY,
+            command=lambda: self._run_action("to_fixed"),
+        )
+        self.buttons["to_fixed"].pack(fill="x", pady=(4, 0))
 
-        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=10, pady=(6, 2))
-        ttk.Label(self, text="新しい種類のファイルに対応する", padding=(10, 0)).pack(anchor="w")
-
-        register_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
-        register_frame.pack(fill="x")
-        wizard_btn = ttk.Button(
-            register_frame, text="新しいファイルに対応", style=BTN_SECONDARY,
+        # ── はじめに（初回のみ）─────────────────────────────
+        ttk.Label(self, text="はじめに（初回のみ）", padding=(10, 4, 10, 0)).pack(anchor="w")
+        first_frame = ttk.Frame(self, padding=(10, 2, 10, 6))
+        first_frame.pack(fill="x")
+        self.buttons["init"] = ttk.Button(
+            first_frame, text="環境初期化", style=BTN_SECONDARY,
+            command=lambda: self._run_action("init"),
+        )
+        self.buttons["init"].pack(side="left", padx=(0, 4))
+        self.buttons["config_wizard"] = ttk.Button(
+            first_frame, text="新しいファイルに対応", style=BTN_SECONDARY,
             command=self._open_config_wizard,
         )
-        wizard_btn.pack(side="left", padx=4)
-        self.buttons["config_wizard"] = wizard_btn
+        self.buttons["config_wizard"].pack(side="left", padx=4)
 
-        edit_mapping_btn = ttk.Button(
-            register_frame, text="mapping.csv 編集", style=BTN_SECONDARY,
+        # ── その他 ────────────────────────────────────
+        ttk.Label(self, text="その他", padding=(10, 4, 10, 0)).pack(anchor="w")
+        other_frame = ttk.Frame(self, padding=(10, 2, 10, 6))
+        other_frame.pack(fill="x")
+        self.buttons["diff_check"] = ttk.Button(
+            other_frame, text="差分チェックのみ", style=BTN_SECONDARY,
+            command=lambda: self._run_action("diff_check"),
+        )
+        self.buttons["diff_check"].pack(side="left", padx=(0, 4))
+        self.buttons["edit_mapping"] = ttk.Button(
+            other_frame, text="mapping.csv 編集", style=BTN_SECONDARY,
             command=self._open_mapping_editor,
         )
-        edit_mapping_btn.pack(side="left", padx=4)
-        self.buttons["edit_mapping"] = edit_mapping_btn
+        self.buttons["edit_mapping"].pack(side="left", padx=4)
 
-        ttk.Label(self, text="初期セットアップ（通常は最初の1回だけ）", padding=(10, 0)).pack(anchor="w")
-        setup_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
-        setup_frame.pack(fill="x")
-        for label, action_key in self.SETUP_ACTIONS:
-            btn = ttk.Button(
-                setup_frame, text=label, style=BTN_SECONDARY,
-                command=lambda k=action_key: self._run_action(k),
-            )
-            btn.pack(side="left", padx=4)
-            self.buttons[action_key] = btn
-
-        ttk.Label(self, text="フォルダを開く", padding=(10, 0)).pack(anchor="w")
-        folder_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
-        folder_frame.pack(fill="x")
+        # フォルダを開くはドロップダウンに集約（読み取り専用なので処理中でも押せてよい＝
+        # self.buttons には入れず _set_running の無効化対象から外す）。
+        folder_mb = ttk.Menubutton(other_frame, text="フォルダを開く ▾")
+        folder_menu = tk.Menu(folder_mb, tearoff=False)
         for label, dir_key in self.FOLDER_ACTIONS:
-            btn = ttk.Button(
-                folder_frame, text=label, style=BTN_SECONDARY,
-                command=lambda k=dir_key: self._open_folder(k),
-            )
-            btn.pack(side="left", padx=4)
-            # 処理中でも他のファイル操作と競合しない読み取り専用操作のため、self.buttonsには入れず
-            # _set_runningでの無効化対象から外す（実行中でも押せてよい）。
+            folder_menu.add_command(label=label, command=lambda k=dir_key: self._open_folder(k))
+        folder_mb["menu"] = folder_menu
+        folder_mb.pack(side="left", padx=4)
 
         self.status_var = tk.StringVar(value="待機中")
-        ttk.Label(self, textvariable=self.status_var, padding=(10, 0)).pack(anchor="w")
+        ttk.Label(self, textvariable=self.status_var, padding=(10, 4, 10, 0)).pack(anchor="w")
 
         self.log_text = scrolledtext.ScrolledText(
             self, state="disabled", wrap="word", font=theme.LOG_FONT,
