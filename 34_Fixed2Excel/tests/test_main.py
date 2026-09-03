@@ -31,7 +31,14 @@ from src.utils.excel_style import (
     is_separator_column,
     style_output_sheet,
 )
-from src.utils.fixed_format import AmbiguousKeywordMatchError, build_field_columns, match_config, resolve_config_path
+from src.utils.fixed_format import (
+    AmbiguousKeywordMatchError,
+    build_field_columns,
+    load_config_rules,
+    match_config,
+    resolve_config_path,
+    validate_config_rules,
+)
 
 ENCODING = "cp932"
 RECORD_TYPE_CODES = {"header": ["1"], "trailer": ["8", "9"]}
@@ -1587,3 +1594,88 @@ def test_convert_all_warns_on_record_length_mismatch(tmp_path, caplog):
 
     assert "レコード長 4バイト （設定の想定は 6バイト）" in caplog.text
     assert "レコード長不一致 1件" in caplog.text
+
+
+# ---- #167 設定Excelのバリデーション ----
+
+def test_validate_config_rules_detects_overlap():
+    rules = {
+        "D": [
+            {"name": "会員番号", "start": 0, "length": 10},
+            {"name": "氏名", "start": 8, "length": 20},  # 会員番号と2バイト重なる
+        ],
+        "H": None, "T": None, "E": None,
+    }
+    msgs = validate_config_rules(rules)
+    assert any("氏名" in m and "重なって" in m and "2 バイト" in m for m in msgs)
+
+
+def test_validate_config_rules_detects_gap():
+    rules = {
+        "D": [
+            {"name": "会員番号", "start": 0, "length": 10},
+            {"name": "氏名", "start": 15, "length": 20},  # 10〜15に隙間
+        ],
+        "H": None, "T": None, "E": None,
+    }
+    msgs = validate_config_rules(rules)
+    assert any("未定義のバイト" in m and "氏名" in m for m in msgs)
+
+
+def test_validate_config_rules_detects_non_positive_length():
+    rules = {"D": [{"name": "予備", "start": 5, "length": 0}], "H": None, "T": None, "E": None}
+    msgs = validate_config_rules(rules)
+    assert any("文字数が 0" in m for m in msgs)
+
+
+def test_validate_config_rules_detects_record_length_mismatch_between_types():
+    rules = {
+        "D": [{"name": "会員番号", "start": 0, "length": 16}],   # 終端16
+        "H": [{"name": "作成日", "start": 0, "length": 8}],       # 終端8
+        "T": None, "E": None,
+    }
+    msgs = validate_config_rules(rules)
+    assert any("終端位置" in m and "揃っていません" in m for m in msgs)
+
+
+def test_validate_config_rules_clean_config_has_no_warnings():
+    rules = {
+        "D": [
+            {"name": "会員番号", "start": 0, "length": 10},
+            {"name": "氏名", "start": 10, "length": 20},
+        ],
+        "H": None, "T": None, "E": None,
+    }
+    assert validate_config_rules(rules) == []
+
+
+def test_parse_sheet_rules_skips_non_numeric_cell_and_records_it(tmp_path):
+    config_path = tmp_path / "config.xlsx"
+    data_sheet = pd.DataFrame([
+        ["開始位置", 1, "8桁"],   # 2列目の開始位置が数値でない
+        ["文字数", 4, 8],
+    ], columns=["区分", "コード", "名前"])
+    with pd.ExcelWriter(config_path, engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)
+
+    from src.utils.fixed_format import parse_sheet_rules
+    xl = pd.ExcelFile(config_path)
+    invalid = []
+    fields = parse_sheet_rules(xl, "データ", invalid)
+    assert [f["name"] for f in fields] == ["コード"]  # 「名前」は飛ばされる
+    assert invalid == ['データ「名前」']
+
+
+def test_load_config_rules_logs_config_warnings(tmp_path, caplog):
+    config_path = tmp_path / "config.xlsx"
+    data_sheet = pd.DataFrame([
+        ["開始位置", 1, 8],   # コード(1-4), 氏名(8-...) → 4〜8に隙間
+        ["文字数", 4, 10],
+    ], columns=["区分", "コード", "氏名"])
+    with pd.ExcelWriter(config_path, engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)
+
+    with caplog.at_level(logging.WARNING):
+        load_config_rules(config_path, logger=logger)
+
+    assert "未定義のバイト" in caplog.text

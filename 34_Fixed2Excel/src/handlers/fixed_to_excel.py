@@ -115,7 +115,7 @@ def convert_all(ctx):
 
         logger.info(f"解析: {txt_name} → {os.path.basename(config_path)}")
 
-        config_rules = load_config_rules(config_path)
+        config_rules = load_config_rules(config_path, logger=logger)
         length_diag = []
         df_result = process_file(
             txt_path, config_rules, ctx.encoding, ctx.record_type_codes, diagnostics=length_diag

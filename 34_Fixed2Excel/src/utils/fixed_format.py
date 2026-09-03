@@ -12,8 +12,12 @@ REC_TYPE_END = "エンドレコード"
 REC_TYPE_LABELS = {"D": REC_TYPE_DATA, "H": REC_TYPE_HEADER, "T": REC_TYPE_TRAILER, "E": REC_TYPE_END}
 
 
-def parse_sheet_rules(excel_file, sheet_name):
-    """横並び設定シート(1行目:項目名, 2行目:開始位置, 3行目:文字数)を解析"""
+def parse_sheet_rules(excel_file, sheet_name, invalid_cells=None):
+    """横並び設定シート(1行目:項目名, 2行目:開始位置, 3行目:文字数)を解析
+
+    開始位置・文字数が数値に変換できないセル（数式の文字列化・全角数字・単位付き等）は、
+    そのフィールドを飛ばす。invalid_cells（list）を渡すと飛ばしたフィールド名を追記する。
+    """
     if not sheet_name or sheet_name not in excel_file.sheet_names:
         return None
 
@@ -27,24 +31,90 @@ def parse_sheet_rules(excel_file, sheet_name):
         if pd.isna(field_name) or pd.isna(start_pos) or pd.isna(length):
             continue
 
+        try:
+            start = int(start_pos) - 1  # 1-based -> 0-based
+            length = int(length)
+        except (ValueError, TypeError):
+            if invalid_cells is not None:
+                invalid_cells.append(f"{sheet_name}「{str(field_name).strip()}」")
+            continue
+
         fields.append({
             "name": str(field_name).strip(),
-            "start": int(start_pos) - 1,  # 1-based -> 0-based
-            "length": int(length),
+            "start": start,
+            "length": length,
         })
     return fields
 
 
-def load_config_rules(config_path):
-    """Config Excelを読み込み、レコード種別(D/H/T/E)ごとのルール辞書を返す"""
+def load_config_rules(config_path, logger=None):
+    """Config Excelを読み込み、レコード種別(D/H/T/E)ごとのルール辞書を返す。
+
+    logger を渡すと、桁定義の不整合（重なり・隙間・非正の値・数値化できないセル・
+    レコード種別間の終端位置ズレ）を WARNING で通知する（処理は止めない）。
+    """
     excel_file = pd.ExcelFile(config_path)
     sheets = excel_file.sheet_names
-    return {
-        "D": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_DATA in s), sheets[0])),
-        "H": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_HEADER in s), None)),
-        "T": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_TRAILER in s), None)),
-        "E": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_END in s), None)),
+    invalid_cells = []
+    rules = {
+        "D": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_DATA in s), sheets[0]), invalid_cells),
+        "H": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_HEADER in s), None), invalid_cells),
+        "T": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_TRAILER in s), None), invalid_cells),
+        "E": parse_sheet_rules(excel_file, next((s for s in sheets if REC_TYPE_END in s), None), invalid_cells),
     }
+
+    if logger is not None:
+        name = os.path.basename(config_path)
+        for cell in invalid_cells:
+            logger.warning(f"{name}: {cell} の開始位置/文字数が数値ではないためこの項目を無視しました")
+        for msg in validate_config_rules(rules):
+            logger.warning(f"{name}: {msg}")
+
+    return rules
+
+
+def validate_config_rules(config_rules):
+    """レコード種別ごとのルールを検証し、警告メッセージ（str）のリストを返す。
+
+    - 開始位置・文字数が正でない
+    - フィールド範囲の重なり
+    - フィールド間の隙間（未定義バイト）
+    - レコード種別ごとの終端位置（=想定レコード長）が種別間で不一致
+
+    重なり・隙間・ズレは意図的な設計の場合もあるため、処理は止めず注意喚起にとどめる。
+    """
+    messages = []
+    end_positions = {}
+    for rec_key, rules in config_rules.items():
+        if not rules:
+            continue
+        label = REC_TYPE_LABELS.get(rec_key, rec_key)
+
+        for r in rules:
+            if r["length"] <= 0:
+                messages.append(f"{label}「{r['name']}」: 文字数が {r['length']}（1以上にしてください）")
+            if r["start"] < 0:
+                messages.append(f"{label}「{r['name']}」: 開始位置が {r['start'] + 1}（1以上にしてください）")
+
+        cursor = 0
+        for r in sorted(rules, key=lambda r: r["start"]):
+            s, e = r["start"], r["start"] + r["length"]
+            if s < cursor:
+                messages.append(
+                    f"{label}「{r['name']}」（開始位置 {s + 1}）: 直前のフィールドと {cursor - s} バイト重なっています"
+                )
+            elif s > cursor:
+                messages.append(
+                    f"{label}: 開始位置 {cursor + 1}〜{s} に未定義のバイトがあります（「{r['name']}」の手前）"
+                )
+            cursor = max(cursor, e)
+        end_positions[label] = cursor
+
+    if len(set(end_positions.values())) > 1:
+        detail = "、".join(f"{k}={v}" for k, v in end_positions.items())
+        messages.append(f"レコード種別ごとの終端位置（レコード長）が揃っていません（{detail}）")
+
+    return messages
 
 
 def count_field_name_usage(config_rules):

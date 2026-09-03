@@ -118,7 +118,7 @@ def restore_all(ctx):
 
         logger.info(f"逆変換: {excel_name} → {os.path.basename(config_path)}")
 
-        rules_by_type = load_config_rules(config_path)
+        rules_by_type = load_config_rules(config_path, logger=logger)
         field_columns_by_label = {REC_TYPE_LABELS[k]: v for k, v in build_field_columns(rules_by_type).items()}
 
         try:
