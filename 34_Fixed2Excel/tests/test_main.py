@@ -1452,3 +1452,138 @@ def test_check_all_reports_error_and_continues_on_ambiguous_keyword_match(tmp_pa
         check_all(ctx)
 
     assert "複数のキーワードが部分一致しました" in caplog.text
+
+
+# ---- #169 変換・復元時の警告強化 ----
+# レビューで判明: pad_value_to_bytes はフィールドのバイト長を超える値を無言で切り捨てる。
+# cp932の2バイト文字の途中で切ると不正バイトが残る。切り捨ては警告し、文字境界で切る。
+
+def test_pad_value_to_bytes_truncates_multibyte_on_char_boundary():
+    # "あいう" = cp932で6バイト。5バイトに切ると3文字目の途中で切れる。
+    result = pad_value_to_bytes("あいう", 5, ENCODING)
+    assert len(result) == 5
+    result.decode(ENCODING)  # 不正バイトが残っていれば UnicodeDecodeError
+    assert result == "あい".encode(ENCODING) + b" "  # 半端な1バイトを落としスペース埋め
+
+
+def test_pad_value_to_bytes_calls_on_truncate_callback():
+    calls = []
+    pad_value_to_bytes("ABCDEF", 3, ENCODING,
+                       on_truncate=lambda *a: calls.append(a), field_name="コード")
+    assert calls == [("コード", 6, 3)]
+
+
+def test_pad_value_to_bytes_no_truncate_callback_when_value_fits():
+    calls = []
+    pad_value_to_bytes("AB", 5, ENCODING, on_truncate=lambda *a: calls.append(a))
+    assert calls == []
+
+
+def test_build_fixed_line_records_truncation_in_diagnostics():
+    rules = [{"name": "会員番号", "start": 0, "length": 4}]
+    diag = []
+    build_fixed_line({"会員番号": "1234567890"}, rules, ENCODING, diagnostics=diag)
+    assert diag == [{"field": "会員番号", "actual": 10, "limit": 4}]
+
+
+def test_process_file_records_record_length_mismatch_in_diagnostics(tmp_path):
+    config_path = tmp_path / "config.xlsx"
+    data_sheet = pd.DataFrame([["開始位置", 2], ["文字数", 5]], columns=["区分", "値"])
+    with pd.ExcelWriter(config_path, engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)
+    from src.utils.fixed_format import load_config_rules
+    rules = load_config_rules(config_path)  # 想定レコード長 = 1 + 5 = 6
+
+    txt_path = tmp_path / "sample.txt"
+    with open(txt_path, "wb") as f:
+        f.write(b"2ABCDE\r\n")   # 6バイト(一致)
+        f.write(b"2ABC\r\n")     # 4バイト(不足)
+
+    diag = []
+    process_file(txt_path, rules, ENCODING, RECORD_TYPE_CODES, diagnostics=diag)
+    assert diag == [{"line": 2, "rec_type": "データ", "expected": 6, "actual": 4}]
+
+
+def _setup_restore_ctx_with_one_row(tmp_path):
+    """convert_all で position 行付きの正しい出力Excelを1行だけ作った状態の ctx を返す。"""
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    recreated_dir = tmp_path / "recreated"
+    for d in (configs_dir, input_dir, output_dir, recreated_dir):
+        d.mkdir()
+
+    _write_simple_config(configs_dir / "config.xlsx")  # 「値」start1 len1
+    with open(input_dir / "SAMPLE.txt", "wb") as f:
+        f.write(b"2A\r\n")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg"}
+    pd.DataFrame([{"kw": "SAMPLE", "cfg": "config.xlsx"}]).to_csv(
+        mapping_csv, index=False, encoding=ENCODING
+    )
+    dirs = {
+        "configs": str(configs_dir), "input": str(input_dir),
+        "output": str(output_dir), "recreated": str(recreated_dir),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+    convert_all(ctx)
+    return ctx, output_dir / "解析結果_SAMPLE.xlsx"
+
+
+def test_restore_all_warns_on_truncation_and_summarizes(tmp_path, caplog):
+    ctx, excel_path = _setup_restore_ctx_with_one_row(tmp_path)
+
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb.active
+    header = [cell.value for cell in ws[1]]
+    ws.cell(row=4, column=header.index("値") + 1, value="ABC")  # 1バイト枠に3バイト（データはrow4から）
+    wb.save(excel_path)
+
+    with caplog.at_level(logging.INFO):
+        restore_all(ctx)
+
+    assert "「値」: 3バイト → 1バイトに切り捨て" in caplog.text
+    assert "切り捨て 1件" in caplog.text
+
+
+def test_restore_all_reports_no_truncation_when_values_fit(tmp_path, caplog):
+    ctx, _ = _setup_restore_ctx_with_one_row(tmp_path)
+
+    with caplog.at_level(logging.INFO):
+        restore_all(ctx)
+
+    assert "切り捨てなし" in caplog.text
+
+
+def test_convert_all_warns_on_record_length_mismatch(tmp_path, caplog):
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    for d in (configs_dir, input_dir, output_dir):
+        d.mkdir()
+
+    data_sheet = pd.DataFrame([["開始位置", 2], ["文字数", 5]], columns=["区分", "値"])
+    with pd.ExcelWriter(configs_dir / "config.xlsx", engine="openpyxl") as writer:
+        data_sheet.to_excel(writer, sheet_name="データ", index=False)  # 想定長6
+
+    with open(input_dir / "SAMPLE.txt", "wb") as f:
+        f.write(b"2ABCDE\r\n")  # 6バイト(一致)
+        f.write(b"2XYZ\r\n")    # 4バイト(不一致)
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg"}
+    pd.DataFrame([{"kw": "SAMPLE", "cfg": "config.xlsx"}]).to_csv(
+        mapping_csv, index=False, encoding=ENCODING
+    )
+    dirs = {
+        "configs": str(configs_dir), "input": str(input_dir),
+        "output": str(output_dir), "recreated": str(tmp_path / "recreated"),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+
+    with caplog.at_level(logging.INFO):
+        convert_all(ctx)
+
+    assert "レコード長 4バイト （設定の想定は 6バイト）" in caplog.text
+    assert "レコード長不一致 1件" in caplog.text
