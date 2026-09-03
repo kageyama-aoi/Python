@@ -12,41 +12,11 @@ from tkinter import messagebox, scrolledtext, ttk
 TOOL_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(TOOL_ROOT))
 
+from src import theme
 from src.app_context import create_context
 from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
 from src.handlers import diff_checker, excel_to_fixed, fixed_to_excel, mapping_handler, setup_handler
-
-# Optional: pip install sv-ttk      → Windows 11 スタイルのダークテーマが有効になる
-# Optional: pip install pywinstyles → タイトルバーもダークテーマに揃う（sv-ttk併用時）
-try:
-    import sv_ttk as _sv_ttk
-    _SV_TTK = True
-except ImportError:
-    _SV_TTK = False
-
-try:
-    import pywinstyles as _pywinstyles
-    _PYWINSTYLES = True
-except ImportError:
-    _PYWINSTYLES = False
-
-
-def _style_titlebar(window):
-    """タイトルバーをダークテーマに揃える（sv_ttk＋pywinstylesがあるときだけ。失敗しても無害）。
-    31/32番のlauncher_gui.pyと同じパターン。"""
-    if not (_SV_TTK and _PYWINSTYLES):
-        return
-    try:
-        version = sys.getwindowsversion()
-        if version.major == 10 and version.build >= 22000:   # Windows 11
-            _pywinstyles.change_header_color(window, "#1c1c1c")
-        elif version.major == 10:                            # Windows 10
-            _pywinstyles.apply_style(window, "dark")
-            window.wm_attributes("-alpha", 0.99)             # 色が即時反映されないための再描画ハック
-            window.wm_attributes("-alpha", 1)
-    except Exception:
-        pass
 
 
 class QueueLogHandler(logging.Handler):
@@ -61,30 +31,22 @@ class QueueLogHandler(logging.Handler):
         self.log_queue.put((tag, self.format(record)))
 
 
-# ログ表示欄の背景（#1e1e1e、31/32番と同じ）に対してWCAGコントラスト比4.5以上を
-# 実測確認した配色（元は白背景向けの配色だったため、ダークテーマ化に伴い明るい色に調整）。
+# ログ表示欄の背景（theme.LOG_BG）に対してWCAGコントラスト比4.5以上を実測確認した配色。
+# 汎用色は theme のパレットに寄せ、DIFF（差分detail行の紫）だけこの画面固有として持つ。
 LOG_TAG_COLORS = {
-    "INFO": "#e0e0e0",
-    "WARNING": "#ffb347",
-    "ERROR": "#ff7777",
-    "START": "#4a9eff",
-    "END": "#4ec94e",
+    "INFO": theme.LOG_FG,
+    "WARNING": theme.WARN_FG,
+    "ERROR": theme.ERROR_SOFT_FG,
+    "START": theme.ACCENT_FG,
+    "END": theme.SUCCESS_FG,
     "DIFF": "#c299ff",
 }
 
-UI_FONT_FAMILY = "Yu Gothic UI"
-
-# ボタン3段階の共通スタイル（31/32番のlauncher_gui.pyと同じ定義。この画面ではTertiaryは未使用）。
-#   Primary   : 主要な変換操作（3つ）。14pt bold・高さ40px・アクセントカラー背景（sv_ttk時）
-#   Secondary : 標準操作（初期セットアップ・mapping編集・フォルダを開く）。11pt・高さ32px
-BTN_PRIMARY = "Primary.Accent.TButton"
-BTN_SECONDARY = "Secondary.TButton"
-BTN_TERTIARY = "Tertiary.Toolbutton"
-_BUTTON_SPECS = {
-    BTN_PRIMARY:   {"font": (UI_FONT_FAMILY, 13, "bold"), "height": 40, "hpad": 16},
-    BTN_SECONDARY: {"font": (UI_FONT_FAMILY, 10),         "height": 30, "hpad": 10},
-    BTN_TERTIARY:  {"font": (UI_FONT_FAMILY, 9),          "height": 24, "hpad": 6},
-}
+# ボタン3段階（theme.py で一元定義）。この画面では Primary=変換3操作 / Secondary=セットアップ・
+# フォルダを開く / Tertiary=「このツールについて」「閉じる」。
+BTN_PRIMARY = theme.BTN_PRIMARY
+BTN_SECONDARY = theme.BTN_SECONDARY
+BTN_TERTIARY = theme.BTN_TERTIARY
 
 # 実行頻度が低い操作は、押す前に「どんなときに使うか」を確認する
 CONFIRM_MESSAGES = {
@@ -158,15 +120,15 @@ class AboutWindow(tk.Toplevel):
         self.minsize(480, 360)
         self.transient(master)
         self.grab_set()
-        _style_titlebar(self)
+        theme.style_titlebar(self)
 
         frame = ttk.Frame(self, padding=16)
         frame.pack(fill="both", expand=True)
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
 
-        text = tk.Text(frame, wrap="word", font=(UI_FONT_FAMILY, 10),
-                       background="#1e1e1e", foreground="#e0e0e0", padx=8, pady=8,
+        text = tk.Text(frame, wrap="word", font=theme.UI_FONT,
+                       background=theme.LOG_BG, foreground=theme.LOG_FG, padx=8, pady=8,
                        relief="flat")
         text.grid(row=0, column=0, sticky="nsew")
         sb = ttk.Scrollbar(frame, command=text.yview)
@@ -215,7 +177,7 @@ class Fixed2ExcelApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("34_Fixed2Excel")
-        self.geometry("720x520")
+        self.geometry("760x620")
 
         self.log_queue = queue.Queue()
         self.logger = self._build_logger()
@@ -225,12 +187,11 @@ class Fixed2ExcelApp(tk.Tk):
 
         self._build_widgets()
 
-        if _SV_TTK:
-            _sv_ttk.set_theme("dark")
-        self._setup_style()  # フォント・ボタン高さの統一はテーマ適用後に行う（sv_ttkの上書きを防ぐ）
+        # sv_ttk dark（あれば）＋ Meiryo UI ＋ ボタン3段階スタイルをまとめて適用（theme.py）。
+        self.style = theme.apply_theme(self)
 
         self.after(100, self._drain_log_queue)
-        _style_titlebar(self)
+        theme.style_titlebar(self)
 
     def _build_logger(self):
         # CUI(src/main.py)と同じ data/logs/ にも残す（ウィンドウ表示だけだと閉じた後に追えない）
@@ -240,30 +201,17 @@ class Fixed2ExcelApp(tk.Tk):
         logger.addHandler(handler)
         return logger
 
-    def _setup_style(self):
-        """フォント・ボタン3段階スタイルの一元適用。テーマ（sv_ttk）適用後に呼ぶこと。
-        31/32番のlauncher_gui.pyと同じpxプローブ較正パターン。"""
-        style = ttk.Style(self)
-        for style_name, spec in _BUTTON_SPECS.items():
-            style.configure(style_name, font=spec["font"], padding=(spec["hpad"], 0))
-            probe = ttk.Button(self, text="あ", style=style_name)
-            self.update_idletasks()
-            base_h = probe.winfo_reqheight()
-            probe.destroy()
-            extra = max(0, spec["height"] - base_h)
-            top, bottom = extra // 2, extra - extra // 2
-            style.configure(style_name, padding=(spec["hpad"], top, spec["hpad"], bottom))
-        style.configure(BTN_TERTIARY, foreground="#888888")
-
     def _build_widgets(self):
         self.buttons = {}
 
         top_bar = ttk.Frame(self, padding=(10, 8, 10, 0))
         top_bar.pack(fill="x")
-        ttk.Label(top_bar, text="34_Fixed2Excel", font=(UI_FONT_FAMILY, 11, "bold")).pack(side="left")
+        ttk.Label(top_bar, text="34_Fixed2Excel", font=theme.UI_FONT_BOLD).pack(side="left")
         ttk.Button(top_bar, text="このツールについて", style=BTN_TERTIARY,
                   command=self._show_about).pack(side="right")
 
+        # 3つの主要操作は縦に積んで全幅にする（Meiryo UI 14pt bold のラベルは横並びだと
+        # ウィンドウ幅に収まらず末尾が切れるため。縦積みの方が同格の操作として読みやすい）。
         primary_frame = ttk.Frame(self, padding=(10, 10, 10, 4))
         primary_frame.pack(fill="x")
         for label, action_key in self.PRIMARY_ACTIONS:
@@ -271,7 +219,7 @@ class Fixed2ExcelApp(tk.Tk):
                 primary_frame, text=label, style=BTN_PRIMARY,
                 command=lambda k=action_key: self._run_action(k),
             )
-            btn.pack(side="left", expand=True, fill="x", padx=4)
+            btn.pack(fill="x", pady=2)
             self.buttons[action_key] = btn
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=10, pady=(6, 2))
@@ -310,8 +258,8 @@ class Fixed2ExcelApp(tk.Tk):
         ttk.Label(self, textvariable=self.status_var, padding=(10, 0)).pack(anchor="w")
 
         self.log_text = scrolledtext.ScrolledText(
-            self, state="disabled", wrap="word",
-            background="#1e1e1e", foreground="#e0e0e0", insertbackground="#e0e0e0",
+            self, state="disabled", wrap="word", font=theme.LOG_FONT,
+            background=theme.LOG_BG, foreground=theme.LOG_FG, insertbackground=theme.LOG_FG,
         )
         self.log_text.pack(fill="both", expand=True, padx=10, pady=10)
         for level, color in LOG_TAG_COLORS.items():
