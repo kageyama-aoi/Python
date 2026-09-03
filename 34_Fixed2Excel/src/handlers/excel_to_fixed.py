@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 
+from src.utils.excel_style import DATA_START_ROW
 from src.utils.fixed_format import (
     REC_TYPE_DATA,
     REC_TYPE_LABELS,
@@ -12,11 +13,27 @@ from src.utils.fixed_format import (
 from src.utils.log_tags import log_end, log_start
 
 
-def pad_value_to_bytes(val, length, encoding):
+def _safe_truncate(encoded, length, encoding):
+    """encoded を length バイトに収める。cp932 等の2バイト文字の途中で切れた場合、
+    末尾の不完全バイトを落として不足分をスペースで埋める（不正バイトを残さない）。"""
+    truncated = encoded[:length]
+    while truncated:
+        try:
+            truncated.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            truncated = truncated[:-1]
+    return truncated + b" " * (length - len(truncated))
+
+
+def pad_value_to_bytes(val, length, encoding, *, on_truncate=None, field_name=None):
     """
     データ型に応じた自動パディング処理
     - 数値・数字のみ: 右寄せスペース埋め
     - 文字列: 左寄せスペース埋め
+
+    値がフィールドのバイト長を超える場合は切り捨てる（fidelityが崩れるため、
+    on_truncate コールバックがあれば (field_name, 実バイト数, 上限) を通知する）。
     """
     if pd.isna(val) or val is None:
         val_str = ""
@@ -27,8 +44,12 @@ def pad_value_to_bytes(val, length, encoding):
 
     encoded = val_str.encode(encoding, errors="replace")
 
-    if len(encoded) >= length:
-        return encoded[:length]
+    if len(encoded) > length:
+        if on_truncate is not None:
+            on_truncate(field_name, len(encoded), length)
+        return _safe_truncate(encoded, length, encoding)
+    if len(encoded) == length:
+        return encoded
 
     pad_len = length - len(encoded)
     if isinstance(val, (int, float)) or val_str.isdigit():
@@ -36,17 +57,28 @@ def pad_value_to_bytes(val, length, encoding):
     return encoded + (b" " * pad_len)
 
 
-def build_fixed_line(row_data, rules, encoding):
-    """Excelの1行から固定長バイト列を作成"""
+def build_fixed_line(row_data, rules, encoding, *, diagnostics=None):
+    """Excelの1行から固定長バイト列を作成
+
+    diagnostics（list）を渡すと、フィールド値がバイト長を超えて切り捨てられた件を
+    {"field", "actual", "limit"} の dict で追記する。
+    """
     if not rules:
         return None
 
     max_len = max(r["start"] + r["length"] for r in rules)
     line_buf = bytearray(b" " * max_len)
 
+    def _record_truncation(field_name, actual, limit):
+        if diagnostics is not None:
+            diagnostics.append({"field": field_name, "actual": actual, "limit": limit})
+
     for rule in rules:
         val = row_data.get(rule["name"], "")
-        field_bytes = pad_value_to_bytes(val, rule["length"], encoding)
+        field_bytes = pad_value_to_bytes(
+            val, rule["length"], encoding,
+            on_truncate=_record_truncation, field_name=rule["name"],
+        )
         line_buf[rule["start"]: rule["start"] + rule["length"]] = field_bytes
 
     return bytes(line_buf)
@@ -100,7 +132,10 @@ def restore_all(ctx):
             continue
 
         output_lines = []
-        for _, row in df_target.iterrows():
+        truncations = 0
+        # 実データはExcelの4行目から（1=項目名, 2=開始位置, 3=文字数）
+        for pos, (_, row) in enumerate(df_target.iterrows()):
+            excel_row = pos + DATA_START_ROW
             rec_type = str(row.get("レコード種別", REC_TYPE_DATA)).strip()
             entries = field_columns_by_label.get(rec_type) or field_columns_by_label[REC_TYPE_DATA]
 
@@ -112,9 +147,16 @@ def restore_all(ctx):
                 for e in entries
             ]
             translated_row = {e["column"]: row.get(e["column"], "") for e in entries}
-            line_bytes = build_fixed_line(translated_row, synthetic_rules, encoding)
+            row_diag = []
+            line_bytes = build_fixed_line(translated_row, synthetic_rules, encoding, diagnostics=row_diag)
             if not line_bytes:
                 continue
+            for d in row_diag:
+                truncations += 1
+                logger.warning(
+                    f"{excel_name} 行{excel_row} 「{d['field']}」: {d['actual']}バイト → "
+                    f"{d['limit']}バイトに切り捨て（値が欠落します）"
+                )
 
             # 先頭1バイトのレコード種別コード(区分)はrulesに含まれないため、
             # 解析時に保存した「区分」列の値で明示的に書き戻す。
@@ -141,5 +183,9 @@ def restore_all(ctx):
             continue
 
         logger.info(f"生成: {out_txt_path}")
+        if truncations:
+            logger.warning(f"{excel_name}: 切り捨て {truncations}件（詳細は上記の警告ログ参照）")
+        else:
+            logger.info(f"{excel_name}: 切り捨てなし（{len(output_lines)}行）")
 
     log_end(logger, "Excel→固定長復元完了")

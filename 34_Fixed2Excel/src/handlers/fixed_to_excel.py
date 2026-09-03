@@ -31,8 +31,17 @@ def _flatten_field_rules(config_rules):
     return flattened
 
 
-def process_file(txt_file_path, config_rules, encoding, record_type_codes):
-    """1つの固定長テキストファイルを解析してDataFrameに変換する"""
+def _expected_record_length(rules):
+    """レコード種別のルール群から想定レコード長（末尾フィールドの終端位置）を返す"""
+    return max((r["start"] + r["length"] for r in rules), default=0)
+
+
+def process_file(txt_file_path, config_rules, encoding, record_type_codes, *, diagnostics=None):
+    """1つの固定長テキストファイルを解析してDataFrameに変換する
+
+    diagnostics（list）を渡すと、行の実バイト長が設定の想定レコード長と食い違う行を
+    {"line", "rec_type", "expected", "actual"} の dict で追記する。
+    """
     field_columns = build_field_columns(config_rules)
     parsed_rows = []
     with open(txt_file_path, "rb") as f:
@@ -55,6 +64,14 @@ def process_file(txt_file_path, config_rules, encoding, record_type_codes):
             entries = field_columns.get(rec_key)
             if not entries:
                 continue
+
+            if diagnostics is not None:
+                expected = _expected_record_length([e["rule"] for e in entries])
+                if expected and len(line) != expected:
+                    diagnostics.append({
+                        "line": line_num, "rec_type": rec_type,
+                        "expected": expected, "actual": len(line),
+                    })
 
             row_data = {"行番号": line_num, "区分": rec_code, "レコード種別": rec_type}
             for entry in entries:
@@ -99,7 +116,17 @@ def convert_all(ctx):
         logger.info(f"解析: {txt_name} → {os.path.basename(config_path)}")
 
         config_rules = load_config_rules(config_path)
-        df_result = process_file(txt_path, config_rules, ctx.encoding, ctx.record_type_codes)
+        length_diag = []
+        df_result = process_file(
+            txt_path, config_rules, ctx.encoding, ctx.record_type_codes, diagnostics=length_diag
+        )
+        for d in length_diag:
+            logger.warning(
+                f"{txt_name} 行{d['line']}（{d['rec_type']}）: レコード長 {d['actual']}バイト "
+                f"（設定の想定は {d['expected']}バイト）"
+            )
+        if length_diag:
+            logger.warning(f"{txt_name}: レコード長不一致 {len(length_diag)}件（設定Excelの桁定義を確認）")
         field_rules = _flatten_field_rules(config_rules)
         df_display = insert_group_separators(df_result, field_rules)
 
