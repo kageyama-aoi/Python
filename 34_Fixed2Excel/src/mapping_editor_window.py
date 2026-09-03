@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+from src import theme
 from src.handlers import mapping_handler
 
 
@@ -12,8 +13,9 @@ class MappingEditorWindow(tk.Toplevel):
         super().__init__(parent)
         self.ctx = ctx
         self.title("mapping.csv 編集")
-        self.geometry("560x440")
+        self.geometry("580x520")
         self.transient(parent)
+        theme.style_titlebar(self)
 
         self._build_widgets()
         self.refresh()
