@@ -4,14 +4,18 @@ import pandas as pd
 
 from src.handlers.excel_to_fixed import restore_all
 from src.handlers.fixed_to_excel import process_file
-from src.utils.fixed_format import load_config_rules, resolve_config_path
+from src.utils.fixed_format import (
+    load_config_rules,
+    read_mapping_csv,
+    resolve_config_path,
+    restored_txt_name,
+)
 from src.utils.log_tags import log_diff, log_end, log_start
 
 
 def restored_name_for(input_name):
     """input側ファイル名から対応する復元後ファイル名を組み立てる（excel_to_fixed.restore_allの命名と対）"""
-    base = os.path.splitext(input_name)[0]
-    return f"RESTORED_{base}.txt"
+    return restored_txt_name(input_name)
 
 
 def _values_equal(before_val, after_val):
@@ -61,7 +65,7 @@ def check_all(ctx):
         log_end(logger, "入力/復元後 差分チェック完了")
         return
 
-    df_map = pd.read_csv(ctx.mapping_csv, encoding=ctx.encoding)
+    df_map = read_mapping_csv(ctx.mapping_csv, ctx.encoding)
     input_files = [f for f in os.listdir(input_dir) if not f.startswith(".")]
 
     for txt_name in input_files:

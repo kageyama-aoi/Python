@@ -9,8 +9,10 @@ from src.utils.fixed_format import (
     REC_TYPE_HEADER,
     REC_TYPE_LABELS,
     REC_TYPE_TRAILER,
+    analysis_excel_name,
     build_field_columns,
     load_config_rules,
+    read_mapping_csv,
     resolve_config_path,
 )
 from src.utils.log_tags import log_end, log_start
@@ -101,7 +103,7 @@ def convert_all(ctx):
         log_end(logger, "固定長→Excel変換完了")
         return
 
-    df_map = pd.read_csv(ctx.mapping_csv, encoding=ctx.encoding)
+    df_map = read_mapping_csv(ctx.mapping_csv, ctx.encoding)
     os.makedirs(output_dir, exist_ok=True)
 
     input_files = [f for f in os.listdir(input_dir) if not f.startswith(".")]
@@ -130,7 +132,7 @@ def convert_all(ctx):
         field_rules = _flatten_field_rules(config_rules)
         df_display = insert_group_separators(df_result, field_rules)
 
-        out_name = f"解析結果_{os.path.splitext(txt_name)[0]}.xlsx"
+        out_name = analysis_excel_name(txt_name)
         out_path = os.path.join(output_dir, out_name)
         try:
             with pd.ExcelWriter(out_path, engine="openpyxl") as writer:

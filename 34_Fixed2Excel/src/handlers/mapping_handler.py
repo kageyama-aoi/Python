@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from src.utils.fixed_format import read_mapping_csv
 from src.utils.log_tags import log_end, log_start
 
 
@@ -25,7 +26,7 @@ def load_mapping(ctx):
     """mapping.csvを読み込んでDataFrameを返す（無ければ列だけの空DataFrame）"""
     keyword_col, config_col, note_col = _mapping_column_names(ctx)
     if os.path.exists(ctx.mapping_csv):
-        return pd.read_csv(ctx.mapping_csv, encoding=ctx.encoding)
+        return read_mapping_csv(ctx.mapping_csv, ctx.encoding)
     return pd.DataFrame(columns=[keyword_col, config_col, note_col])
 
 
@@ -90,7 +91,7 @@ def build_or_update_mapping(ctx):
     log_start(logger, "mapping.csv 更新開始")
 
     if os.path.exists(mapping_csv):
-        df_map = pd.read_csv(mapping_csv, encoding=encoding)
+        df_map = read_mapping_csv(mapping_csv, encoding)
         logger.info("既存mapping.csv読み込み")
     else:
         df_map = pd.DataFrame(columns=[keyword_col, config_col, note_col])

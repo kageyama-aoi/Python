@@ -8,7 +8,9 @@ from src.utils.fixed_format import (
     REC_TYPE_LABELS,
     build_field_columns,
     load_config_rules,
+    read_mapping_csv,
     resolve_config_path,
+    restored_txt_name,
 )
 from src.utils.log_tags import log_end, log_start
 
@@ -101,7 +103,7 @@ def restore_all(ctx):
         return
 
     os.makedirs(recreated_dir, exist_ok=True)
-    df_map = pd.read_csv(ctx.mapping_csv, encoding=encoding)
+    df_map = read_mapping_csv(ctx.mapping_csv, encoding)
 
     output_files = [f for f in os.listdir(output_dir) if f.endswith(".xlsx") and not f.startswith("~$")]
     if not output_files:
@@ -170,8 +172,7 @@ def restore_all(ctx):
 
             output_lines.append(line_bytes)
 
-        raw_base_name = excel_name.replace("解析結果_", "").replace(".xlsx", "")
-        out_txt_name = f"RESTORED_{raw_base_name}.txt"
+        out_txt_name = restored_txt_name(excel_name)
         out_txt_path = os.path.join(recreated_dir, out_txt_name)
 
         try:
