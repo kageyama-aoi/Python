@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 
+from src.handlers.config_wizard import sheet_df
 from src.handlers.excel_to_fixed import build_fixed_line
 from src.utils.fixed_format import REC_TYPE_DATA, REC_TYPE_END, REC_TYPE_HEADER, REC_TYPE_TRAILER
 from src.utils.log_tags import log_end, log_start
@@ -55,14 +56,6 @@ SAMPLE_DATA_ROWS = [
 ]
 
 
-def _sheet_df(fields):
-    """フィールド定義から parse_sheet_rules が読める横並びシートDataFrameを作る"""
-    columns = ["区分"] + [f["name"] for f in fields]
-    start_row = ["開始位置"] + [f["start"] for f in fields]
-    length_row = ["文字数"] + [f["length"] for f in fields]
-    return pd.DataFrame([start_row, length_row], columns=columns)
-
-
 def _build_line(rec_code, fields, values, encoding):
     """フィールド定義と値からrec_code付きの固定長バイト列を作る（Excel⇔固定長と同じ組み立てロジックを使う）"""
     rules = [{"name": f["name"], "start": f["start"] - 1, "length": f["length"]} for f in fields]
@@ -89,10 +82,10 @@ def init_environment(ctx):
     sample_config_path = os.path.join(dirs["configs"], "config_サンプル会員データ.xlsx")
     if not os.path.exists(sample_config_path):
         with pd.ExcelWriter(sample_config_path, engine="openpyxl") as writer:
-            _sheet_df(DATA_FIELDS).to_excel(writer, sheet_name=REC_TYPE_DATA, index=False)
-            _sheet_df(HEADER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_HEADER, index=False)
-            _sheet_df(TRAILER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_TRAILER, index=False)
-            _sheet_df(END_FIELDS).to_excel(writer, sheet_name=REC_TYPE_END, index=False)
+            sheet_df(DATA_FIELDS).to_excel(writer, sheet_name=REC_TYPE_DATA, index=False)
+            sheet_df(HEADER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_HEADER, index=False)
+            sheet_df(TRAILER_FIELDS).to_excel(writer, sheet_name=REC_TYPE_TRAILER, index=False)
+            sheet_df(END_FIELDS).to_excel(writer, sheet_name=REC_TYPE_END, index=False)
 
         logger.info(f"ひな形Excel作成: {sample_config_path}")
 

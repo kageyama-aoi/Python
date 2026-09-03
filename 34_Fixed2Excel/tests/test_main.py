@@ -1782,3 +1782,147 @@ def test_analysis_excel_name_from_input():
 def test_restored_txt_name_handles_base_containing_xlsx_like_substring():
     # 旧実装の .replace(".xlsx", "") はファイル名途中の ".xlsx" も消してしまっていた
     assert restored_txt_name("解析結果_a.xlsx.b.xlsx") == "RESTORED_a.xlsx.b.txt"
+
+
+# ---- #171 「新しいファイルに対応」ウィザードのロジック ----
+
+from src.handlers import config_wizard
+
+
+def test_parse_field_spec_tab_separated():
+    text = "会員番号\t2\t16\n有効期限\t18\t4"
+    fields, errors = config_wizard.parse_field_spec(text)
+    assert errors == []
+    assert fields == [
+        {"name": "会員番号", "start": 2, "length": 16},
+        {"name": "有効期限", "start": 18, "length": 4},
+    ]
+
+
+def test_parse_field_spec_accepts_comma_and_whitespace_and_skips_comments():
+    text = "# コメント行\n\nコード,1,4\n氏名  5  13\n"
+    fields, errors = config_wizard.parse_field_spec(text)
+    assert errors == []
+    assert [f["name"] for f in fields] == ["コード", "氏名"]
+    assert fields[1] == {"name": "氏名", "start": 5, "length": 13}
+
+
+def test_parse_field_spec_reports_bad_lines():
+    text = "会員番号\t2\t16\nこわれた行\nコード\tあ\t4"
+    fields, errors = config_wizard.parse_field_spec(text)
+    assert [f["name"] for f in fields] == ["会員番号"]
+    assert len(errors) == 2
+    assert "2行目" in errors[0] and "3行目" in errors[1]
+
+
+def test_parse_field_spec_empty_is_error():
+    fields, errors = config_wizard.parse_field_spec("   \n # only comment\n")
+    assert fields == []
+    assert errors and "空" in errors[0]
+
+
+def test_build_config_excel_roundtrips_through_load_config_rules(tmp_path):
+    path = tmp_path / "config_新規.xlsx"
+    config_wizard.build_config_excel(path, {
+        "D": [{"name": "会員番号", "start": 2, "length": 16}],
+        "H": [{"name": "作成年月日", "start": 2, "length": 8}],
+    })
+    rules = load_config_rules(path)
+    assert rules["D"] == [{"name": "会員番号", "start": 1, "length": 16}]  # 1始まり→0始まり
+    assert rules["H"] == [{"name": "作成年月日", "start": 1, "length": 8}]
+    assert rules["T"] is None  # 貼り付けなかった種別のシートは作られない
+
+
+def test_build_config_excel_requires_data_records(tmp_path):
+    with pytest.raises(ValueError):
+        config_wizard.build_config_excel(tmp_path / "x.xlsx", {"H": [{"name": "a", "start": 1, "length": 1}]})
+
+
+def test_validation_warnings_converts_1based_and_detects_overlap():
+    warns = config_wizard.validation_warnings({
+        "D": [
+            {"name": "会員番号", "start": 1, "length": 10},
+            {"name": "氏名", "start": 9, "length": 20},  # 1始まりで2バイト重なる
+        ],
+    })
+    assert any("重なって" in w for w in warns)
+
+
+def test_wizard_generated_config_works_end_to_end(tmp_path):
+    """ウィザードで作った設定Excelで実際に変換できることを確認する。"""
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    for d in (configs_dir, input_dir, output_dir):
+        d.mkdir()
+
+    config_wizard.build_config_excel(configs_dir / "config_NEWTYPE.xlsx", {
+        "D": [
+            {"name": "コード", "start": 1, "length": 4},
+            {"name": "氏名", "start": 5, "length": 13},
+        ],
+    })
+    with open(input_dir / "NEWTYPE.txt", "wb") as f:
+        f.write("0001TANAKA TARO  ".encode(ENCODING) + b"\r\n")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "判定キーワード(input側)", "config_name": "設定ファイル名(configs内)"}
+    pd.DataFrame([{
+        "判定キーワード(input側)": "NEWTYPE",
+        "設定ファイル名(configs内)": "config_NEWTYPE.xlsx",
+    }]).to_csv(mapping_csv, index=False, encoding=ENCODING)
+
+    dirs = {
+        "configs": str(configs_dir), "input": str(input_dir),
+        "output": str(output_dir), "recreated": str(tmp_path / "recreated"),
+    }
+    ctx = _make_ctx(dirs, mapping_csv, columns)
+    convert_all(ctx)
+
+    df = pd.read_excel(output_dir / "解析結果_NEWTYPE.xlsx", dtype=str, skiprows=[1, 2])
+    assert list(df["コード"]) == ["0001"]
+    assert list(df["氏名"]) == ["TANAKA TARO"]
+
+
+def test_config_wizard_window_on_create_generates_config_and_mapping_and_triggers_convert(tmp_path, monkeypatch):
+    tk = pytest.importorskip("tkinter")
+    from src.config_wizard_window import ConfigWizardWindow
+
+    configs_dir = tmp_path / "configs"
+    input_dir = tmp_path / "input"
+    for d in (configs_dir, input_dir):
+        d.mkdir()
+    (input_dir / "NEWTYPE.txt").write_bytes(b"0001AAA\r\n")
+
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg", "note": "note"}
+    ctx = _make_ctx(
+        {"configs": str(configs_dir), "input": str(input_dir),
+         "output": str(tmp_path / "out"), "recreated": str(tmp_path / "rec")},
+        mapping_csv, columns,
+    )
+
+    try:
+        root = tk.Tk()
+    except tk.TclError:
+        pytest.skip("Tk 表示環境なし")
+    root.withdraw()
+    root.is_running = False
+    root.logger = logger
+    triggered = []
+    root._run_action = lambda key: triggered.append(key)
+
+    wiz = ConfigWizardWindow(root, ctx)
+    wiz.input_var.set("NEWTYPE.txt")
+    wiz._on_input_selected()
+    wiz._paste_boxes["D"].insert("1.0", "コード\t1\t4\n名前\t5\t3")
+    wiz._on_create()
+    root.update()
+
+    assert (configs_dir / "config_NEWTYPE.xlsx").exists()
+    df_map = pd.read_csv(mapping_csv, encoding=ENCODING)
+    assert df_map.iloc[0]["kw"] == "NEWTYPE"
+    assert df_map.iloc[0]["cfg"] == "config_NEWTYPE.xlsx"
+    assert triggered == ["to_excel"]
+
+    root.destroy()

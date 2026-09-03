@@ -14,9 +14,10 @@ sys.path.append(str(TOOL_ROOT))
 
 from src import theme
 from src.app_context import create_context
+from src.config_wizard_window import ConfigWizardWindow
 from src.mapping_editor_window import MappingEditorWindow
 from src.utils.logger import setup_logger
-from src.handlers import diff_checker, fixed_to_excel, mapping_handler, setup_handler
+from src.handlers import diff_checker, fixed_to_excel, setup_handler
 
 
 class QueueLogHandler(logging.Handler):
@@ -57,13 +58,6 @@ CONFIRM_MESSAGES = {
         "既存のサンプルファイルは上書きしません（未作成のものだけ生成します）。\n\n"
         "実行しますか？",
     ),
-    "mapping": (
-        "mapping.csv更新はどんなとき？",
-        "input内に新しい種類の固定長ファイルを追加したときに実行します。\n"
-        "既存の対応関係は保持され、新規ファイル分だけ追記されます\n"
-        "（実行前に既存のmapping.csvを自動でバックアップします）。\n\n"
-        "実行しますか？",
-    ),
 }
 
 # 「このツールについて」ボタンで表示する、専門用語を避けた平易な説明。
@@ -99,11 +93,11 @@ ABOUT_TEXT = """このツールは、桁位置で項目が決まっている「�
    元の形式に戻せます。
 
 
-【mapping.csv とは】
+【新しい種類のファイルに対応するには】
 
-「このファイルには、この設定（項目の位置定義）を使う」という組み合わせの
-一覧です。新しい種類のファイルを扱うときは「mapping.csv 更新」または
-「mapping.csv 編集」で登録してください。
+「新しいファイルに対応」を押すと、対象ファイルの選択 → 桁位置の表を
+貼り付け → 設定Excelの作成と登録 → 変換 までを1つの画面で行えます。
+登録済みの対応関係の確認・修正は「mapping.csv 編集」から。
 
 
 詳しい仕様（設定Excelの作り方、注意点など）は README.md を参照してください。
@@ -164,7 +158,6 @@ class Fixed2ExcelApp(tk.Tk):
     # 初回セットアップ等、使用頻度の低い操作: 下部に小さめでまとめ、実行前に確認する
     SETUP_ACTIONS = [
         ("環境初期化", "init"),
-        ("mapping.csv 更新", "mapping"),
     ]
     # 各データフォルダをエクスプローラーで開くだけの操作: 処理中でも押せてよい
     FOLDER_ACTIONS = [
@@ -223,8 +216,25 @@ class Fixed2ExcelApp(tk.Tk):
             self.buttons[action_key] = btn
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=10, pady=(6, 2))
-        ttk.Label(self, text="初期セットアップ（通常は最初の1回だけ）", padding=(10, 0)).pack(anchor="w")
+        ttk.Label(self, text="新しい種類のファイルに対応する", padding=(10, 0)).pack(anchor="w")
 
+        register_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
+        register_frame.pack(fill="x")
+        wizard_btn = ttk.Button(
+            register_frame, text="新しいファイルに対応", style=BTN_SECONDARY,
+            command=self._open_config_wizard,
+        )
+        wizard_btn.pack(side="left", padx=4)
+        self.buttons["config_wizard"] = wizard_btn
+
+        edit_mapping_btn = ttk.Button(
+            register_frame, text="mapping.csv 編集", style=BTN_SECONDARY,
+            command=self._open_mapping_editor,
+        )
+        edit_mapping_btn.pack(side="left", padx=4)
+        self.buttons["edit_mapping"] = edit_mapping_btn
+
+        ttk.Label(self, text="初期セットアップ（通常は最初の1回だけ）", padding=(10, 0)).pack(anchor="w")
         setup_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
         setup_frame.pack(fill="x")
         for label, action_key in self.SETUP_ACTIONS:
@@ -234,13 +244,6 @@ class Fixed2ExcelApp(tk.Tk):
             )
             btn.pack(side="left", padx=4)
             self.buttons[action_key] = btn
-
-        edit_mapping_btn = ttk.Button(
-            setup_frame, text="mapping.csv 編集", style=BTN_SECONDARY,
-            command=self._open_mapping_editor,
-        )
-        edit_mapping_btn.pack(side="left", padx=4)
-        self.buttons["edit_mapping"] = edit_mapping_btn
 
         ttk.Label(self, text="フォルダを開く", padding=(10, 0)).pack(anchor="w")
         folder_frame = ttk.Frame(self, padding=(10, 2, 10, 8))
@@ -292,7 +295,7 @@ class Fixed2ExcelApp(tk.Tk):
         for editor in self._mapping_editors:
             editor.set_locked(running)
             if not running:
-                # ロック中に「mapping.csv更新」等が行を追加している可能性があるため
+                # ロック中に「新しいファイルに対応」等が行を追加している可能性があるため
                 # 解除時に一覧を読み直す
                 editor.refresh()
 
@@ -304,6 +307,11 @@ class Fixed2ExcelApp(tk.Tk):
             return
         editor = MappingEditorWindow(self, self.ctx)
         self._mapping_editors.append(editor)
+
+    def _open_config_wizard(self):
+        if self.is_running:
+            return
+        ConfigWizardWindow(self, self.ctx)
 
     def _open_folder(self, dir_key):
         path = os.path.abspath(self.ctx.dirs[dir_key])
@@ -331,8 +339,6 @@ class Fixed2ExcelApp(tk.Tk):
         try:
             if action_key == "init":
                 setup_handler.init_environment(self.ctx)
-            elif action_key == "mapping":
-                mapping_handler.build_or_update_mapping(self.ctx)
             elif action_key == "to_excel":
                 fixed_to_excel.convert_all(self.ctx)
             elif action_key == "to_fixed":
