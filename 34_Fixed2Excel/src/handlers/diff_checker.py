@@ -76,7 +76,7 @@ def check_all(ctx):
 
         logger.info(f"比較: {txt_name} vs {restored_name}")
 
-        config_rules = load_config_rules(config_path)
+        config_rules = load_config_rules(config_path, logger=logger)
         input_path = os.path.join(input_dir, txt_name)
         df_before = process_file(input_path, config_rules, ctx.encoding, ctx.record_type_codes)
         df_after = process_file(restored_path, config_rules, ctx.encoding, ctx.record_type_codes)
