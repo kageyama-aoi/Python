@@ -12,6 +12,34 @@ REC_TYPE_END = "エンドレコード"
 REC_TYPE_LABELS = {"D": REC_TYPE_DATA, "H": REC_TYPE_HEADER, "T": REC_TYPE_TRAILER, "E": REC_TYPE_END}
 
 
+# 出力ファイル名の規約（convert_all / restore_all / diff_checker が対で使う）
+ANALYSIS_EXCEL_PREFIX = "解析結果_"
+RESTORED_TXT_PREFIX = "RESTORED_"
+
+
+def analysis_excel_name(input_txt_name):
+    """入力の固定長テキスト名 → 出力Excel名（解析結果_<base>.xlsx）"""
+    return f"{ANALYSIS_EXCEL_PREFIX}{os.path.splitext(input_txt_name)[0]}.xlsx"
+
+
+def restored_txt_name(name):
+    """RESTORED_<base>.txt を組み立てる。入力テキスト名・解析結果Excel名の
+    どちらを渡しても同じ base に解決する（restore_all と diff_checker の突き合わせ用）。"""
+    base = os.path.splitext(name)[0].removeprefix(ANALYSIS_EXCEL_PREFIX)
+    return f"{RESTORED_TXT_PREFIX}{base}.txt"
+
+
+def read_mapping_csv(path, encoding):
+    """mapping.csv を読み込む共通処理。
+
+    dtype=str: 純数字だけのキーワード（ファイル名が数字のみ等）が数値化されて
+    ファイル名との部分一致が外れるのを防ぐ。
+    keep_default_na=False: 空セルを NaN ではなく "" にする（Treeview に "nan" と
+    表示される・str(nan)="nan" が誤って照合対象になる、を防ぐ）。
+    """
+    return pd.read_csv(path, encoding=encoding, dtype=str, keep_default_na=False)
+
+
 def parse_sheet_rules(excel_file, sheet_name, invalid_cells=None):
     """横並び設定シート(1行目:項目名, 2行目:開始位置, 3行目:文字数)を解析
 

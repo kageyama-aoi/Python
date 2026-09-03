@@ -8,7 +8,8 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.app_context import AppContext
+from src.app_context import AppContext, create_context
+from src import app_context as app_context_module
 from src.handlers import excel_to_fixed as excel_to_fixed_module
 from src.handlers import fixed_to_excel as fixed_to_excel_module
 from src.handlers.diff_checker import check_all, diff_rows, restore_and_check, restored_name_for
@@ -33,10 +34,13 @@ from src.utils.excel_style import (
 )
 from src.utils.fixed_format import (
     AmbiguousKeywordMatchError,
+    analysis_excel_name,
     build_field_columns,
     load_config_rules,
     match_config,
+    read_mapping_csv,
     resolve_config_path,
+    restored_txt_name,
     validate_config_rules,
 )
 
@@ -1712,3 +1716,69 @@ def test_restore_and_check_detects_edited_column_in_one_action(tmp_path, caplog)
 
     assert "「店舗名」: 「TEST_SHOP」→「NEW_SHOP」" in caplog.text
     assert "SAMPLE.txt: 差分1件検出" in caplog.text
+
+
+# ---- #170 GUI/往復まわりの掃除 ----
+
+def test_create_context_raises_clear_error_on_missing_keys(monkeypatch):
+    class _StubCM:
+        def load_config(self):
+            return {"app_name": "x"}  # encoding 等の必須キーが無い
+
+    monkeypatch.setattr(app_context_module, "ConfigManager", _StubCM)
+    with pytest.raises(RuntimeError) as exc:
+        create_context(logger)
+    assert "encoding" in str(exc.value) and "config/main.yaml" in str(exc.value)
+
+
+def test_create_context_builds_when_all_keys_present(monkeypatch):
+    cfg = {
+        "encoding": "cp932", "dirs": {"input": "x"}, "mapping_csv": "m.csv",
+        "mapping_columns": {"keyword": "k"}, "record_type_codes": {"header": ["1"]},
+    }
+
+    class _StubCM:
+        def load_config(self):
+            return cfg
+
+    monkeypatch.setattr(app_context_module, "ConfigManager", _StubCM)
+    ctx = create_context(logger)
+    assert ctx.encoding == "cp932"
+    assert ctx.app_name == "34_Fixed2Excel"  # 既定値
+
+
+def test_read_mapping_csv_keeps_numeric_keyword_as_string_and_blank_as_empty(tmp_path):
+    path = tmp_path / "mapping.csv"
+    pd.DataFrame([
+        {"判定キーワード(input側)": "12345", "設定ファイル名(configs内)": "c.xlsx", "備考": ""},
+    ]).to_csv(path, index=False, encoding=ENCODING)
+
+    df = read_mapping_csv(path, ENCODING)
+    assert df.iloc[0]["判定キーワード(input側)"] == "12345"  # "12345.0" や 12345 にならない
+    assert df.iloc[0]["備考"] == ""  # NaN でも "nan" でもない
+
+
+def test_load_mapping_blank_note_is_empty_string_not_nan(tmp_path):
+    mapping_csv = tmp_path / "mapping.csv"
+    columns = {"keyword": "kw", "config_name": "cfg", "note": "note"}
+    pd.DataFrame([{"kw": "SAMPLE", "cfg": "c.xlsx", "note": ""}]).to_csv(
+        mapping_csv, index=False, encoding=ENCODING
+    )
+    ctx = _make_ctx({}, mapping_csv, columns)
+    df = load_mapping(ctx)
+    assert df.iloc[0]["note"] == ""
+    assert not pd.isna(df.iloc[0]["note"])
+
+
+@pytest.mark.parametrize("name", ["SAMPLE.txt", "解析結果_SAMPLE.xlsx"])
+def test_restored_txt_name_resolves_same_base_from_input_or_excel_name(name):
+    assert restored_txt_name(name) == "RESTORED_SAMPLE.txt"
+
+
+def test_analysis_excel_name_from_input():
+    assert analysis_excel_name("KAIIN_SAMPLE.txt") == "解析結果_KAIIN_SAMPLE.xlsx"
+
+
+def test_restored_txt_name_handles_base_containing_xlsx_like_substring():
+    # 旧実装の .replace(".xlsx", "") はファイル名途中の ".xlsx" も消してしまっていた
+    assert restored_txt_name("解析結果_a.xlsx.b.xlsx") == "RESTORED_a.xlsx.b.txt"
