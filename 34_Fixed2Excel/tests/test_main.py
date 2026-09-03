@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.app_context import AppContext
 from src.handlers import excel_to_fixed as excel_to_fixed_module
 from src.handlers import fixed_to_excel as fixed_to_excel_module
-from src.handlers.diff_checker import check_all, diff_rows, restored_name_for
+from src.handlers.diff_checker import check_all, diff_rows, restore_and_check, restored_name_for
 from src.handlers.excel_to_fixed import build_fixed_line, pad_value_to_bytes, restore_all
 from src.handlers.fixed_to_excel import _flatten_field_rules, convert_all, process_file
 from src.handlers.mapping_handler import (
@@ -1679,3 +1679,36 @@ def test_load_config_rules_logs_config_warnings(tmp_path, caplog):
         load_config_rules(config_path, logger=logger)
 
     assert "未定義のバイト" in caplog.text
+
+
+# ---- #168 復元 → 差分チェックの自動連結 ----
+
+def test_restore_and_check_runs_both_and_reports_no_diff(tmp_path, caplog):
+    ctx = _setup_diff_check_ctx(tmp_path)
+    convert_all(ctx)
+
+    with caplog.at_level(logging.INFO):
+        restore_and_check(ctx)
+
+    # 復元が走った証跡
+    assert (tmp_path / "recreated" / "RESTORED_SAMPLE.txt").exists()
+    # そのまま差分チェックも走った証跡
+    assert "SAMPLE.txt: 差分なし（構成・値とも一致）" in caplog.text
+
+
+def test_restore_and_check_detects_edited_column_in_one_action(tmp_path, caplog):
+    ctx = _setup_diff_check_ctx(tmp_path)
+    convert_all(ctx)
+
+    excel_path = tmp_path / "output" / "解析結果_SAMPLE.xlsx"
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb.active
+    header = [cell.value for cell in ws[1]]
+    ws.cell(row=4, column=header.index("店舗名") + 1, value="NEW_SHOP")
+    wb.save(excel_path)
+
+    with caplog.at_level(logging.INFO):
+        restore_and_check(ctx)
+
+    assert "「店舗名」: 「TEST_SHOP」→「NEW_SHOP」" in caplog.text
+    assert "SAMPLE.txt: 差分1件検出" in caplog.text
