@@ -42,11 +42,11 @@ class PagesTabMixin:
             page_order_frame.pack(fill="x", pady=2)
 
             ttk.Label(page_order_frame, text="表示順:").pack(side="left", padx=2)
-            page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, "global")
-            if page_menu_order not in ("global", "normal", "reverse"):
-                page_menu_order = "global"
+            page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, C.MenuOrder.GLOBAL.value)
+            if page_menu_order not in (C.MenuOrder.GLOBAL, C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
+                page_menu_order = C.MenuOrder.GLOBAL.value
 
-            page_menu_order_var = tk.StringVar(value=self.MENU_ORDER_VALUE_TO_DISPLAY[page_menu_order])
+            page_menu_order_var = tk.StringVar(value=C.MENU_ORDER_VALUE_TO_DISPLAY[page_menu_order])
             self.page_menu_order_vars[page_name] = page_menu_order_var
 
             page_order_combo = ttk.Combobox(
@@ -103,16 +103,37 @@ class PagesTabMixin:
         # 右ペインはadd()時点では空で要求サイズがほぼ0のため、sashが左に寄ったまま
         # 固定されてしまう。フォーム構築後にウィンドウ幅の半分へ明示的に置き直す。
         def _center_sash():
-            if not paned_window.winfo_exists():
-                return
-            paned_window.update_idletasks()
-            width = paned_window.winfo_width()
-            if width > 1:
-                # 左ペイン（ページ一覧・タブ）をやや広めに。右のフォームは
-                # 入力欄が収まる幅（約380px）を確保する。
-                left = min(int(width * 0.55), max(width - 380, width // 2))
-                paned_window.sashpos(0, left)
-        parent.after(50, _center_sash)
+            self._center_sash_after_id = None
+            try:
+                if not paned_window.winfo_exists():
+                    return
+                paned_window.update_idletasks()
+                width = paned_window.winfo_width()
+                if width > 1:
+                    # 左ペイン（ページ一覧・タブ）をやや広めに。右のフォームは
+                    # 入力欄が収まる幅（約380px）を確保する。
+                    left = min(int(width * 0.55), max(width - 380, width // 2))
+                    paned_window.sashpos(0, left)
+            except tk.TclError:
+                # ウィンドウが閉じられた直後などに after が発火したケース
+                pass
+
+        # after id を保持し、ウィンドウ破棄時にキャンセルする（閉じた後に
+        # コールバックが走って "invalid command name" を出すのを防ぐ）。
+        self._center_sash_after_id = parent.after(50, _center_sash)
+        self.bind("<Destroy>", self._cancel_center_sash, add="+")
+
+    def _cancel_center_sash(self, event=None):
+        """sash 調整の予約 after をキャンセルする（エディタ破棄時に呼ばれる）。"""
+        if event is not None and event.widget is not self:
+            return
+        after_id = getattr(self, "_center_sash_after_id", None)
+        if after_id:
+            try:
+                self.after_cancel(after_id)
+            except tk.TclError:
+                pass
+            self._center_sash_after_id = None
 
     def _populate_page_listbox(self, page_name):
         """
