@@ -58,12 +58,12 @@ class UIBuilder:
         icon_folder = settings.get(C.ConfigKey.ICON_FOLDER, "icons")
         default_icon_name = settings.get(C.ConfigKey.DEFAULT_BUTTON_ICON)
 
-        global_menu_order = settings.get(C.ConfigKey.MENU_ORDER, "normal")
-        page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, "global")
-        menu_order = global_menu_order if page_menu_order == "global" else page_menu_order
+        global_menu_order = settings.get(C.ConfigKey.MENU_ORDER, C.MenuOrder.NORMAL.value)
+        page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, C.MenuOrder.GLOBAL.value)
+        menu_order = global_menu_order if page_menu_order == C.MenuOrder.GLOBAL else page_menu_order
 
         entries = list(page_data.get(C.ConfigKey.ENTRIES, []))
-        if menu_order == "reverse":
+        if menu_order == C.MenuOrder.REVERSE:
             entries.reverse()
 
         for entry in entries:

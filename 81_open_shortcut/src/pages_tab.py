@@ -42,11 +42,11 @@ class PagesTabMixin:
             page_order_frame.pack(fill="x", pady=2)
 
             ttk.Label(page_order_frame, text="表示順:").pack(side="left", padx=2)
-            page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, "global")
-            if page_menu_order not in ("global", "normal", "reverse"):
-                page_menu_order = "global"
+            page_menu_order = page_data.get(C.ConfigKey.MENU_ORDER, C.MenuOrder.GLOBAL.value)
+            if page_menu_order not in (C.MenuOrder.GLOBAL, C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
+                page_menu_order = C.MenuOrder.GLOBAL.value
 
-            page_menu_order_var = tk.StringVar(value=self.MENU_ORDER_VALUE_TO_DISPLAY[page_menu_order])
+            page_menu_order_var = tk.StringVar(value=C.MENU_ORDER_VALUE_TO_DISPLAY[page_menu_order])
             self.page_menu_order_vars[page_name] = page_menu_order_var
 
             page_order_combo = ttk.Combobox(
