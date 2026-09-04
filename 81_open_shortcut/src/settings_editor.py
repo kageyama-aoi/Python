@@ -19,6 +19,15 @@ from .pages_tab import PagesTabMixin
 from .button_form import ButtonFormMixin
 
 
+# resizable 入力欄で「真」とみなすトークン。
+_RESIZABLE_TRUE_TOKENS = ("true", "1", "t", "y", "yes")
+
+
+def parse_resizable(text: str) -> list[bool]:
+    """'True, False' のようなカンマ区切り文字列を [True, False] へ変換する。"""
+    return [tok.strip().lower() in _RESIZABLE_TRUE_TOKENS for tok in text.split(",")]
+
+
 class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplevel):
     """設定ファイル編集用のGUIを提供するウィンドウ。"""
     SETTING_LABELS = {
@@ -130,59 +139,79 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
             self.status_var.set(message)
 
     def save_config(self):
-        """編集内容を検証して設定ファイルへ保存する。"""
-        # settingsの保存
+        """編集内容を検証して設定ファイルへ保存する。
+
+        検証つきの各ブロックは「エラーメッセージ文字列 or None」を返す。
+        1つでもエラーになったら、その場で中断する（従来と同じ挙動）。
+        """
+        error = self._apply_settings_block()
+        if error is None:
+            error = self._apply_transition_targets()
+        if error is not None:
+            messagebox.showerror("入力エラー", error)
+            return
+
+        # 遷移先確定後にページ順を並べ直し、最後にページ別 menu_order を反映する
+        self._apply_page_order()
+        error = self._apply_page_menu_orders()
+        if error is not None:
+            messagebox.showerror("入力エラー", error)
+            return
+
+        # 新しい設定をConfigManager経由で保存（失敗時のメッセージはConfigManagerが表示）
+        if self.config_manager.save_config(self.config):
+            messagebox.showinfo("成功", "設定を保存しました。")
+            if self.on_save_callback:
+                self.on_save_callback()
+            self.destroy()
+
+    def _apply_settings_block(self) -> str | None:
+        """settings_vars の入力を検証して self.config["settings"] へ反映する。"""
         settings = self.config.get(C.ConfigKey.SETTINGS, {})
         for key, var in self.settings_vars.items():
             value = var.get()
             if key == C.ConfigKey.RESIZABLE:
-                try:
-                    # 'True, False' のような文字列を [True, False] のようなリストに変換
-                    settings[key] = [
-                        v.strip().lower() in ('true', '1', 't', 'y', 'yes')
-                        for v in value.split(',')
-                    ]
-                except Exception as e:
-                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.RESIZABLE}' の値は 'True, False' のようにカンマ区切りの真偽値で入力してください。\nエラー: {e}")
-                    return
+                # 未知のトークンは False 扱い（例外は発生しない）
+                settings[key] = parse_resizable(value)
             elif key == C.ConfigKey.MENU_ORDER:
                 normalized_value = C.MENU_ORDER_DISPLAY_TO_VALUE.get(value, value)
                 if normalized_value not in (C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
-                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.MENU_ORDER}' は 通常 または 逆順 を選択してください。")
-                    return
+                    return f"'{C.ConfigKey.MENU_ORDER}' は 通常 または 逆順 を選択してください。"
                 settings[key] = normalized_value
             elif key == C.ConfigKey.INITIAL_PAGE:
                 page_names = set(self.config.get(C.ConfigKey.PAGES, {}).keys())
                 normalized_value = self.page_display_to_id.get(value, value)
                 if normalized_value not in page_names:
-                    messagebox.showerror("入力エラー", f"'{C.ConfigKey.INITIAL_PAGE}' は既存ページから選択してください。")
-                    return
+                    return f"'{C.ConfigKey.INITIAL_PAGE}' は既存ページから選択してください。"
                 settings[key] = normalized_value
             else:
                 settings[key] = value
         self.config[C.ConfigKey.SETTINGS] = settings
+        return None
 
-        # show_page の遷移先保存
-        if hasattr(self, "transition_target_rows"):
-            page_names = set(self.config.get(C.ConfigKey.PAGES, {}).keys())
-            for row in self.transition_target_rows:
-                target_display_or_id = row["target_var"].get()
-                target_id = self.page_display_to_id.get(target_display_or_id, target_display_or_id)
-                if target_id not in page_names:
-                    messagebox.showerror("入力エラー", f"遷移先 '{target_display_or_id}' は既存ページから選択してください。")
-                    return
-                entry_ref = row.get("entry_ref")
-                if entry_ref is not None:
-                    entry_ref[C.ConfigKey.TARGET] = target_id
+    def _apply_transition_targets(self) -> str | None:
+        """show_page エントリの遷移先を検証して反映し、ページ順を再計算する。"""
+        if not hasattr(self, "transition_target_rows"):
+            return None
 
-            # 遷移先変更をページ順へ反映してから保存する
-            self._recompute_page_order_from_transitions()
+        page_names = set(self.config.get(C.ConfigKey.PAGES, {}).keys())
+        for row in self.transition_target_rows:
+            target_display_or_id = row["target_var"].get()
+            target_id = self.page_display_to_id.get(target_display_or_id, target_display_or_id)
+            if target_id not in page_names:
+                return f"遷移先 '{target_display_or_id}' は既存ページから選択してください。"
+            entry_ref = row.get("entry_ref")
+            if entry_ref is not None:
+                entry_ref[C.ConfigKey.TARGET] = target_id
 
-        # ページ順の保存（dictの挿入順で保持）
+        self._recompute_page_order_from_transitions()
+        return None
+
+    def _apply_page_order(self):
+        """ページ順（dictの挿入順）を現在のページ順リストへ並べ替える。"""
         pages = self.config.get(C.ConfigKey.PAGES, {})
-        ordered_page_ids = self._get_page_order_ids()
         reordered_pages = {}
-        for page_id in ordered_page_ids:
+        for page_id in self._get_page_order_ids():
             if page_id in pages:
                 reordered_pages[page_id] = pages[page_id]
         for page_id, page_data in pages.items():
@@ -190,13 +219,16 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
                 reordered_pages[page_id] = page_data
         self.config[C.ConfigKey.PAGES] = reordered_pages
 
-        # pagesのmenu_order保存（globalは未設定として扱う）
+    def _apply_page_menu_orders(self) -> str | None:
+        """ページ別 menu_order を検証して反映する（global は未設定として扱う）。"""
         for page_name, var in self.page_menu_order_vars.items():
             display_value = var.get()
             value = C.MENU_ORDER_DISPLAY_TO_VALUE.get(display_value, display_value)
             if value not in (C.MenuOrder.GLOBAL, C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
-                messagebox.showerror("入力エラー", f"ページ '{page_name}' の表示順は 全体設定に従う / 通常 / 逆順 のいずれかを選択してください。")
-                return
+                return (
+                    f"ページ '{page_name}' の表示順は 全体設定に従う / 通常 / 逆順 "
+                    f"のいずれかを選択してください。"
+                )
 
             page_data = self.config.get(C.ConfigKey.PAGES, {}).get(page_name)
             if not page_data:
@@ -206,13 +238,4 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
                 page_data.pop(C.ConfigKey.MENU_ORDER, None)
             else:
                 page_data[C.ConfigKey.MENU_ORDER] = value
-
-        # 新しい設定をConfigManager経由で保存
-        if self.config_manager.save_config(self.config):
-            messagebox.showinfo("成功", "設定を保存しました。")
-            if self.on_save_callback:
-                self.on_save_callback()
-            self.destroy()
-        else:
-            # 保存失敗のメッセージはConfigManagerが表示するのでここでは不要
-            pass
+        return None

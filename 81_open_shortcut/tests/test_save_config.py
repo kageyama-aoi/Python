@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.settings_editor import SettingsEditor
+from src.settings_editor import SettingsEditor, parse_resizable
 from src import constants as C
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -123,6 +123,25 @@ class TestSaveConfigCharacterization(unittest.TestCase):
         self._save()
         self.callback.assert_called_once()
         self.assertFalse(self.editor.winfo_exists())
+
+
+class TestParseResizable(unittest.TestCase):
+    """save_config から切り出した純関数 parse_resizable の単体テスト。"""
+
+    def test_true_false(self):
+        self.assertEqual(parse_resizable("True, False"), [True, False])
+
+    def test_various_true_tokens(self):
+        self.assertEqual(parse_resizable("yes, 1, t, y"), [True, True, True, True])
+
+    def test_case_and_whitespace_insensitive(self):
+        self.assertEqual(parse_resizable("  TRUE ,  false "), [True, False])
+
+    def test_non_true_tokens_are_false(self):
+        self.assertEqual(parse_resizable("no, 0, off, "), [False, False, False, False])
+
+    def test_empty_string_yields_single_false(self):
+        self.assertEqual(parse_resizable(""), [False])
 
 
 if __name__ == '__main__':
