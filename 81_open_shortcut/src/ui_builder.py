@@ -103,6 +103,25 @@ class UIBuilder:
             self._colored_button_styles[key] = style_name
         return style_name
 
+    def _load_icon(self, icon_folder: str, icon_name: str | None, name: str) -> tk.PhotoImage | None:
+        """アイコン画像を読み込んで返す。
+
+        GC でボタンから画像が消えないよう self.icon_images に参照を保持する。
+        未指定・ファイル無し・読み込み失敗時は None（呼び出し側はアイコン無しで続行）。
+        """
+        if not icon_name:
+            return None
+        icon_path = os.path.join(icon_folder, icon_name)
+        if not os.path.exists(icon_path):
+            return None
+        try:
+            image = tk.PhotoImage(file=icon_path)
+        except tk.TclError:
+            print(f"警告: アイコンを読み込めませんでした: {icon_path}")
+            return None
+        self.icon_images[name] = image
+        return image
+
     def _create_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """エントリのactionに応じて、適切なUI要素を作成するディスパッチャ。"""
         action = entry.get(C.ConfigKey.ACTION)
@@ -157,17 +176,7 @@ class UIBuilder:
             print(f"情報: ボタン '{name}' には有効なアクションが設定されていません。スキップします。")
             return
 
-        icon_name = entry.get(C.ConfigKey.ICON) or default_icon_name
-        button_icon = None
-        if icon_name:
-            icon_path = os.path.join(icon_folder, icon_name)
-            if os.path.exists(icon_path):
-                try:
-                    image = tk.PhotoImage(file=icon_path)
-                    self.icon_images[name] = image
-                    button_icon = image
-                except tk.TclError:
-                    print(f"警告: アイコンを読み込めませんでした: {icon_path}")
+        button_icon = self._load_icon(icon_folder, entry.get(C.ConfigKey.ICON) or default_icon_name, name)
 
         button_instance = ttk.Button(parent, text=display_name, image=button_icon, compound=tk.LEFT, command=command, style=button_style)
         button_instance.pack(fill=tk.X, pady=3)
@@ -187,17 +196,7 @@ class UIBuilder:
             entry.get(C.ConfigKey.BACKGROUND), entry.get(C.ConfigKey.FOREGROUND)
         ) or "TButton"
 
-        icon_name = entry.get(C.ConfigKey.ICON) or default_icon_name
-        button_icon = None
-        if icon_name:
-            icon_path = os.path.join(icon_folder, icon_name)
-            if os.path.exists(icon_path):
-                try:
-                    image = tk.PhotoImage(file=icon_path)
-                    self.icon_images[name] = image
-                    button_icon = image
-                except tk.TclError:
-                    print(f"警告: アイコンを読み込めませんでした: {icon_path}")
+        button_icon = self._load_icon(icon_folder, entry.get(C.ConfigKey.ICON) or default_icon_name, name)
 
         entry_frame = ttk.Frame(parent)
         entry_frame.pack(fill=tk.X, pady=3)
