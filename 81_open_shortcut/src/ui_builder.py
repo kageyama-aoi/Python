@@ -8,6 +8,14 @@ from . import constants as C
 
 logger = logging.getLogger(__name__)
 
+# シンプルアクションの表示プレフィックスと、遷移先の値を取り出す config キー。
+_SIMPLE_ACTION_META = {
+    C.Action.OPEN_DIRECTORY: ("📁 ", C.ConfigKey.PATH),
+    C.Action.OPEN_URL: ("🌐 ", C.ConfigKey.URL),
+    C.Action.SHOW_PAGE: ("→ ", C.ConfigKey.TARGET),
+}
+
+
 class UIBuilder:
     """
     設定に基づいてUIウィジェットを構築するクラス。
@@ -141,43 +149,29 @@ class UIBuilder:
         """シンプルなアクション（ディレクトリ/URLを開く、ページ切替）のボタンを作成する。"""
         name = entry.get(C.ConfigKey.NAME, "No Name")
         action = entry.get(C.ConfigKey.ACTION)
+        prefix, value_key = _SIMPLE_ACTION_META[action]
 
-        display_name = name
-        if action == C.Action.OPEN_DIRECTORY:
-            display_name = f"📁 {name}"
-        elif action == C.Action.OPEN_URL:
-            display_name = f"🌐 {name}"
-        elif action == C.Action.SHOW_PAGE:
-            display_name = f"→ {name}"
+        display_name = f"{prefix}{name}"
 
         # 明示的な色指定は最優先（既存の個別カスタマイズを壊さない）
         button_style = self._colored_button_style(
             entry.get(C.ConfigKey.BACKGROUND), entry.get(C.ConfigKey.FOREGROUND)
         )
         if button_style is None:
-            if action == C.Action.SHOW_PAGE:
-                # ページ遷移ボタンは色指定なしでも自動でNavスタイル（styles.Nav.TButton）が乗る
-                button_style = "Nav.TButton"
-            else:
-                button_style = "TButton"
+            # ページ遷移ボタンは色指定なしでも自動でNavスタイル（styles.Nav.TButton）が乗る
+            button_style = "Nav.TButton" if action == C.Action.SHOW_PAGE else "TButton"
 
-        command = None
-        if action == C.Action.OPEN_DIRECTORY:
-            path = entry.get(C.ConfigKey.PATH)
-            if path:
-                command = lambda p=path, n=name: self.action_handler.open_directory(p, n)
-        elif action == C.Action.SHOW_PAGE:
-            target_page = entry.get(C.ConfigKey.TARGET)
-            if target_page:
-                command = lambda page=target_page: self.action_handler.show_page(page)
-        elif action == C.Action.OPEN_URL:
-            url = entry.get(C.ConfigKey.URL)
-            if url:
-                command = lambda u=url, n=name: self.action_handler.open_url(u, n)
-
-        if command is None:
+        value = entry.get(value_key)
+        if not value:
             logger.warning("ボタン省略: パス/URL/遷移先が未設定 - %s", name)
             return
+
+        if action == C.Action.OPEN_DIRECTORY:
+            command = lambda p=value, n=name: self.action_handler.open_directory(p, n)
+        elif action == C.Action.OPEN_URL:
+            command = lambda u=value, n=name: self.action_handler.open_url(u, n)
+        else:  # SHOW_PAGE
+            command = lambda page=value: self.action_handler.show_page(page)
 
         button_icon = self._load_icon(icon_folder, entry.get(C.ConfigKey.ICON) or default_icon_name, name)
 
