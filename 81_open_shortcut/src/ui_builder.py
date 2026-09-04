@@ -1,9 +1,12 @@
 """設定に基づくページ/ウィジェット構築を担うモジュール。"""
 
+import logging
 import os
 import tkinter as tk
 from tkinter import ttk, messagebox
 from . import constants as C
+
+logger = logging.getLogger(__name__)
 
 class UIBuilder:
     """
@@ -117,7 +120,7 @@ class UIBuilder:
         try:
             image = tk.PhotoImage(file=icon_path)
         except tk.TclError:
-            print(f"警告: アイコンを読み込めませんでした: {icon_path}")
+            logger.warning("アイコン読込失敗: %s", icon_path)
             return None
         self.icon_images[name] = image
         return image
@@ -132,7 +135,7 @@ class UIBuilder:
             self._create_parameterized_url_entry(parent, entry, icon_folder, default_icon_name)
         else:
             name = entry.get(C.ConfigKey.NAME, "No Name")
-            print(f"情報: ボタン '{name}' には有効なアクションが設定されていません。スキップします。")
+            logger.warning("ボタン省略: 未対応のアクション '%s' - %s", action, name)
 
     def _create_simple_action_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """シンプルなアクション（ディレクトリ/URLを開く、ページ切替）のボタンを作成する。"""
@@ -173,7 +176,7 @@ class UIBuilder:
                 command = lambda u=url, n=name: self.action_handler.open_url(u, n)
 
         if command is None:
-            print(f"情報: ボタン '{name}' には有効なアクションが設定されていません。スキップします。")
+            logger.warning("ボタン省略: パス/URL/遷移先が未設定 - %s", name)
             return
 
         button_icon = self._load_icon(icon_folder, entry.get(C.ConfigKey.ICON) or default_icon_name, name)
@@ -188,7 +191,7 @@ class UIBuilder:
         parameters_config = entry.get(C.ConfigKey.PARAMETERS, [])
 
         if not base_url:
-            print(f"情報: ボタン '{name}' には base_url が設定されていません。スキップします。")
+            logger.warning("ボタン省略: base_url未設定 - %s", name)
             return
 
         display_name = f"⚙️ {name}"
