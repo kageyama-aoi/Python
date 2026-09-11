@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 from pathlib import Path
 
 # 生成する実ファイルの正実装は 90_ひな形/templates/ 配下（00_project_standard.md §5参照）。
@@ -35,10 +36,11 @@ TEMPLATE_FILES = {
     "src/utils/logger.py": "src/utils/logger.py",
 }
 
-# 中身が不要な空ファイル（テンプレート化の対象外）
+# 中身が不要な空ファイル（テンプレート化の対象外）。
+# src/utils/__init__.py 等の他の src/* 配下は DIRS ループの package化で作成されるので、
+# ここには DIRS ループが作らない "src/__init__.py" だけを書く（二重の空ファイル作成を避ける）。
 EMPTY_FILES = [
     "src/__init__.py",
-    "src/utils/__init__.py",
 ]
 
 
@@ -77,12 +79,20 @@ def create_structure(project_name, dest_dir=None):
         open(file_path, 'a').close()
 
     # テンプレートからファイル生成（%project_name% を置換）
-    for dest_relpath, template_relpath in TEMPLATE_FILES.items():
-        content = render_template(template_relpath, project_name)
-        file_path = os.path.join(base_path, dest_relpath)
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(content)
+    try:
+        for dest_relpath, template_relpath in TEMPLATE_FILES.items():
+            content = render_template(template_relpath, project_name)
+            file_path = os.path.join(base_path, dest_relpath)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+    except OSError as e:
+        # テンプレートファイルの欠落等で生成が途中で失敗した場合、
+        # 中途半端なプロジェクトフォルダを残さず片付ける（再実行時の
+        # "already exists" エラーで手動クリーンアップが必要になるのを防ぐ）。
+        shutil.rmtree(base_path, ignore_errors=True)
+        print(f"Error: テンプレートの読み込み/書き込みに失敗しました: {e}")
+        return
 
     print("Done! Project structure created successfully.")
     print("-" * 30)
