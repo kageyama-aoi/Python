@@ -9,6 +9,7 @@
 | `00_project_standard.md` | 標準構成の定義書。ディレクトリ構成・各フォルダの役割・設計原則・共通実装の索引 |
 | `DOC_SYNC.md` | ドキュメント連動ルール（「X を変えたら Y も直す」の対応表） |
 | `scripts/create_project.py` | 標準構成の新規プロジェクトを自動生成するスクリプト |
+| `templates/` | 生成されるファイルの実体（`.gitignore` / `README.md` / `src/main.py` 等）。`%project_name%` はプロジェクト名に置換される |
 
 詳細は [`00_project_standard.md`](./00_project_standard.md) を参照してください。
 

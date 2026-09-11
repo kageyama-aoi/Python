@@ -15,7 +15,7 @@
 | 変えたもの（X） | 同じコミットで直すもの（Y） |
 |---|---|
 | ツールのフォルダ名を変更・移動した | ルート `README.md` のツール一覧表 ／ そのツールの `launcher.json` ／ `~/.claude/skills/` 内でそのパスを名指ししている箇所（`check_doc_refs.py --skills` で確認）／ 自動メモリ（`~/.claude/projects/.../memory/`） |
-| `src/utils/logger.py` / `src/config_manager.py` の正実装（＝`create_project.py` が生成する内容）を変えた | `90_ひな形/scripts/create_project.py` の埋め込みテンプレ ／ `00_project_standard.md` §5 の索引 ／ スキル `python-review` checklist A-4 |
+| `src/utils/logger.py` / `src/config_manager.py` の正実装を変えた | `90_ひな形/templates/` 配下の同名テンプレファイル（`create_project.py` が生成時にコピーする実体） ／ `00_project_standard.md` §5 の索引 ／ スキル `python-review` checklist A-4 |
 | `theme.py` の公開 API（`apply_theme` / `style_titlebar`）を変えた | スキル `launcher-gui-design`（`templates/theme.py` と本文）／ `00_project_standard.md` §5 |
 | ログの文言規約・色（START/END 等）を変えた | スキル `log-conventions` ／ `34_Fixed2Excel/src/utils/log_tags.py` |
 | 人が見る Excel 出力の書式パターンを変えた | スキル `excel-output-conventions`（参照実装の表・コード抜粋） |
