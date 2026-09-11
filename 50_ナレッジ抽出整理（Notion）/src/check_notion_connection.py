@@ -1,7 +1,9 @@
 """
-デバッグ用スクリプト debug_anken.py
-案件DBへのAPIアクセス状況を確認します
-AIに読み込ませてOK（TOKEN含まない）
+Notion API 接続確認スクリプト（手動実行専用）。
+案件DBへのAPIアクセス状況を確認する。AIに読み込ませてOK（TOKEN含まない）。
+
+pytest の自動収集対象にしないため、ファイル名は test_ で始めない。
+実行:  cd 50_ナレッジ抽出整理（Notion）/src && python check_notion_connection.py
 """
 
 import requests
