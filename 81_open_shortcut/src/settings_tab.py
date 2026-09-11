@@ -73,11 +73,11 @@ class SettingsTabMixin:
         menu_order_label = ttk.Label(menu_order_frame, text=self._format_setting_label(C.ConfigKey.MENU_ORDER))
         menu_order_label.pack(side="left", padx=5)
 
-        menu_order_value = settings.get(C.ConfigKey.MENU_ORDER, "normal")
-        if menu_order_value not in ("normal", "reverse"):
-            menu_order_value = "normal"
+        menu_order_value = settings.get(C.ConfigKey.MENU_ORDER, C.MenuOrder.NORMAL.value)
+        if menu_order_value not in (C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
+            menu_order_value = C.MenuOrder.NORMAL.value
 
-        menu_order_var = tk.StringVar(value=self.MENU_ORDER_VALUE_TO_DISPLAY[menu_order_value])
+        menu_order_var = tk.StringVar(value=C.MENU_ORDER_VALUE_TO_DISPLAY[menu_order_value])
         self.settings_vars[C.ConfigKey.MENU_ORDER] = menu_order_var
 
         menu_order_combo = ttk.Combobox(

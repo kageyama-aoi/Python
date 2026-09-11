@@ -47,6 +47,24 @@ class ConfigKey(str, Enum):
     OPTIONS = "options"
     DEFAULT_VALUE = "default_value"
 
+class MenuOrder(str, Enum):
+    """メニュー表示順。GLOBAL はページ単位でのみ有効（全体設定に従う）。"""
+    NORMAL = "normal"
+    REVERSE = "reverse"
+    GLOBAL = "global"
+
+
+# 設定エディタのコンボボックス表示名 <-> 保存値 の対応。
+MENU_ORDER_DISPLAY_TO_VALUE = {
+    "通常": MenuOrder.NORMAL.value,
+    "逆順": MenuOrder.REVERSE.value,
+    "全体設定に従う": MenuOrder.GLOBAL.value,
+}
+MENU_ORDER_VALUE_TO_DISPLAY = {
+    value: key for key, value in MENU_ORDER_DISPLAY_TO_VALUE.items()
+}
+
+
 class EntryType(str, Enum):
     """ページ内エントリの種別。"""
     SEPARATOR = "separator"

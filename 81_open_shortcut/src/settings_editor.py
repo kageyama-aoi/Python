@@ -31,14 +31,7 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         "initial_page": "起動時のページ",
         "menu_order": "メニュー表示順",
     }
-    MENU_ORDER_DISPLAY_TO_VALUE = {
-        "通常": "normal",
-        "逆順": "reverse",
-        "全体設定に従う": "global",
-    }
-    MENU_ORDER_VALUE_TO_DISPLAY = {
-        value: key for key, value in MENU_ORDER_DISPLAY_TO_VALUE.items()
-    }
+    # menu_order の表示名<->値マップは constants.py へ集約（C.MENU_ORDER_*）。
 
     def __init__(self, master, config_manager: ConfigManager, on_save_callback=None):
         """設定編集ウィンドウを初期化し、初期フォームを構築する。"""
@@ -153,8 +146,8 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
                     messagebox.showerror("入力エラー", f"'{C.ConfigKey.RESIZABLE}' の値は 'True, False' のようにカンマ区切りの真偽値で入力してください。\nエラー: {e}")
                     return
             elif key == C.ConfigKey.MENU_ORDER:
-                normalized_value = self.MENU_ORDER_DISPLAY_TO_VALUE.get(value, value)
-                if normalized_value not in ("normal", "reverse"):
+                normalized_value = C.MENU_ORDER_DISPLAY_TO_VALUE.get(value, value)
+                if normalized_value not in (C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
                     messagebox.showerror("入力エラー", f"'{C.ConfigKey.MENU_ORDER}' は 通常 または 逆順 を選択してください。")
                     return
                 settings[key] = normalized_value
@@ -200,8 +193,8 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
         # pagesのmenu_order保存（globalは未設定として扱う）
         for page_name, var in self.page_menu_order_vars.items():
             display_value = var.get()
-            value = self.MENU_ORDER_DISPLAY_TO_VALUE.get(display_value, display_value)
-            if value not in ("global", "normal", "reverse"):
+            value = C.MENU_ORDER_DISPLAY_TO_VALUE.get(display_value, display_value)
+            if value not in (C.MenuOrder.GLOBAL, C.MenuOrder.NORMAL, C.MenuOrder.REVERSE):
                 messagebox.showerror("入力エラー", f"ページ '{page_name}' の表示順は 全体設定に従う / 通常 / 逆順 のいずれかを選択してください。")
                 return
 
@@ -209,7 +202,7 @@ class SettingsEditor(SettingsTabMixin, PagesTabMixin, ButtonFormMixin, tk.Toplev
             if not page_data:
                 continue
 
-            if value == "global":
+            if value == C.MenuOrder.GLOBAL:
                 page_data.pop(C.ConfigKey.MENU_ORDER, None)
             else:
                 page_data[C.ConfigKey.MENU_ORDER] = value
