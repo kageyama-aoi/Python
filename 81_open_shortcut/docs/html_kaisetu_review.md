@@ -13,7 +13,7 @@
 ## 総評
 
 4ファイルとも文章の質・構成は良い（読み方の導線、設計意図の説明は今も的確）。ただし
-`docs/REFACTORING_PLAN.md`の「提案5: クラスの分割」（ConfigLoader→ConfigManager、
+`docs/REFACTORING_PLAN.md`の実施結果テーブル #5「クラスの分割」（ConfigLoader→ConfigManager、
 ActionHandler、UIBuilderへの分割）が実装された**後**に更新されておらず、4ファイルとも
 **「分割前のDirectoryOpenerAppが全部やっている」という古い構造で説明している**のが共通の問題。
 加えて、レビュー中に資料の記述とは無関係な**実コードの不具合を2件**発見した（後述）。
