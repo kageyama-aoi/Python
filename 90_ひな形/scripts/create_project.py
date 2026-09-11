@@ -1,75 +1,54 @@
 import argparse
 import os
+from pathlib import Path
+
+# 生成する実ファイルの正実装は 90_ひな形/templates/ 配下（00_project_standard.md §5参照）。
+# このスクリプトに埋め込むと二重管理になるため、テンプレートファイルを読み込んで使う。
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+# 定義: 作成するディレクトリ構造
+DIRS = [
+    "src",
+    "src/handlers",
+    "src/utils",
+    "config",
+    "config/modes",
+    "docs",
+    "data/input",
+    "data/output",
+    "data/temp",
+    "data/logs",
+    "scripts",
+    "tests",
+]
+
+# 定義: 生成先パス -> templates/ 配下のテンプレートファイル。
+# テンプレート内の %project_name% はプロジェクト名に置換される
+# （string-template-refactor スキルの %item% プレースホルダー方式に統一）。
+TEMPLATE_FILES = {
+    ".gitignore": "gitignore",
+    "README.md": "README.md",
+    "requirements.txt": "requirements.txt",
+    "config/main.yaml": "config/main.yaml",
+    "src/main.py": "src/main.py",
+    "src/config_manager.py": "src/config_manager.py",
+    "src/utils/logger.py": "src/utils/logger.py",
+}
+
+# 中身が不要な空ファイル（テンプレート化の対象外）
+EMPTY_FILES = [
+    "src/__init__.py",
+    "src/utils/__init__.py",
+]
+
+
+def render_template(template_relpath: str, project_name: str) -> str:
+    """templates/ 配下のファイルを読み込み、%project_name% を置換して返す。"""
+    text = (TEMPLATES_DIR / template_relpath).read_text(encoding="utf-8")
+    return text.replace("%project_name%", project_name)
+
 
 def create_structure(project_name, dest_dir=None):
-    # 定義: 作成するディレクトリ構造
-    dirs = [
-        "src",
-        "src/handlers",
-        "src/utils",
-        "config",
-        "config/modes",
-        "docs",
-        "data/input",
-        "data/output",
-        "data/temp",
-        "data/logs",
-        "scripts",
-        "tests"
-    ]
-
-    # 定義: 作成するファイルとその中身
-    files = {
-        ".gitignore": """# General
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-virtualenv/
-.env
-
-# Distribution / Packaging
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Data (入力・出力・ログの実行データ。実データはコミット禁止)
-data/
-
-# Logs
-*.log
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-desktop.ini
-.DS_Store
-""",
-        "README.md": f"# {project_name}\n\n## 概要\nここにプロジェクトの概要を記述します。\n\n## セットアップ\n```bash\npython -m venv venv\nvenv\\Scripts\\activate\npip install -r requirements.txt\n```\n\n## 実行\n```bash\npython src/main.py\n```",
-        "requirements.txt": "pyyaml\nruamel.yaml\n",
-        "config/main.yaml": f"app_name: \"{project_name}\"\nversion: \"0.1.0\"\nlog_level: \"INFO\"\n",
-        "src/__init__.py": "",
-        "src/main.py": "import os\nimport sys\n\n# プロジェクトルートをパスに追加\nsys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n\nfrom src.utils.logger import setup_logger\nfrom src.config_manager import ConfigManager\n\ndef main():\n    logger = setup_logger()\n    logger.info(\"Application started.\")\n    \n    # 設定の読み込み例\n    config = ConfigManager().load_config()\n    logger.info(f\"Loaded config for: {config.get('app_name', 'Unknown')}\")\n\n    print(f\"Hello, {config.get('app_name')}!\")\n\nif __name__ == \"__main__\":\n    main()\n",
-        "src/config_manager.py": "import yaml\nimport os\n\nclass ConfigManager:\n    def __init__(self, config_path=\"config/main.yaml\"):\n        self.config_path = config_path\n\n    def load_config(self):\n        if not os.path.exists(self.config_path):\n            return {}\n        with open(self.config_path, 'r', encoding='utf-8') as f:\n            return yaml.safe_load(f)\n",
-        "src/utils/__init__.py": "",
-        "src/utils/logger.py": "import logging\nimport os\nfrom datetime import datetime\n\ndef setup_logger(name=\"app\", log_dir=\"data/logs\"):\n    os.makedirs(log_dir, exist_ok=True)\n    logger = logging.getLogger(name)\n    \n    if logger.hasHandlers():\n        return logger\n        \n    logger.setLevel(logging.INFO)\n\n    # Console Handler\n    ch = logging.StreamHandler()\n    ch.setLevel(logging.INFO)\n    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')\n    ch.setFormatter(formatter)\n    logger.addHandler(ch)\n\n    # File Handler\n    log_filename = datetime.now().strftime(\"%Y%m%d\") + \".log\"\n    fh = logging.FileHandler(os.path.join(log_dir, log_filename), encoding='utf-8')\n    fh.setLevel(logging.INFO)\n    fh.setFormatter(formatter)\n    logger.addHandler(fh)\n\n    return logger\n",
-    }
-
     # 出力先: --dest 指定があればそのディレクトリ直下、なければカレントディレクトリ直下（従来どおり）
     parent_dir = os.path.abspath(dest_dir) if dest_dir else os.getcwd()
     if not os.path.isdir(parent_dir):
@@ -85,15 +64,23 @@ desktop.ini
 
     # ディレクトリ作成
     os.makedirs(base_path)
-    for d in dirs:
+    for d in DIRS:
         os.makedirs(os.path.join(base_path, d), exist_ok=True)
         # package化
         if d.startswith("src") and d != "src":
-             open(os.path.join(base_path, d, "__init__.py"), 'a').close()
+            open(os.path.join(base_path, d, "__init__.py"), 'a').close()
 
-    # ファイル作成
-    for filename, content in files.items():
-        file_path = os.path.join(base_path, filename)
+    # 空ファイル作成
+    for relpath in EMPTY_FILES:
+        file_path = os.path.join(base_path, relpath)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        open(file_path, 'a').close()
+
+    # テンプレートからファイル生成（%project_name% を置換）
+    for dest_relpath, template_relpath in TEMPLATE_FILES.items():
+        content = render_template(template_relpath, project_name)
+        file_path = os.path.join(base_path, dest_relpath)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(content)
 

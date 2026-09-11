@@ -75,8 +75,8 @@ python scripts/create_project.py <New_Project_Name>
 
 | 用途 | 正実装 | 公開シンボル |
 | :--- | :--- | :--- |
-| ロギング | `90_ひな形/scripts/create_project.py` が生成する `src/utils/logger.py` | `setup_logger()` |
-| 設定読み込み | 同上が生成する `src/config_manager.py` | `ConfigManager` |
+| ロギング | `90_ひな形/templates/src/utils/logger.py`（`create_project.py` が生成時にコピー） | `setup_logger()` |
+| 設定読み込み | `90_ひな形/templates/src/config_manager.py`（同上） | `ConfigManager` |
 | Tkinter テーマ/フォント/タイトルバー | `00_ランチャー/theme.py`（`32_` `34_` `81_` に同型あり） | `apply_theme(root)` / `style_titlebar(window)` |
 | ログのライフサイクル色分け（START/END） | `34_Fixed2Excel/src/utils/log_tags.py` | `log_start()` / `log_end()` / `TAG_START` |
 | GUI ログハンドラ（queue 経由） | `34_Fixed2Excel/src/gui.py` | `QueueLogHandler` |
