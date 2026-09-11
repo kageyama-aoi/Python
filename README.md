@@ -38,7 +38,7 @@ python app.py
 | `80_(掃除)Fileを拡張子ごと振り分け` | ファイル整理 | ディレクトリ内のファイルを拡張子ごとのサブディレクトリへ振り分ける |
 | `81_open_shortcut` | open_shortcut | 設定に基づいてディレクトリやURLを開くボタンを動的生成する Tkinter GUI |
 | `82_日付付きファイル世代整理` | 世代整理 | 日付サフィックス付きファイルをベース名ごとに最新N件だけ残して退避する |
-| `90_ひな形` | プロジェクトひな形 | 新規ツールの標準構成テンプレートと生成スクリプト（`scripts/create_project.py`） |
+| `90_ひな形` | プロジェクトひな形 | 新規ツールの標準構成テンプレートと生成スクリプト（`90_ひな形/scripts/create_project.py`） |
 
 ## リポジトリの規約
 
@@ -52,6 +52,9 @@ python app.py
   `config.example.json` / `presets.example.json` 等のテンプレートをコミットする
 - **Issue駆動**: 修正・機能追加は GitHub Issue を立ててから作業し、コミットメッセージは
   Conventional Commits（`type(scope): summary #issue`）に従う
+- **ドキュメント連動**: 共通パターン・構成・命名を変えたら、それを教える doc も同じコミットで直す。
+  対応表は `90_ひな形/DOC_SYNC.md`。参照ずれ検知は `python scripts/check_doc_refs.py`（`scripts/README.md`）。
+  git フックの有効化: `git config core.hooksPath .githooks`
 
 ## 必要環境
 

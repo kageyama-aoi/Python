@@ -1,0 +1,19 @@
+#!/bin/sh
+# ドキュメント参照ドリフトの警告（ブロックしない）。
+# 有効化: リポジトリルートで  git config core.hooksPath .githooks
+#
+# 既定は「警告のみ」。commit は常に通す。誤検知が無いと確認できたら
+# .githooks/pre-push 側を --check に上げる運用を検討する（scripts/README 参照）。
+
+if command -v python >/dev/null 2>&1; then
+  PY=python
+elif command -v py >/dev/null 2>&1; then
+  PY=py
+else
+  exit 0
+fi
+
+root="$(git rev-parse --show-toplevel)"
+PYTHONIOENCODING=utf-8 "$PY" "$root/scripts/check_doc_refs.py" --quiet || true
+
+exit 0

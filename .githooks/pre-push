@@ -1,0 +1,29 @@
+#!/bin/sh
+# push 前チェック。有効化: git config core.hooksPath .githooks
+#
+# 1. ドキュメント参照ドリフト  … 警告のみ（push はブロックしない）
+# 2. check_doc_refs 自体のテスト … 失敗したら push を止める（小さく速い）
+#
+# 旧 .git/hooks/_pre-push（repo 全体 pytest）は、ツール横断の収集エラーで
+# 現状クリーンに通らないため無効のまま。repo 全体 pytest の是正は別Issue。
+
+if command -v python >/dev/null 2>&1; then
+  PY=python
+elif command -v py >/dev/null 2>&1; then
+  PY=py
+else
+  exit 0
+fi
+
+root="$(git rev-parse --show-toplevel)"
+
+PYTHONIOENCODING=utf-8 "$PY" "$root/scripts/check_doc_refs.py" || true
+
+if "$PY" -m pytest --version >/dev/null 2>&1; then
+  PYTHONIOENCODING=utf-8 "$PY" -m pytest "$root/scripts" -q || {
+    echo "pre-push: scripts/ のテストが失敗しました。push を中止します。" >&2
+    exit 1
+  }
+fi
+
+exit 0

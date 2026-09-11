@@ -1,5 +1,8 @@
 # Pythonコード リファクタリング計画
 
+> 状態: 完了(2025-12)。`refactoring_summary.md` が実施報告。`src/` の
+> `processor.py` / `excel_writer.py` / `config.py` / `constants.py` へ分割済み。
+
 ## 1. 現状の課題分析
 
 `main.py` を中心とした現在のコードベースには、以下の課題が見受けられます。
