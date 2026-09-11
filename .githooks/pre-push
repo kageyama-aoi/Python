@@ -1,0 +1,33 @@
+#!/bin/sh
+# push 前チェック。有効化: git config core.hooksPath .githooks
+#
+# 1. ドキュメント参照ドリフト   … 警告のみ（push はブロックしない）
+# 2. scripts/ 自体のテスト       … 失敗したら push を止める（小さく速く確実）
+# 3. 全ツールの pytest           … 警告のみ（run_all_tests.py がツールごとに
+#                                  独立プロセスで実行。GUI テストはローカルの
+#                                  Tcl/Tk 環境依存で落ちうるためブロックしない）
+#
+# 3 を --check（ブロック）へ昇格するのは、GUI テストが環境非依存で skip/pass
+# するようになってから（#179 参照）。
+
+if command -v python >/dev/null 2>&1; then
+  PY=python
+elif command -v py >/dev/null 2>&1; then
+  PY=py
+else
+  exit 0
+fi
+
+root="$(git rev-parse --show-toplevel)"
+
+PYTHONIOENCODING=utf-8 "$PY" "$root/scripts/check_doc_refs.py" || true
+
+if "$PY" -m pytest --version >/dev/null 2>&1; then
+  PYTHONIOENCODING=utf-8 "$PY" -m pytest "$root/scripts" -q || {
+    echo "pre-push: scripts/ のテストが失敗しました。push を中止します。" >&2
+    exit 1
+  }
+  PYTHONIOENCODING=utf-8 "$PY" "$root/scripts/run_all_tests.py" --warn-only || true
+fi
+
+exit 0

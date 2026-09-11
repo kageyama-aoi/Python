@@ -1,5 +1,9 @@
 # 設計方針（plan）
 
+> 状態: 進行中。`src/handlers/`（csv_loader / column_planner / context_filler /
+> event_aggregator / portal_renderer）は実装済み。末尾「残り」の検索・列フィルタ・
+> 詳細モーダル・複数CSVマージは未着手。
+
 ## 目的
 CSVで管理された「イベント単位の更新履歴」を、静的HTMLの横表として可視化する。将来の検索・フィルタ・詳細モーダル・複数CSVを見据えて、責務分割と設定分離を徹底する。
 
