@@ -35,7 +35,11 @@ class DirectoryOpenerApp:
             return
             
         self.action_handler = ActionHandler(self)
-        
+
+        # ウィンドウ破棄時に予約済みのリロードをキャンセルする（閉じた後に
+        # _perform_reload が走って "invalid command name" を出すのを防ぐ）。
+        self.master.bind("<Destroy>", self._on_master_destroy, add="+")
+
         # --- Main UI Containers (created once) ---
         self.page_container = ttk.Frame(self.master)
         self.page_container.pack(fill=tk.BOTH, expand=True)
@@ -91,10 +95,22 @@ class DirectoryOpenerApp:
         もし既にスケジュールされている再読み込みがあればキャンセルし、
         新しい再読み込みをスケジュールすることで、連続した呼び出しを一度にまとめます。
         """
-        if self._after_id:
-            self.master.after_cancel(self._after_id)
-        
+        self._cancel_pending_reload()
         self._after_id = self.master.after(10, self._perform_reload)
+
+    def _cancel_pending_reload(self):
+        """予約済みの UI リロード（after）があればキャンセルする。"""
+        if self._after_id:
+            try:
+                self.master.after_cancel(self._after_id)
+            except tk.TclError:
+                pass
+            self._after_id = None
+
+    def _on_master_destroy(self, event):
+        """ルートウィンドウ破棄時に予約済みリロードを止める。"""
+        if event.widget is self.master:
+            self._cancel_pending_reload()
 
     def _perform_reload(self):
         """UIを再読み込みする実際の処理。"""
