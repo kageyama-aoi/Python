@@ -1,5 +1,6 @@
 """Tkinterでアプリ本体を組み立てるエントリモジュール。"""
 
+import logging
 import os
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -9,6 +10,8 @@ from .action_handler import ActionHandler
 from .ui_builder import UIBuilder
 from . import constants as C
 from . import theme
+
+logger = logging.getLogger(__name__)
 
 class DirectoryOpenerApp:
     """
@@ -74,7 +77,7 @@ class DirectoryOpenerApp:
                 try:
                     self.master.iconbitmap(window_icon_path)
                 except tk.TclError:
-                    print(f"警告: ウィンドウアイコンを読み込めませんでした: {window_icon_path}")
+                    logger.warning("ウィンドウアイコン読込失敗: %s", window_icon_path)
 
     def _setup_styles(self):
         """ttkウィジェットのスタイルを設定する。"""
@@ -129,8 +132,8 @@ class DirectoryOpenerApp:
         # 5. Show initial page
         initial_page = self.config.get(C.ConfigKey.SETTINGS, {}).get(C.ConfigKey.INITIAL_PAGE, "home")
         self.show_page(initial_page)
-        
-        print("UI reloaded successfully.")
+
+        logger.info("UI再構築完了")
 
     def show_page(self, page_name: str):
         """指定された名前のページを表示し、ウィンドウタイトルを更新する。"""
@@ -156,6 +159,10 @@ class DirectoryOpenerApp:
 
 def main():
     """アプリケーションを起動する。"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     root = tk.Tk()
     app = DirectoryOpenerApp(root)
     if root.winfo_exists():
