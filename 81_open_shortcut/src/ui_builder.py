@@ -135,7 +135,7 @@ class UIBuilder:
             self._create_parameterized_url_entry(parent, entry, icon_folder, default_icon_name)
         else:
             name = entry.get(C.ConfigKey.NAME, "No Name")
-            logger.warning("ボタン省略: 未対応のアクション '%s' - %s", action, name)
+            logger.info("ボタン省略: 未対応のアクション '%s' - %s", action, name)
 
     def _create_simple_action_button(self, parent: ttk.Frame, entry: dict, icon_folder: str, default_icon_name: str | None):
         """シンプルなアクション（ディレクトリ/URLを開く、ページ切替）のボタンを作成する。"""
@@ -176,7 +176,7 @@ class UIBuilder:
                 command = lambda u=url, n=name: self.action_handler.open_url(u, n)
 
         if command is None:
-            logger.warning("ボタン省略: パス/URL/遷移先が未設定 - %s", name)
+            logger.info("ボタン省略: パス/URL/遷移先が未設定 - %s", name)
             return
 
         button_icon = self._load_icon(icon_folder, entry.get(C.ConfigKey.ICON) or default_icon_name, name)
@@ -191,7 +191,7 @@ class UIBuilder:
         parameters_config = entry.get(C.ConfigKey.PARAMETERS, [])
 
         if not base_url:
-            logger.warning("ボタン省略: base_url未設定 - %s", name)
+            logger.info("ボタン省略: base_url未設定 - %s", name)
             return
 
         display_name = f"⚙️ {name}"
